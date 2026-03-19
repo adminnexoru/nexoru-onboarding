@@ -141,27 +141,25 @@ export default function VolumeOperationsForm({
     fontWeight: 500,
   };
 
-  const handleSubmit = () => {
-    const valid = validate();
+const handleSubmit = () => {
+  const valid = validate();
 
-    if (!valid) return;
+  if (!valid) return;
 
-    sessionStorage.setItem(
-      "nexoru_volume_operations",
-      JSON.stringify({
-        monthlyConversations: formData.monthlyConversations,
-        monthlyTickets: formData.monthlyTickets,
-        monthlyBookings: formData.monthlyBookings,
-        averageTicketValue: formData.averageTicketValue,
-        teamSizeOperating: formData.teamSizeOperating,
-        peakDemandNotes: formData.peakDemandNotes,
-      })
-    );
+  sessionStorage.setItem(
+    "nexoru_volume_operations",
+    JSON.stringify({
+      monthlyConversations: formData.monthlyConversations,
+      monthlyTickets: formData.monthlyTickets,
+      monthlyBookings: formData.monthlyBookings,
+      averageTicketValue: formData.averageTicketValue,
+      teamSizeOperating: formData.teamSizeOperating,
+      peakDemandNotes: formData.peakDemandNotes,
+    })
+  );
 
-    alert(
-      "Volumen y operación capturados. La siguiente pantalla se construirá en la siguiente HU."
-    );
-  };
+  window.location.href = "/onboarding/package-recommendation";
+};
 
   return (
     <div
@@ -224,9 +222,9 @@ export default function VolumeOperationsForm({
         }}
       >
         <div>
-          <label style={labelStyle}>Conversaciones por mes</label>
+          <label style={labelStyle}>Conversaciones por mes *</label>
           <p style={helpTextStyle}>
-            Estimado mensual de conversaciones por WhatsApp u otro canal similar.
+            Estimado mensual de conversaciones por WhatsApp u otro canal similar. Captura al menos uno de los volúmenes de esta sección.
           </p>
           <input
             type="text"
