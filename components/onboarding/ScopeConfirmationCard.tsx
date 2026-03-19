@@ -30,24 +30,22 @@ export default function ScopeConfirmationCard({
 
   const canContinue = useMemo(() => acceptedScope, [acceptedScope]);
 
-  const handleContinue = () => {
+    const handleContinue = () => {
     if (!acceptedScope) {
-      setError("Debes confirmar que entiendes el alcance para continuar.");
-      return;
+        setError("Debes confirmar que entiendes el alcance para continuar.");
+        return;
     }
 
     sessionStorage.setItem(
-      "nexoru_scope_confirmation",
-      JSON.stringify({
+        "nexoru_scope_confirmation",
+        JSON.stringify({
         acceptedScope: true,
         selectedAddons,
-      })
+        })
     );
 
-    alert(
-      "Scope confirmado. La siguiente pantalla se construirá en la siguiente HU."
-    );
-  };
+    window.location.href = "/onboarding/executive-summary";
+    };
 
   return (
     <div
