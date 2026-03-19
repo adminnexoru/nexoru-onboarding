@@ -69,7 +69,7 @@ export default function BusinessProfileForm({
     }
 
     if (!formData.industry.trim()) {
-      newErrors.industry = "La industria o giro es obligatorio.";
+      newErrors.industry = "La industria o giro es obligatoria.";
     }
 
     if (!formData.country.trim()) {
@@ -104,139 +104,227 @@ export default function BusinessProfileForm({
 
     if (!valid) return;
 
-    // En HU 2.1 todavía no persistimos backend.
-    // Dejamos la navegación lista para la siguiente pantalla.
+    sessionStorage.setItem(
+      "nexoru_business_profile",
+      JSON.stringify({
+        commercialName: formData.commercialName,
+        industry: formData.industry,
+        country: formData.country,
+        city: formData.city,
+        whatsapp: formData.whatsapp,
+      })
+    );
+
     window.location.href = "/onboarding/primary-goal";
   };
 
-  const inputClassName =
-    "mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-[#2B2F36] outline-none transition focus:border-[#3A3D91] focus:ring-2 focus:ring-[#E8EBF8]";
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    height: "56px",
+    borderRadius: "14px",
+    border: "1px solid #D1D5DB",
+    backgroundColor: "#FFFFFF",
+    padding: "0 16px",
+    fontSize: "16px",
+    color: "#2B2F36",
+    outline: "none",
+  };
 
-  const labelClassName = "text-sm font-medium text-[#2B2F36]";
-  const errorClassName = "mt-2 text-sm text-red-600";
+  const labelStyle: React.CSSProperties = {
+    display: "block",
+    fontSize: "16px",
+    fontWeight: 600,
+    color: "#2B2F36",
+    marginBottom: "10px",
+  };
+
+  const errorStyle: React.CSSProperties = {
+    marginTop: "10px",
+    fontSize: "14px",
+    color: "#DC2626",
+    fontWeight: 500,
+  };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-      <div className="mb-8">
-        <span className="mb-4 inline-block rounded-full bg-[#E8EBF8] px-3 py-1 text-sm font-medium text-[#3A3D91]">
+    <div
+      style={{
+        backgroundColor: "#FFFFFF",
+        border: "1px solid #E5E7EB",
+        borderRadius: "24px",
+        padding: "40px",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+      }}
+    >
+      <div style={{ marginBottom: "32px" }}>
+        <div
+          style={{
+            display: "inline-block",
+            backgroundColor: "#E8EBF8",
+            color: "#3A3D91",
+            fontSize: "14px",
+            fontWeight: 500,
+            padding: "8px 14px",
+            borderRadius: "999px",
+            marginBottom: "18px",
+          }}
+        >
           Paso 2 · Perfil del negocio
-        </span>
+        </div>
 
-        <h2 className="mb-3 text-3xl font-semibold text-[#2B2F36]">
+        <h2
+          style={{
+            fontSize: "42px",
+            lineHeight: 1.1,
+            fontWeight: 700,
+            color: "#2B2F36",
+            margin: "0 0 16px",
+          }}
+        >
           Cuéntanos sobre tu negocio
         </h2>
 
-        <p className="max-w-2xl text-base leading-7 text-[#4A4F57]">
+        <p
+          style={{
+            fontSize: "19px",
+            lineHeight: 1.6,
+            color: "#4A4F57",
+            maxWidth: "860px",
+            margin: 0,
+          }}
+        >
           Necesitamos entender el contexto base de tu operación para diseñar la
           mejor implementación Nexoru.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "24px 28px",
+          marginBottom: "36px",
+        }}
+      >
         <div>
-          <label className={labelClassName}>Nombre legal del negocio</label>
+          <label style={labelStyle}>Nombre legal del negocio</label>
           <input
             type="text"
             value={formData.legalName}
             onChange={(e) => updateField("legalName", e.target.value)}
-            className={inputClassName}
             placeholder="Ej. Comercializadora Nexoru S.A. de C.V."
+            style={inputStyle}
           />
         </div>
 
         <div>
-          <label className={labelClassName}>Nombre comercial *</label>
+          <label style={labelStyle}>Nombre comercial *</label>
           <input
             type="text"
             value={formData.commercialName}
             onChange={(e) => updateField("commercialName", e.target.value)}
-            className={inputClassName}
             placeholder="Ej. Nexoru"
+            style={inputStyle}
           />
           {errors.commercialName && (
-            <p className={errorClassName}>{errors.commercialName}</p>
+            <p style={errorStyle}>{errors.commercialName}</p>
           )}
         </div>
 
         <div>
-          <label className={labelClassName}>Industria / giro *</label>
+          <label style={labelStyle}>Industria / giro *</label>
           <input
             type="text"
             value={formData.industry}
             onChange={(e) => updateField("industry", e.target.value)}
-            className={inputClassName}
             placeholder="Ej. Retail, Educación, Servicios"
+            style={inputStyle}
           />
-          {errors.industry && (
-            <p className={errorClassName}>{errors.industry}</p>
-          )}
+          {errors.industry && <p style={errorStyle}>{errors.industry}</p>}
         </div>
 
         <div>
-          <label className={labelClassName}>País *</label>
+          <label style={labelStyle}>País *</label>
           <input
             type="text"
             value={formData.country}
             onChange={(e) => updateField("country", e.target.value)}
-            className={inputClassName}
             placeholder="Ej. México"
+            style={inputStyle}
           />
-          {errors.country && <p className={errorClassName}>{errors.country}</p>}
+          {errors.country && <p style={errorStyle}>{errors.country}</p>}
         </div>
 
         <div>
-          <label className={labelClassName}>Ciudad *</label>
+          <label style={labelStyle}>Ciudad *</label>
           <input
             type="text"
             value={formData.city}
             onChange={(e) => updateField("city", e.target.value)}
-            className={inputClassName}
             placeholder="Ej. Ciudad de México"
+            style={inputStyle}
           />
-          {errors.city && <p className={errorClassName}>{errors.city}</p>}
+          {errors.city && <p style={errorStyle}>{errors.city}</p>}
         </div>
 
         <div>
-          <label className={labelClassName}>Sitio web o Instagram</label>
+          <label style={labelStyle}>Sitio web o Instagram</label>
           <input
             type="text"
             value={formData.websiteOrInstagram}
             onChange={(e) => updateField("websiteOrInstagram", e.target.value)}
-            className={inputClassName}
             placeholder="Ej. https://... o @negocio"
+            style={inputStyle}
           />
         </div>
 
         <div>
-          <label className={labelClassName}>WhatsApp principal *</label>
+          <label style={labelStyle}>WhatsApp principal *</label>
           <input
             type="text"
             value={formData.whatsapp}
             onChange={(e) => updateField("whatsapp", e.target.value)}
-            className={inputClassName}
             placeholder="Ej. +52 55 1234 5678"
+            style={inputStyle}
           />
-          {errors.whatsapp && (
-            <p className={errorClassName}>{errors.whatsapp}</p>
-          )}
+          {errors.whatsapp && <p style={errorStyle}>{errors.whatsapp}</p>}
         </div>
 
         <div>
-          <label className={labelClassName}>Horario de operación</label>
+          <label style={labelStyle}>Horario de operación</label>
           <input
             type="text"
             value={formData.operatingHours}
             onChange={(e) => updateField("operatingHours", e.target.value)}
-            className={inputClassName}
             placeholder="Ej. Lun-Vie 9:00 a 18:00"
+            style={inputStyle}
           />
         </div>
       </div>
 
-      <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "16px",
+          marginTop: "8px",
+        }}
+      >
         <Link
           href="/onboarding/start"
-          className="inline-flex items-center justify-center rounded-xl border border-gray-300 px-5 py-3 text-sm font-medium text-[#2B2F36] transition hover:bg-gray-50"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "1px solid #D1D5DB",
+            backgroundColor: "#FFFFFF",
+            color: "#2B2F36",
+            borderRadius: "14px",
+            padding: "14px 22px",
+            fontSize: "15px",
+            fontWeight: 600,
+            textDecoration: "none",
+          }}
         >
           Atrás
         </Link>
@@ -244,11 +332,16 @@ export default function BusinessProfileForm({
         <button
           type="button"
           onClick={handleSubmit}
-          className={`inline-flex items-center justify-center rounded-xl px-6 py-3 text-sm font-medium text-white transition ${
-            isFormValid
-              ? "bg-[#2B2F36] hover:bg-[#1f2329]"
-              : "cursor-not-allowed bg-gray-400"
-          }`}
+          style={{
+            border: "none",
+            backgroundColor: isFormValid ? "#2B2F36" : "#9CA3AF",
+            color: "#FFFFFF",
+            borderRadius: "14px",
+            padding: "14px 24px",
+            fontSize: "15px",
+            fontWeight: 600,
+            cursor: isFormValid ? "pointer" : "not-allowed",
+          }}
         >
           Siguiente
         </button>
