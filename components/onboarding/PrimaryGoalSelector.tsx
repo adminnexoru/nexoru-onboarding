@@ -138,7 +138,17 @@ export default function PrimaryGoalSelector({
       return;
     }
 
-    alert("Objetivo principal capturado. La siguiente pantalla se construirá en la siguiente HU.");
+    sessionStorage.setItem(
+      "nexoru_primary_goal",
+      JSON.stringify({
+        selectedGoal,
+        goalLabel: getGoalLabel(selectedGoal),
+        suggestedPackage,
+        secondaryNeeds: selectedSecondaryNeeds,
+      })
+    );
+
+    window.location.href = "/onboarding/current-process";
   };
 
   return (
