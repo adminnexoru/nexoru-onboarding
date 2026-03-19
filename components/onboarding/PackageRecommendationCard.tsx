@@ -246,14 +246,12 @@ export default function PackageRecommendationCard({
         <button
           type="button"
           onClick={() => {
-            sessionStorage.setItem(
-              "nexoru_package_recommendation",
-              JSON.stringify(recommendation)
-            );
-            alert(
-              "Recomendación confirmada. La siguiente pantalla se construirá en la siguiente HU."
-            );
-          }}
+                sessionStorage.setItem(
+                    "nexoru_package_recommendation",
+                    JSON.stringify(recommendation)
+                );
+                window.location.href = "/onboarding/scope-confirmation";
+                }}
           style={{
             border: "none",
             backgroundColor: "#2B2F36",
