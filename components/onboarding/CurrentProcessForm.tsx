@@ -104,24 +104,22 @@ export default function CurrentProcessForm({
   };
 
   const handleSubmit = () => {
-    const valid = validate();
+  const valid = validate();
 
-    if (!valid) return;
+  if (!valid) return;
 
-    sessionStorage.setItem(
-      "nexoru_current_process",
-      JSON.stringify({
-        processDescription: formData.processDescription,
-        manualSteps: formData.manualSteps,
-        currentTools: formData.currentTools,
-        painPoints: formData.painPoints,
-      })
-    );
+  sessionStorage.setItem(
+    "nexoru_current_process",
+    JSON.stringify({
+      processDescription: formData.processDescription,
+      manualSteps: formData.manualSteps,
+      currentTools: formData.currentTools,
+      painPoints: formData.painPoints,
+    })
+  );
 
-    alert(
-      "Proceso actual capturado. La siguiente pantalla se construirá en la siguiente HU."
-    );
-  };
+  window.location.href = "/onboarding/volume-operations";
+};
 
   return (
     <div
