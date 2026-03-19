@@ -1,36 +1,45 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 
-type ExecutiveSummaryCardProps = {
-  businessName: string;
-  industry: string;
-  goal: string;
+type PaymentTriggerCardProps = {
   packageName: string;
   setupPrice: string;
   monthlyPrice: string;
-  selectedAddons: string[];
 };
 
-export default function ExecutiveSummaryCard({
-  businessName,
-  industry,
-  goal,
+export default function PaymentTriggerCard({
   packageName,
   setupPrice,
   monthlyPrice,
-  selectedAddons,
-}: ExecutiveSummaryCardProps) {
-const handleContinue = () => {
-  sessionStorage.setItem(
-    "nexoru_executive_summary_ready",
-    JSON.stringify({
-      readyForPayment: true,
-    })
-  );
+}: PaymentTriggerCardProps) {
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  window.location.href = "/onboarding/payment";
-};
+  const handlePaymentStart = () => {
+    setIsProcessing(true);
+
+    const paymentPayload = {
+      packageName,
+      setupPrice,
+      monthlyPrice,
+      paymentStatus: "initiated",
+      paymentProvider: "mock",
+      startedAt: new Date().toISOString(),
+    };
+
+    sessionStorage.setItem(
+      "nexoru_payment_trigger",
+      JSON.stringify(paymentPayload)
+    );
+
+    setTimeout(() => {
+      setIsProcessing(false);
+      alert(
+        "Pago iniciado correctamente. La integración real con el proveedor de pago se construirá en la siguiente fase."
+      );
+    }, 700);
+  };
 
   return (
     <div
@@ -55,7 +64,7 @@ const handleContinue = () => {
             marginBottom: "18px",
           }}
         >
-          Resumen ejecutivo
+          Activación de pago
         </div>
 
         <h2
@@ -67,7 +76,7 @@ const handleContinue = () => {
             margin: "0 0 16px",
           }}
         >
-          Tu configuración Nexoru está lista
+          Activa tu proyecto Nexoru
         </h2>
 
         <p
@@ -79,9 +88,9 @@ const handleContinue = () => {
             margin: 0,
           }}
         >
-          Este es el resumen consolidado de tu onboarding. Aquí puedes revisar
-          el contexto del negocio, la solución recomendada y la inversión
-          estimada antes de pasar al pago.
+          El siguiente paso es activar el pago del setup inicial para arrancar
+          formalmente tu proyecto y habilitar la generación operativa de
+          documentos, estructura y handoff técnico.
         </p>
       </div>
 
@@ -109,57 +118,32 @@ const handleContinue = () => {
               margin: "0 0 18px",
             }}
           >
-            Resumen del caso
+            ¿Qué activa este pago?
           </h3>
 
           <div style={{ display: "grid", gap: "14px" }}>
-            <div
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: "1px solid #E5E7EB",
-                borderRadius: "14px",
-                padding: "14px 16px",
-              }}
-            >
-              <strong style={{ color: "#2B2F36" }}>Negocio:</strong>{" "}
-              <span style={{ color: "#4A4F57" }}>{businessName}</span>
-            </div>
-
-            <div
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: "1px solid #E5E7EB",
-                borderRadius: "14px",
-                padding: "14px 16px",
-              }}
-            >
-              <strong style={{ color: "#2B2F36" }}>Industria:</strong>{" "}
-              <span style={{ color: "#4A4F57" }}>{industry}</span>
-            </div>
-
-            <div
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: "1px solid #E5E7EB",
-                borderRadius: "14px",
-                padding: "14px 16px",
-              }}
-            >
-              <strong style={{ color: "#2B2F36" }}>Objetivo principal:</strong>{" "}
-              <span style={{ color: "#4A4F57" }}>{goal}</span>
-            </div>
-
-            <div
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: "1px solid #E5E7EB",
-                borderRadius: "14px",
-                padding: "14px 16px",
-              }}
-            >
-              <strong style={{ color: "#2B2F36" }}>Paquete recomendado:</strong>{" "}
-              <span style={{ color: "#4A4F57" }}>{packageName}</span>
-            </div>
+            {[
+              "Inicio formal del proyecto",
+              "Bloqueo del alcance acordado",
+              "Preparación de activos internos",
+              "Base para Config Pack y handoff operativo",
+              "Arranque del flujo de implementación Nexoru",
+            ].map((item) => (
+              <div
+                key={item}
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "14px",
+                  padding: "14px 16px",
+                  fontSize: "15px",
+                  color: "#2B2F36",
+                  lineHeight: 1.5,
+                }}
+              >
+                {item}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -179,10 +163,38 @@ const handleContinue = () => {
               margin: "0 0 18px",
             }}
           >
-            Inversión estimada
+            Resumen de activación
           </h3>
 
           <div style={{ display: "grid", gap: "16px" }}>
+            <div
+              style={{
+                backgroundColor: "#F8F9FC",
+                border: "1px solid #E5E7EB",
+                borderRadius: "16px",
+                padding: "18px",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "14px",
+                  color: "#6B7280",
+                  marginBottom: "6px",
+                }}
+              >
+                Paquete
+              </div>
+              <div
+                style={{
+                  fontSize: "22px",
+                  fontWeight: 700,
+                  color: "#2B2F36",
+                }}
+              >
+                {packageName}
+              </div>
+            </div>
+
             <div
               style={{
                 backgroundColor: "#F8F9FC",
@@ -226,11 +238,11 @@ const handleContinue = () => {
                   marginBottom: "6px",
                 }}
               >
-                Mensualidad
+                Mensualidad estimada posterior
               </div>
               <div
                 style={{
-                  fontSize: "30px",
+                  fontSize: "24px",
                   fontWeight: 700,
                   color: "#2B2F36",
                 }}
@@ -240,65 +252,6 @@ const handleContinue = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      <div
-        style={{
-          marginBottom: "28px",
-          backgroundColor: "#FFFFFF",
-          border: "1px solid #E5E7EB",
-          borderRadius: "20px",
-          padding: "24px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "24px",
-            fontWeight: 700,
-            color: "#2B2F36",
-            margin: "0 0 18px",
-          }}
-        >
-          Add-ons seleccionados
-        </h3>
-
-        {selectedAddons.length > 0 ? (
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "12px",
-            }}
-          >
-            {selectedAddons.map((addon) => (
-              <div
-                key={addon}
-                style={{
-                  border: "1px solid #3A3D91",
-                  backgroundColor: "#EEF1FF",
-                  color: "#2B2F36",
-                  borderRadius: "999px",
-                  padding: "10px 16px",
-                  fontSize: "15px",
-                  fontWeight: 500,
-                }}
-              >
-                {addon}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p
-            style={{
-              margin: 0,
-              fontSize: "16px",
-              color: "#6B7280",
-              lineHeight: 1.6,
-            }}
-          >
-            No seleccionaste add-ons opcionales en esta etapa.
-          </p>
-        )}
       </div>
 
       <div
@@ -318,7 +271,7 @@ const handleContinue = () => {
             margin: "0 0 12px",
           }}
         >
-          Siguiente paso
+          Nota importante
         </h3>
 
         <p
@@ -329,9 +282,9 @@ const handleContinue = () => {
             color: "#4A4F57",
           }}
         >
-          En la siguiente pantalla activaremos el pago del setup inicial para
-          dar arranque formal al proyecto y disparar la creación automática de
-          activos internos del onboarding Nexoru.
+          En esta versión del MVP, el pago se simula para validar la experiencia
+          end-to-end del onboarding. La integración real con Mercado Pago se
+          conectará en la siguiente fase técnica.
         </p>
       </div>
 
@@ -345,7 +298,7 @@ const handleContinue = () => {
         }}
       >
         <Link
-          href="/onboarding/scope-confirmation"
+          href="/onboarding/executive-summary"
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -365,19 +318,20 @@ const handleContinue = () => {
 
         <button
           type="button"
-          onClick={handleContinue}
+          onClick={handlePaymentStart}
+          disabled={isProcessing}
           style={{
             border: "none",
-            backgroundColor: "#2B2F36",
+            backgroundColor: isProcessing ? "#9CA3AF" : "#2B2F36",
             color: "#FFFFFF",
             borderRadius: "14px",
             padding: "14px 24px",
             fontSize: "15px",
             fontWeight: 600,
-            cursor: "pointer",
+            cursor: isProcessing ? "not-allowed" : "pointer",
           }}
         >
-          Continuar a pago
+          {isProcessing ? "Iniciando..." : "Iniciar pago de setup"}
         </button>
       </div>
     </div>
