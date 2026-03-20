@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "../../../../lib/prisma";
 import { createSessionToken } from "@/lib/onboarding-session";
 import { createOnboardingSessionSchema } from "@/lib/validators/onboarding";
 

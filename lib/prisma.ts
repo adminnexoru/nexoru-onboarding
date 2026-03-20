@@ -3,8 +3,8 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-  pgPool: Pool | undefined;
+  prisma?: PrismaClient;
+  pgPool?: Pool;
 };
 
 const connectionString =
@@ -20,7 +20,9 @@ const pool =
     connectionString,
   });
 
-const adapter = new PrismaPg(pool);
+const adapter = new PrismaPg(
+  pool as unknown as ConstructorParameters<typeof PrismaPg>[0]
+);
 
 export const prisma =
   globalForPrisma.prisma ??

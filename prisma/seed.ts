@@ -3,7 +3,6 @@ import { PrismaClient, AddonPriceType } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-// 🔥 IMPORTANTE: usar DIRECT_URL para seed
 const connectionString =
   process.env.DIRECT_URL || process.env.DATABASE_URL;
 
@@ -15,14 +14,15 @@ const pool = new Pool({
   connectionString,
 });
 
-const adapter = new PrismaPg(pool);
+const adapter = new PrismaPg(
+  pool as unknown as ConstructorParameters<typeof PrismaPg>[0]
+);
 
 const prisma = new PrismaClient({
   adapter,
 });
 
 async function main() {
-  // limpiar
   await prisma.packageAddon.deleteMany();
   await prisma.packageIncludedItem.deleteMany();
   await prisma.packageExcludedItem.deleteMany();
@@ -31,7 +31,6 @@ async function main() {
   await prisma.addon.deleteMany();
   await prisma.package.deleteMany();
 
-  // paquetes
   const base0 = await prisma.package.create({
     data: {
       code: "base0",
@@ -76,22 +75,41 @@ async function main() {
     },
   });
 
-  // addons
   const addons = await Promise.all([
     prisma.addon.create({
-      data: { code: "payments", name: "Pagos", priceType: AddonPriceType.CUSTOM },
+      data: {
+        code: "payments",
+        name: "Pagos",
+        priceType: AddonPriceType.CUSTOM,
+      },
     }),
     prisma.addon.create({
-      data: { code: "dashboard", name: "Dashboard", priceType: AddonPriceType.CUSTOM },
+      data: {
+        code: "dashboard",
+        name: "Dashboard",
+        priceType: AddonPriceType.CUSTOM,
+      },
     }),
     prisma.addon.create({
-      data: { code: "agenda", name: "Agenda", priceType: AddonPriceType.CUSTOM },
+      data: {
+        code: "agenda",
+        name: "Agenda",
+        priceType: AddonPriceType.CUSTOM,
+      },
     }),
     prisma.addon.create({
-      data: { code: "delivery", name: "Delivery", priceType: AddonPriceType.CUSTOM },
+      data: {
+        code: "delivery",
+        name: "Delivery",
+        priceType: AddonPriceType.CUSTOM,
+      },
     }),
     prisma.addon.create({
-      data: { code: "campaigns", name: "Campañas", priceType: AddonPriceType.CUSTOM },
+      data: {
+        code: "campaigns",
+        name: "Campañas",
+        priceType: AddonPriceType.CUSTOM,
+      },
     }),
   ]);
 
@@ -119,8 +137,8 @@ main()
     await prisma.$disconnect();
     await pool.end();
   })
-  .catch(async (e) => {
-    console.error(e);
+  .catch(async (error) => {
+    console.error(error);
     await prisma.$disconnect();
     await pool.end();
     process.exit(1);
