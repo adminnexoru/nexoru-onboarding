@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type BusinessProfileFormData = {
   legalName: string;
@@ -15,6 +15,8 @@ type BusinessProfileFormData = {
 };
 
 type BusinessProfileFormProps = {
+  sessionToken: string;
+  initialValues: BusinessProfileFormData;
   onSummaryChange?: (data: {
     businessName?: string;
     industry?: string;
@@ -23,22 +25,19 @@ type BusinessProfileFormProps = {
 
 type FormErrors = Partial<Record<keyof BusinessProfileFormData, string>>;
 
-const initialFormData: BusinessProfileFormData = {
-  legalName: "",
-  commercialName: "",
-  industry: "",
-  country: "",
-  city: "",
-  websiteOrInstagram: "",
-  whatsapp: "",
-  operatingHours: "",
-};
-
 export default function BusinessProfileForm({
+  sessionToken,
+  initialValues,
   onSummaryChange,
 }: BusinessProfileFormProps) {
-  const [formData, setFormData] = useState<BusinessProfileFormData>(initialFormData);
+  const [formData, setFormData] = useState<BusinessProfileFormData>(initialValues);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  useEffect(() => {
+    setFormData(initialValues);
+  }, [initialValues]);
 
   const updateField = (field: keyof BusinessProfileFormData, value: string) => {
     const nextData = {
@@ -99,23 +98,50 @@ export default function BusinessProfileForm({
     );
   }, [formData]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const valid = validate();
 
     if (!valid) return;
 
-    sessionStorage.setItem(
-      "nexoru_business_profile",
-      JSON.stringify({
-        commercialName: formData.commercialName,
-        industry: formData.industry,
-        country: formData.country,
-        city: formData.city,
-        whatsapp: formData.whatsapp,
-      })
-    );
+    try {
+      setIsSaving(true);
+      setSubmitError("");
 
-    window.location.href = "/onboarding/primary-goal";
+      const response = await fetch("/api/onboarding/business-profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sessionToken,
+          businessProfile: {
+            legalName: formData.legalName || null,
+            commercialName: formData.commercialName,
+            industry: formData.industry,
+            country: formData.country,
+            city: formData.city,
+            websiteOrInstagram: formData.websiteOrInstagram || null,
+            whatsapp: formData.whatsapp,
+            operatingHours: formData.operatingHours || null,
+          },
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result?.ok) {
+        throw new Error(result?.error || "No fue posible guardar la información");
+      }
+
+      window.location.href = "/onboarding/primary-goal";
+    } catch (error) {
+      console.error(error);
+      setSubmitError(
+        "No fue posible guardar el perfil del negocio. Intenta nuevamente."
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const inputStyle: React.CSSProperties = {
@@ -225,9 +251,9 @@ export default function BusinessProfileForm({
             placeholder="Ej. Nexoru"
             style={inputStyle}
           />
-          {errors.commercialName && (
+          {errors.commercialName ? (
             <p style={errorStyle}>{errors.commercialName}</p>
-          )}
+          ) : null}
         </div>
 
         <div>
@@ -239,7 +265,7 @@ export default function BusinessProfileForm({
             placeholder="Ej. Retail, Educación, Servicios"
             style={inputStyle}
           />
-          {errors.industry && <p style={errorStyle}>{errors.industry}</p>}
+          {errors.industry ? <p style={errorStyle}>{errors.industry}</p> : null}
         </div>
 
         <div>
@@ -251,7 +277,7 @@ export default function BusinessProfileForm({
             placeholder="Ej. México"
             style={inputStyle}
           />
-          {errors.country && <p style={errorStyle}>{errors.country}</p>}
+          {errors.country ? <p style={errorStyle}>{errors.country}</p> : null}
         </div>
 
         <div>
@@ -263,7 +289,7 @@ export default function BusinessProfileForm({
             placeholder="Ej. Ciudad de México"
             style={inputStyle}
           />
-          {errors.city && <p style={errorStyle}>{errors.city}</p>}
+          {errors.city ? <p style={errorStyle}>{errors.city}</p> : null}
         </div>
 
         <div>
@@ -286,7 +312,7 @@ export default function BusinessProfileForm({
             placeholder="Ej. +52 55 1234 5678"
             style={inputStyle}
           />
-          {errors.whatsapp && <p style={errorStyle}>{errors.whatsapp}</p>}
+          {errors.whatsapp ? <p style={errorStyle}>{errors.whatsapp}</p> : null}
         </div>
 
         <div>
@@ -300,6 +326,23 @@ export default function BusinessProfileForm({
           />
         </div>
       </div>
+
+      {submitError ? (
+        <div
+          style={{
+            marginBottom: "18px",
+            border: "1px solid #FECACA",
+            backgroundColor: "#FEF2F2",
+            color: "#B91C1C",
+            borderRadius: "14px",
+            padding: "14px 16px",
+            fontSize: "14px",
+            fontWeight: 500,
+          }}
+        >
+          {submitError}
+        </div>
+      ) : null}
 
       <div
         style={{
@@ -332,18 +375,21 @@ export default function BusinessProfileForm({
         <button
           type="button"
           onClick={handleSubmit}
+          disabled={!isFormValid || isSaving}
           style={{
             border: "none",
-            backgroundColor: isFormValid ? "#2B2F36" : "#9CA3AF",
+            backgroundColor:
+              !isFormValid || isSaving ? "#9CA3AF" : "#2B2F36",
             color: "#FFFFFF",
             borderRadius: "14px",
             padding: "14px 24px",
             fontSize: "15px",
             fontWeight: 600,
-            cursor: isFormValid ? "pointer" : "not-allowed",
+            cursor:
+              !isFormValid || isSaving ? "not-allowed" : "pointer",
           }}
         >
-          Siguiente
+          {isSaving ? "Guardando..." : "Siguiente"}
         </button>
       </div>
     </div>

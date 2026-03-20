@@ -1,0 +1,248 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+enum OnboardingStatus {
+  STARTED
+  IN_PROGRESS
+  SCOPE_CONFIRMED
+  PAYMENT_READY
+  PAYMENT_INITIATED
+}
+
+enum AddonPriceType {
+  ONE_TIME
+  MONTHLY
+  CUSTOM
+}
+
+model Organization {
+  id                 String              @id @default(cuid())
+  legalName          String?
+  commercialName     String?
+  industry           String?
+  country            String?
+  city               String?
+  websiteOrInstagram String?
+  whatsapp           String?
+  operatingHours     String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  onboardingSessions OnboardingSession[]
+}
+
+model OnboardingSession {
+  id                  String                   @id @default(cuid())
+  sessionToken        String                   @unique
+  status              OnboardingStatus         @default(STARTED)
+  currentStep         String                   @default("start")
+  organizationId      String?
+  recommendedPackageId String?
+  setupPriceSnapshot  Decimal?                 @db.Decimal(10, 2)
+  monthlyPriceSnapshot Decimal?                @db.Decimal(10, 2)
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+
+  organization        Organization?            @relation(fields: [organizationId], references: [id])
+  recommendedPackage  Package?                 @relation(fields: [recommendedPackageId], references: [id])
+
+  businessProfile     OnboardingBusinessProfile?
+  primaryGoal         OnboardingPrimaryGoal?
+  currentProcess      OnboardingCurrentProcess?
+  volumeOperations    OnboardingVolumeOperations?
+  secondaryNeeds      OnboardingSecondaryNeed[]
+  selectedAddons      OnboardingSelectedAddon[]
+  scopeConfirmation   ScopeConfirmation?
+  paymentAttempts     PaymentAttempt[]
+}
+
+model OnboardingBusinessProfile {
+  id                 String             @id @default(cuid())
+  sessionId          String             @unique
+  legalName          String?
+  commercialName     String
+  industry           String
+  country            String
+  city               String
+  websiteOrInstagram String?
+  whatsapp           String
+  operatingHours     String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  session            OnboardingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model OnboardingPrimaryGoal {
+  id                String             @id @default(cuid())
+  sessionId         String             @unique
+  primaryGoalCode   String
+  primaryGoalLabel  String
+  suggestedPackageId String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  session           OnboardingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  suggestedPackage  Package?           @relation(fields: [suggestedPackageId], references: [id])
+}
+
+model OnboardingSecondaryNeed {
+  id         String             @id @default(cuid())
+  sessionId  String
+  needCode   String
+  createdAt  DateTime           @default(now())
+
+  session    OnboardingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, needCode])
+}
+
+model OnboardingCurrentProcess {
+  id                 String             @id @default(cuid())
+  sessionId          String             @unique
+  processDescription String
+  manualSteps        String?
+  currentTools       String?
+  painPoints         String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  session            OnboardingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model OnboardingVolumeOperations {
+  id                   String             @id @default(cuid())
+  sessionId            String             @unique
+  monthlyConversations Int?
+  monthlyTickets       Int?
+  monthlyBookings      Int?
+  averageTicketValue   Decimal?           @db.Decimal(10, 2)
+  teamSizeOperating    Int
+  peakDemandNotes      String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  session              OnboardingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model Package {
+  id               String                      @id @default(cuid())
+  code             String                      @unique
+  name             String
+  description      String?
+  setupPrice       Decimal                     @db.Decimal(10, 2)
+  monthlyPrice     Decimal                     @db.Decimal(10, 2)
+  isActive         Boolean                     @default(true)
+  sortOrder        Int                         @default(0)
+  createdAt        DateTime                    @default(now())
+  updatedAt        DateTime                    @updatedAt
+
+  includedItems    PackageIncludedItem[]
+  excludedItems    PackageExcludedItem[]
+  packageAddons    PackageAddon[]
+  recommendationRules PackageRecommendationRule[]
+  onboardingSessions OnboardingSession[]
+  suggestedGoals   OnboardingPrimaryGoal[]
+}
+
+model PackageIncludedItem {
+  id         String   @id @default(cuid())
+  packageId  String
+  label      String
+  sortOrder  Int      @default(0)
+
+  package    Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+}
+
+model PackageExcludedItem {
+  id         String   @id @default(cuid())
+  packageId  String
+  label      String
+  sortOrder  Int      @default(0)
+
+  package    Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+}
+
+model Addon {
+  id          String             @id @default(cuid())
+  code        String             @unique
+  name        String
+  description String?
+  priceType   AddonPriceType
+  priceAmount Decimal?           @db.Decimal(10, 2)
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  packageAddons   PackageAddon[]
+  selectedAddons  OnboardingSelectedAddon[]
+}
+
+model PackageAddon {
+  id         String   @id @default(cuid())
+  packageId  String
+  addonId    String
+
+  package    Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  addon      Addon    @relation(fields: [addonId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, addonId])
+}
+
+model OnboardingSelectedAddon {
+  id         String             @id @default(cuid())
+  sessionId  String
+  addonId    String
+  createdAt  DateTime           @default(now())
+
+  session    OnboardingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  addon      Addon              @relation(fields: [addonId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, addonId])
+}
+
+model PackageRecommendationRule {
+  id               String   @id @default(cuid())
+  goalCode         String
+  packageId        String
+  priority         Int      @default(0)
+  minConversations Int?
+  maxConversations Int?
+  minTickets       Int?
+  maxTickets       Int?
+  minBookings      Int?
+  maxBookings      Int?
+  minTeamSize      Int?
+  maxTeamSize      Int?
+  notes            String?
+
+  package          Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+}
+
+model ScopeConfirmation {
+  id             String             @id @default(cuid())
+  sessionId      String             @unique
+  acceptedScope  Boolean
+  confirmedAt    DateTime           @default(now())
+
+  session        OnboardingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model PaymentAttempt {
+  id               String             @id @default(cuid())
+  sessionId        String
+  provider         String
+  status           String
+  setupAmount      Decimal            @db.Decimal(10, 2)
+  paymentReference String?
+  paymentUrl       String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  session          OnboardingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
