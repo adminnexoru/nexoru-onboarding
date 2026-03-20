@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { businessProfilePayloadSchema } from "@/lib/validators/onboarding";
+
+type TransactionClient = Omit<
+  PrismaClient,
+  "$connect" | "$disconnect" | "$on" | "$transaction" | "$extends"
+>;
 
 export async function POST(request: Request) {
   try {
@@ -41,7 +46,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const result = await prisma.$transaction(async (tx: TransactionClient) => {
       let organizationId = session.organizationId;
 
       if (organizationId) {
