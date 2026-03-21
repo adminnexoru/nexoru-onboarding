@@ -11,11 +11,17 @@ type SummaryData = {
 };
 
 type Props = {
+  children: React.ReactNode;
   step: number;
   totalSteps: number;
   progress: number;
-  summary: SummaryData;
-  children: ReactNode;
+  summary: {
+    businessName: string;
+    industry: string;
+    goal: string;
+    packageName: string;
+  };
+  isLoading?: boolean; // ✅ FIX
 };
 
 export default function AppShell({
@@ -24,6 +30,11 @@ export default function AppShell({
   progress,
   summary,
   children,
+  {isLoading ? (
+  <div className="animate-pulse">Cargando...</div>
+) : (
+  children
+)}
 }: Props) {
   return (
     <div className="shell">
