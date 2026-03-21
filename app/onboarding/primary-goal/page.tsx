@@ -3,53 +3,152 @@
 import { useEffect, useState } from "react";
 import AppShell from "@/components/layout/AppShell";
 import PrimaryGoalSelector from "@/components/onboarding/PrimaryGoalSelector";
+import PrimaryGoalPageSkeleton from "@/components/onboarding/PrimaryGoalPageSkeleton";
+import { getOnboardingSessionToken } from "@/lib/onboarding-storage";
+
+type GoalOption = {
+  code: string;
+  name: string;
+  description: string | null;
+};
+
+type SecondaryNeedOption = {
+  code: string;
+  name: string;
+};
+
+type SessionResponse = {
+  businessProfile: {
+    commercialName?: string | null;
+    industry?: string | null;
+  } | null;
+  primaryGoal: {
+    primaryGoalCode: string;
+    primaryGoalLabel: string;
+  } | null;
+  secondaryNeeds: Array<{
+    needCode: string;
+  }>;
+  recommendedPackage: {
+    name: string;
+  } | null;
+};
 
 export default function PrimaryGoalPage() {
+  const [loading, setLoading] = useState(true);
+  const [sessionToken, setSessionToken] = useState("");
+
+  const [primaryGoals, setPrimaryGoals] = useState<GoalOption[]>([]);
+  const [secondaryNeeds, setSecondaryNeeds] = useState<SecondaryNeedOption[]>(
+    []
+  );
+
+  const [initialPrimaryGoalCode, setInitialPrimaryGoalCode] = useState("");
+  const [initialSecondaryNeedCodes, setInitialSecondaryNeedCodes] = useState<
+    string[]
+  >([]);
+
   const [summary, setSummary] = useState({
-    businessName: "Pendiente",
-    industry: "Pendiente",
-    goal: "",
-    packageName: "",
+    businessName: "Cargando...",
+    industry: "Cargando...",
+    goal: "Cargando...",
+    packageName: "Cargando...",
   });
 
   useEffect(() => {
-    const raw = sessionStorage.getItem("nexoru_business_profile");
+    const token = getOnboardingSessionToken();
 
-    if (!raw) return;
-
-    try {
-      const parsed = JSON.parse(raw);
-
-      setSummary((prev) => ({
-        ...prev,
-        businessName: parsed.commercialName || "Pendiente",
-        industry: parsed.industry || "Pendiente",
-      }));
-    } catch (error) {
-      console.error("Error reading business profile from sessionStorage", error);
+    if (!token) {
+      window.location.href = "/onboarding/start";
+      return;
     }
+
+    setSessionToken(token);
+
+    const loadData = async () => {
+      try {
+        const [catalogRes, sessionRes] = await Promise.all([
+          fetch("/api/catalog/onboarding-options", {
+            cache: "no-store",
+          }),
+          fetch(`/api/onboarding/session/${token}`, {
+            cache: "no-store",
+          }),
+        ]);
+
+        const catalogJson = await catalogRes.json();
+        const sessionJson = await sessionRes.json();
+
+        if (!catalogRes.ok || !catalogJson?.ok) {
+          throw new Error("No fue posible cargar catálogo");
+        }
+
+        if (!sessionRes.ok || !sessionJson?.ok) {
+          throw new Error("No fue posible cargar sesión");
+        }
+
+        const sessionData = sessionJson.data as SessionResponse;
+
+        setPrimaryGoals(catalogJson.data.primaryGoals || []);
+        setSecondaryNeeds(catalogJson.data.secondaryNeeds || []);
+        setInitialPrimaryGoalCode(
+          sessionData.primaryGoal?.primaryGoalCode || ""
+        );
+        setInitialSecondaryNeedCodes(
+          (sessionData.secondaryNeeds || []).map((item) => item.needCode)
+        );
+
+        setSummary({
+          businessName:
+            sessionData.businessProfile?.commercialName || "Pendiente",
+          industry: sessionData.businessProfile?.industry || "Pendiente",
+          goal: sessionData.primaryGoal?.primaryGoalLabel || "Pendiente",
+          packageName: sessionData.recommendedPackage?.name || "Pendiente",
+        });
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
+  if (loading) {
+    return (
+      <AppShell
+        step={3}
+        totalSteps={5}
+        progress={40}
+        summary={{
+          businessName: "Cargando...",
+          industry: "Cargando...",
+          goal: "Cargando...",
+          packageName: "Cargando...",
+        }}
+        isLoading
+      >
+        <PrimaryGoalPageSkeleton />
+      </AppShell>
+    );
+  }
+
   return (
-    <AppShell
-      step={3}
-      totalSteps={5}
-      progress={40}
-      summary={{
-        businessName: summary.businessName,
-        industry: summary.industry,
-        goal: summary.goal,
-        packageName: summary.packageName,
-      }}
-    >
+    <AppShell step={3} totalSteps={5} progress={40} summary={summary}>
       <PrimaryGoalSelector
-        onSummaryChange={({ goal, packageName }) =>
+        sessionToken={sessionToken}
+        primaryGoals={primaryGoals}
+        secondaryNeeds={secondaryNeeds}
+        initialPrimaryGoalCode={initialPrimaryGoalCode}
+        initialSecondaryNeedCodes={initialSecondaryNeedCodes}
+        onSummaryChange={(nextSummary) => {
           setSummary((prev) => ({
             ...prev,
-            goal: goal || "",
-            packageName: packageName || "",
-          }))
-        }
+            goal: nextSummary.goal || prev.goal,
+            packageName: nextSummary.packageName || prev.packageName,
+          }));
+        }}
       />
     </AppShell>
   );

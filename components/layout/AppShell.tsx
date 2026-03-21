@@ -1,247 +1,300 @@
 "use client";
 
-import { ReactNode } from "react";
+import Image from "next/image";
+import type { ReactNode } from "react";
 
-type AppShellProps = {
-  children: ReactNode;
+type SummaryData = {
+  businessName: string;
+  industry: string;
+  goal: string;
+  packageName: string;
+};
+
+type Props = {
   step: number;
   totalSteps: number;
   progress: number;
-  summary: {
-    businessName?: string;
-    industry?: string;
-    goal?: string;
-    packageName?: string;
-  };
+  summary: SummaryData;
+  children: ReactNode;
 };
 
 export default function AppShell({
-  children,
   step,
   totalSteps,
   progress,
   summary,
-}: AppShellProps) {
+  children,
+}: Props) {
   return (
-    <div className="nexoru-shell">
-      <header className="nexoru-shell__header">
-        <div className="nexoru-shell__header-inner">
-          <div>
-            <h1 className="nexoru-shell__brand">NEXORU</h1>
-            <p className="nexoru-shell__subtitle">Onboarding</p>
+    <div className="shell">
+      <header className="shell-header">
+        <div className="shell-header-inner">
+          <div className="shell-brand">
+            <Image
+              src="/logo-nexoru.png"
+              alt="Nexoru"
+              width={56}
+              height={56}
+              className="shell-logo"
+              priority
+            />
+
+            <div className="shell-brand-copy">
+              <div className="shell-brand-title">NEXORU</div>
+              <div className="shell-brand-subtitle">Onboarding</div>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="nexoru-shell__main">
-        <section className="nexoru-shell__progress">
-          <div className="nexoru-shell__progress-row">
-            <span>
-              Paso {step} de {totalSteps}
-            </span>
-            <span>{progress}%</span>
-          </div>
-
-          <div className="nexoru-shell__progress-track">
-            <div
-              className="nexoru-shell__progress-fill"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </section>
-
-        <section className="nexoru-shell__content">
-          <div className="nexoru-shell__left">{children}</div>
-
-          <aside className="nexoru-shell__right">
-            <div className="nexoru-shell__summary-card">
-              <h3 className="nexoru-shell__summary-title">
-                Resumen del proyecto
-              </h3>
-
-              <div className="nexoru-shell__summary-item">
-                <span className="nexoru-shell__summary-label">Negocio:</span>
-                <span className="nexoru-shell__summary-value">
-                  {summary?.businessName || "Pendiente"}
-                </span>
-              </div>
-
-              <div className="nexoru-shell__summary-item">
-                <span className="nexoru-shell__summary-label">Industria:</span>
-                <span className="nexoru-shell__summary-value">
-                  {summary?.industry || "Pendiente"}
-                </span>
-              </div>
-
-              <div className="nexoru-shell__summary-item">
-                <span className="nexoru-shell__summary-label">Objetivo:</span>
-                <span className="nexoru-shell__summary-value">
-                  {summary?.goal || "Pendiente"}
-                </span>
-              </div>
-
-              <div className="nexoru-shell__summary-item">
-                <span className="nexoru-shell__summary-label">Paquete:</span>
-                <span className="nexoru-shell__summary-value">
-                  {summary?.packageName || "Pendiente"}
-                </span>
-              </div>
+      <main className="shell-main">
+        <div className="shell-container">
+          <section className="shell-progress-block">
+            <div className="shell-progress-top">
+              <span className="shell-step-label">
+                Paso {step} de {totalSteps}
+              </span>
+              <span className="shell-progress-value">{progress}%</span>
             </div>
-          </aside>
-        </section>
+
+            <div className="shell-progress-track">
+              <div
+                className="shell-progress-bar"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </section>
+
+          <section className="shell-grid">
+            <div className="shell-content">{children}</div>
+
+            <aside className="shell-summary">
+              <h3 className="shell-summary-title">Resumen del proyecto</h3>
+
+              <div className="shell-summary-list">
+                <div className="shell-summary-item">
+                  <span className="shell-summary-label">Negocio:</span>
+                  <span className="shell-summary-value">
+                    {summary.businessName}
+                  </span>
+                </div>
+
+                <div className="shell-summary-item">
+                  <span className="shell-summary-label">Industria:</span>
+                  <span className="shell-summary-value">
+                    {summary.industry}
+                  </span>
+                </div>
+
+                <div className="shell-summary-item">
+                  <span className="shell-summary-label">Objetivo:</span>
+                  <span className="shell-summary-value">{summary.goal}</span>
+                </div>
+
+                <div className="shell-summary-item">
+                  <span className="shell-summary-label">Paquete:</span>
+                  <span className="shell-summary-value">
+                    {summary.packageName}
+                  </span>
+                </div>
+              </div>
+            </aside>
+          </section>
+        </div>
       </main>
 
       <style jsx>{`
-        .nexoru-shell {
+        .shell {
           min-height: 100vh;
-          background: #f5f6fa;
+          background: #f5f7fb;
+          color: #202430;
         }
 
-        .nexoru-shell__header {
+        .shell-header {
           background: #ffffff;
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom: 1px solid #e8ebf2;
         }
 
-        .nexoru-shell__header-inner {
+        .shell-header-inner {
           max-width: 1440px;
           margin: 0 auto;
-          padding: 24px 32px;
+          padding: 28px 40px 24px;
         }
 
-        .nexoru-shell__brand {
-          margin: 0;
-          font-size: 22px;
+        .shell-brand {
+          display: flex;
+          align-items: center;
+          gap: 18px;
+        }
+
+        .shell-logo {
+          object-fit: contain;
+        }
+
+        .shell-brand-copy {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .shell-brand-title {
+          font-size: 28px;
           line-height: 1;
-          font-weight: 700;
-          color: #2b2f36;
-          letter-spacing: 0.02em;
+          font-weight: 800;
+          letter-spacing: 0.16em;
+          color: #111827;
         }
 
-        .nexoru-shell__subtitle {
-          margin: 8px 0 0;
+        .shell-brand-subtitle {
+          margin-top: 6px;
           font-size: 15px;
+          line-height: 1.2;
+          color: #6b7280;
+          font-weight: 500;
+        }
+
+        .shell-main {
+          padding: 34px 0 64px;
+        }
+
+        .shell-container {
+          max-width: 1440px;
+          margin: 0 auto;
+          padding: 0 40px;
+        }
+
+        .shell-progress-block {
+          margin-bottom: 34px;
+        }
+
+        .shell-progress-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 14px;
+        }
+
+        .shell-step-label {
+          font-size: 16px;
+          font-weight: 500;
+          color: #4b5563;
+        }
+
+        .shell-progress-value {
+          font-size: 16px;
+          font-weight: 500;
           color: #6b7280;
         }
 
-        .nexoru-shell__main {
-          max-width: 1440px;
-          margin: 0 auto;
-          padding: 28px 32px 40px;
-        }
-
-        .nexoru-shell__progress {
-          margin-bottom: 28px;
-        }
-
-        .nexoru-shell__progress-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 16px;
-          margin-bottom: 10px;
-          font-size: 15px;
-          color: #4a4f57;
-        }
-
-        .nexoru-shell__progress-track {
+        .shell-progress-track {
           width: 100%;
-          height: 10px;
-          border-radius: 999px;
+          height: 8px;
           background: #e5e7eb;
+          border-radius: 999px;
           overflow: hidden;
         }
 
-        .nexoru-shell__progress-fill {
+        .shell-progress-bar {
           height: 100%;
+          background: #4f46e5;
           border-radius: 999px;
-          background: #3a3d91;
+          transition: width 0.25s ease;
         }
 
-        .nexoru-shell__content {
+        .shell-grid {
           display: grid;
           grid-template-columns: minmax(0, 1fr) 320px;
           gap: 28px;
           align-items: start;
         }
 
-        .nexoru-shell__left {
+        .shell-content {
           min-width: 0;
         }
 
-        .nexoru-shell__right {
-          min-width: 0;
-        }
-
-        .nexoru-shell__summary-card {
+        .shell-summary {
           background: #ffffff;
           border: 1px solid #e5e7eb;
           border-radius: 24px;
-          padding: 24px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+          padding: 28px 24px;
+          box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
           position: sticky;
           top: 24px;
         }
 
-        .nexoru-shell__summary-title {
+        .shell-summary-title {
           margin: 0 0 18px;
           font-size: 18px;
+          line-height: 1.2;
           font-weight: 700;
-          color: #2b2f36;
+          color: #202430;
         }
 
-        .nexoru-shell__summary-item {
+        .shell-summary-list {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .shell-summary-item {
           display: flex;
           flex-wrap: wrap;
           gap: 6px;
-          margin-bottom: 14px;
           font-size: 15px;
           line-height: 1.5;
         }
 
-        .nexoru-shell__summary-item:last-child {
-          margin-bottom: 0;
-        }
-
-        .nexoru-shell__summary-label {
+        .shell-summary-label {
           font-weight: 700;
-          color: #2b2f36;
+          color: #202430;
         }
 
-        .nexoru-shell__summary-value {
-          color: #4a4f57;
+        .shell-summary-value {
+          color: #4b5563;
         }
 
-        @media (max-width: 1024px) {
-          .nexoru-shell__content {
+        @media (max-width: 1100px) {
+          .shell-grid {
             grid-template-columns: 1fr;
           }
 
-          .nexoru-shell__summary-card {
+          .shell-summary {
             position: static;
           }
         }
 
-        @media (max-width: 640px) {
-          .nexoru-shell__header-inner {
-            padding: 20px 16px;
+        @media (max-width: 768px) {
+          .shell-header-inner {
+            padding: 22px 20px 18px;
           }
 
-          .nexoru-shell__main {
-            padding: 20px 16px 28px;
+          .shell-container {
+            padding: 0 20px;
           }
 
-          .nexoru-shell__brand {
-            font-size: 20px;
+          .shell-main {
+            padding: 24px 0 44px;
           }
 
-          .nexoru-shell__subtitle,
-          .nexoru-shell__progress-row {
+          .shell-progress-block {
+            margin-bottom: 24px;
+          }
+
+          .shell-brand {
+            gap: 14px;
+          }
+
+          .shell-brand-title {
+            font-size: 24px;
+          }
+
+          .shell-brand-subtitle {
             font-size: 14px;
           }
 
-          .nexoru-shell__summary-card {
+          .shell-summary {
             border-radius: 20px;
-            padding: 20px;
+            padding: 22px 18px;
           }
         }
       `}</style>

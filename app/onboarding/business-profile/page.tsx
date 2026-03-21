@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import BusinessProfileForm from "@/components/onboarding/BusinessProfileForm";
 import { getOnboardingSessionToken } from "@/lib/onboarding-storage";
 
-type BusinessProfileData = {
+type BusinessProfileValues = {
   legalName: string;
   commercialName: string;
   industry: string;
@@ -16,7 +17,7 @@ type BusinessProfileData = {
   operatingHours: string;
 };
 
-const emptyBusinessProfile: BusinessProfileData = {
+const emptyBusinessProfile: BusinessProfileValues = {
   legalName: "",
   commercialName: "",
   industry: "",
@@ -28,122 +29,112 @@ const emptyBusinessProfile: BusinessProfileData = {
 };
 
 export default function BusinessProfilePage() {
-  const [sessionToken, setSessionToken] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
+  const router = useRouter();
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [initialValues, setInitialValues] =
-    useState<BusinessProfileData>(emptyBusinessProfile);
+    useState<BusinessProfileValues>(emptyBusinessProfile);
 
   const [summary, setSummary] = useState({
-    businessName: "",
-    industry: "",
-    goal: "",
-    packageName: "",
+    businessName: "Pendiente",
+    industry: "Pendiente",
+    goal: "Pendiente",
+    packageName: "Pendiente",
   });
 
   useEffect(() => {
     const token = getOnboardingSessionToken();
 
     if (!token) {
-      window.location.href = "/onboarding/start";
+      router.push("/onboarding/start");
       return;
     }
 
     setSessionToken(token);
 
-    const loadSession = async () => {
-      try {
-        setLoading(true);
-        setLoadError("");
+    fetch(`/api/onboarding/session/${token}`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (!res?.ok) return;
 
-        const response = await fetch(`/api/onboarding/session/${token}`);
-        const result = await response.json();
-
-        if (!response.ok || !result?.ok) {
-          throw new Error(result?.error || "No fue posible cargar la sesión");
-        }
-
-        const session = result.data;
-
+        const session = res.data;
         const businessProfile = session.businessProfile;
 
-        if (businessProfile) {
-          const nextValues = {
-            legalName: businessProfile.legalName || "",
-            commercialName: businessProfile.commercialName || "",
-            industry: businessProfile.industry || "",
-            country: businessProfile.country || "",
-            city: businessProfile.city || "",
-            websiteOrInstagram: businessProfile.websiteOrInstagram || "",
-            whatsapp: businessProfile.whatsapp || "",
-            operatingHours: businessProfile.operatingHours || "",
-          };
+        setSummary({
+          businessName:
+            businessProfile?.commercialName ||
+            session.organization?.commercialName ||
+            "Pendiente",
+          industry:
+            businessProfile?.industry ||
+            session.organization?.industry ||
+            "Pendiente",
+          goal: session.primaryGoal?.primaryGoalLabel || "Pendiente",
+          packageName: session.recommendedPackage?.name || "Pendiente",
+        });
 
-          setInitialValues(nextValues);
-          setSummary((prev) => ({
-            ...prev,
-            businessName: nextValues.commercialName || "Pendiente",
-            industry: nextValues.industry || "Pendiente",
-          }));
-        }
-      } catch (err) {
-        console.error(err);
-        setLoadError("No fue posible cargar la sesión actual.");
-      } finally {
-        setLoading(false);
+        setInitialValues({
+          legalName: businessProfile?.legalName ?? "",
+          commercialName: businessProfile?.commercialName ?? "",
+          industry: businessProfile?.industry ?? "",
+          country: businessProfile?.country ?? "",
+          city: businessProfile?.city ?? "",
+          websiteOrInstagram: businessProfile?.websiteOrInstagram ?? "",
+          whatsapp: businessProfile?.whatsapp ?? "",
+          operatingHours: businessProfile?.operatingHours ?? "",
+        });
+      })
+      .catch(() => {});
+  }, [router]);
+
+  const handleSubmit = async (values: BusinessProfileValues) => {
+    if (!sessionToken) return;
+
+    try {
+      setIsSubmitting(true);
+
+      const response = await fetch("/api/onboarding/business-profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sessionToken,
+          ...values,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result?.ok) {
+        throw new Error(result?.error || "Error al guardar perfil");
       }
-    };
 
-    loadSession();
-  }, []);
+      setInitialValues(values);
 
-  if (loading) {
-    return (
-      <AppShell
-        step={2}
-        totalSteps={5}
-        progress={20}
-        summary={summary}
-      >
-        <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-          <p className="text-sm text-gray-500">Cargando sesión...</p>
-        </div>
-      </AppShell>
-    );
-  }
+      setSummary((prev) => ({
+        ...prev,
+        businessName: values.commercialName || "Pendiente",
+        industry: values.industry || "Pendiente",
+      }));
 
-  if (loadError) {
-    return (
-      <AppShell
-        step={2}
-        totalSteps={5}
-        progress={20}
-        summary={summary}
-      >
-        <div className="rounded-2xl border border-red-200 bg-white p-8 shadow-sm">
-          <p className="text-sm text-red-600">{loadError}</p>
-        </div>
-      </AppShell>
-    );
-  }
+      router.push("/onboarding/primary-goal");
+    } catch (error) {
+      console.error("BUSINESS_PROFILE_ERROR:", error);
+      alert("No fue posible guardar la información. Intenta nuevamente.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <AppShell
-      step={2}
-      totalSteps={5}
-      progress={20}
-      summary={summary}
-    >
+    <AppShell step={2} totalSteps={5} progress={20} summary={summary}>
       <BusinessProfileForm
-        sessionToken={sessionToken}
         initialValues={initialValues}
-        onSummaryChange={(data) => {
-          setSummary((prev) => ({
-            ...prev,
-            businessName: data.businessName || prev.businessName,
-            industry: data.industry || prev.industry,
-          }));
-        }}
+        isSubmitting={isSubmitting}
+        onBack={() => router.push("/onboarding/start")}
+        onSubmit={handleSubmit}
       />
     </AppShell>
   );

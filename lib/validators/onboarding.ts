@@ -1,27 +1,26 @@
 import { z } from "zod";
 
-export const createOnboardingSessionSchema = z.object({
-  source: z.string().optional(),
-});
+export const createOnboardingSessionSchema = z.object({});
 
 export const sessionTokenParamsSchema = z.object({
-  token: z.string().min(10),
+  token: z.string().min(1, "Token inválido"),
 });
 
 export const businessProfilePayloadSchema = z.object({
-  sessionToken: z.string().min(10),
-  businessProfile: z.object({
-    legalName: z.string().trim().optional().nullable(),
-    commercialName: z.string().trim().min(1, "Commercial name is required"),
-    industry: z.string().trim().min(1, "Industry is required"),
-    country: z.string().trim().min(1, "Country is required"),
-    city: z.string().trim().min(1, "City is required"),
-    websiteOrInstagram: z.string().trim().optional().nullable(),
-    whatsapp: z.string().trim().min(1, "WhatsApp is required"),
-    operatingHours: z.string().trim().optional().nullable(),
-  }),
+  sessionToken: z.string().min(1, "La sesión es obligatoria"),
+  legalName: z.string().optional().default(""),
+  commercialName: z.string().min(1, "El nombre comercial es obligatorio"),
+  industry: z.string().min(1, "La industria es obligatoria"),
+  country: z.string().min(1, "El país es obligatorio"),
+  city: z.string().min(1, "La ciudad es obligatoria"),
+  websiteOrInstagram: z.string().optional().default(""),
+  whatsapp: z.string().min(1, "El WhatsApp principal es obligatorio"),
+  operatingHours: z.string().optional().default(""),
 });
 
-export type BusinessProfilePayload = z.infer<
-  typeof businessProfilePayloadSchema
->;
+export const primaryGoalPayloadSchema = z.object({
+  sessionToken: z.string().min(1, "La sesión es obligatoria"),
+  primaryGoalCode: z.string().min(1, "El objetivo principal es obligatorio"),
+  secondaryNeedCodes: z.array(z.string()).default([]),
+});
+

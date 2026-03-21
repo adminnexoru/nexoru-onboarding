@@ -1,12 +1,6 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-import { prisma } from "../../../../lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { businessProfilePayloadSchema } from "@/lib/validators/onboarding";
-
-type TransactionClient = Omit<
-  PrismaClient,
-  "$connect" | "$disconnect" | "$on" | "$transaction" | "$extends"
->;
 
 export async function POST(request: Request) {
   try {
@@ -25,14 +19,21 @@ export async function POST(request: Request) {
       );
     }
 
-    const { sessionToken, businessProfile } = parsed.data;
+    const {
+      sessionToken,
+      legalName,
+      commercialName,
+      industry,
+      country,
+      city,
+      websiteOrInstagram,
+      whatsapp,
+      operatingHours,
+    } = parsed.data;
 
     const session = await prisma.onboardingSession.findUnique({
       where: {
         sessionToken,
-      },
-      include: {
-        organization: true,
       },
     });
 
@@ -46,99 +47,97 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await prisma.$transaction(async (tx: TransactionClient) => {
+    const result = await prisma.$transaction(async (tx) => {
       let organizationId = session.organizationId;
 
       if (organizationId) {
         await tx.organization.update({
           where: { id: organizationId },
           data: {
-            legalName: businessProfile.legalName || null,
-            commercialName: businessProfile.commercialName,
-            industry: businessProfile.industry,
-            country: businessProfile.country,
-            city: businessProfile.city,
-            websiteOrInstagram: businessProfile.websiteOrInstagram || null,
-            whatsapp: businessProfile.whatsapp,
-            operatingHours: businessProfile.operatingHours || null,
+            legalName,
+            commercialName,
+            industry,
+            country,
+            city,
+            websiteOrInstagram,
+            whatsapp,
+            operatingHours,
           },
         });
       } else {
-        const createdOrganization = await tx.organization.create({
+        const organization = await tx.organization.create({
           data: {
-            legalName: businessProfile.legalName || null,
-            commercialName: businessProfile.commercialName,
-            industry: businessProfile.industry,
-            country: businessProfile.country,
-            city: businessProfile.city,
-            websiteOrInstagram: businessProfile.websiteOrInstagram || null,
-            whatsapp: businessProfile.whatsapp,
-            operatingHours: businessProfile.operatingHours || null,
+            legalName,
+            commercialName,
+            industry,
+            country,
+            city,
+            websiteOrInstagram,
+            whatsapp,
+            operatingHours,
           },
         });
 
-        organizationId = createdOrganization.id;
+        organizationId = organization.id;
       }
 
-      const savedBusinessProfile = await tx.onboardingBusinessProfile.upsert({
-        where: {
-          sessionId: session.id,
-        },
-        update: {
-          legalName: businessProfile.legalName || null,
-          commercialName: businessProfile.commercialName,
-          industry: businessProfile.industry,
-          country: businessProfile.country,
-          city: businessProfile.city,
-          websiteOrInstagram: businessProfile.websiteOrInstagram || null,
-          whatsapp: businessProfile.whatsapp,
-          operatingHours: businessProfile.operatingHours || null,
-        },
-        create: {
-          sessionId: session.id,
-          legalName: businessProfile.legalName || null,
-          commercialName: businessProfile.commercialName,
-          industry: businessProfile.industry,
-          country: businessProfile.country,
-          city: businessProfile.city,
-          websiteOrInstagram: businessProfile.websiteOrInstagram || null,
-          whatsapp: businessProfile.whatsapp,
-          operatingHours: businessProfile.operatingHours || null,
-        },
-      });
+      const existingBusinessProfile =
+        await tx.onboardingBusinessProfile.findUnique({
+          where: {
+            sessionId: session.id,
+          },
+        });
+
+      if (existingBusinessProfile) {
+        await tx.onboardingBusinessProfile.update({
+          where: {
+            sessionId: session.id,
+          },
+          data: {
+            legalName,
+            commercialName,
+            industry,
+            country,
+            city,
+            websiteOrInstagram,
+            whatsapp,
+            operatingHours,
+          },
+        });
+      } else {
+        await tx.onboardingBusinessProfile.create({
+          data: {
+            sessionId: session.id,
+            legalName,
+            commercialName,
+            industry,
+            country,
+            city,
+            websiteOrInstagram,
+            whatsapp,
+            operatingHours,
+          },
+        });
+      }
 
       const updatedSession = await tx.onboardingSession.update({
         where: {
           id: session.id,
         },
         data: {
-          organizationId,
-          currentStep: "business-profile",
           status: "IN_PROGRESS",
-        },
-        select: {
-          id: true,
-          sessionToken: true,
-          status: true,
-          currentStep: true,
-          organizationId: true,
-          updatedAt: true,
+          currentStep: "business-profile",
+          organizationId,
         },
       });
 
-      return {
-        businessProfile: savedBusinessProfile,
-        session: updatedSession,
-      };
+      return updatedSession;
     });
 
-    return NextResponse.json(
-      {
-        ok: true,
-        data: result,
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      ok: true,
+      data: result,
+    });
   } catch (error) {
     console.error("POST /api/onboarding/business-profile error", error);
 

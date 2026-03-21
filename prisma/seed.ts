@@ -23,6 +23,7 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
+  await prisma.goalOption.deleteMany();  
   await prisma.packageAddon.deleteMany();
   await prisma.packageIncludedItem.deleteMany();
   await prisma.packageExcludedItem.deleteMany();
@@ -119,6 +120,97 @@ async function main() {
       addonId: addon.id,
     })),
   });
+await prisma.goalOption.deleteMany({});
+
+await prisma.goalOption.createMany({
+  data: [
+    {
+      code: "base0",
+      name: "Responder mensajes automáticamente",
+      description:
+        "Automatizar respuestas básicas, FAQs y atención inicial sin procesos complejos.",
+      optionType: "primary",
+      sortOrder: 1,
+      isActive: true,
+    },
+    {
+      code: "sales",
+      name: "Vender / cobrar por WhatsApp",
+      description:
+        "Capturar leads, responder con IA, generar pagos y automatizar seguimiento comercial.",
+      optionType: "primary",
+      sortOrder: 2,
+      isActive: true,
+    },
+    {
+      code: "loyalty",
+      name: "Registrar tickets y puntos",
+      description:
+        "Implementar un sistema de loyalty con validación de tickets, puntos y redenciones.",
+      optionType: "primary",
+      sortOrder: 3,
+      isActive: true,
+    },
+    {
+      code: "booking",
+      name: "Agendar reservas, cursos o citas",
+      description:
+        "Gestionar disponibilidad, reservas, recordatorios y confirmaciones automáticas.",
+      optionType: "primary",
+      sortOrder: 4,
+      isActive: true,
+    },
+    {
+      code: "other",
+      name: "Otro",
+      description:
+        "Tengo una necesidad diferente y quiero que Nexoru me ayude a estructurarla.",
+      optionType: "primary",
+      sortOrder: 5,
+      isActive: true,
+    },
+    {
+      code: "agenda",
+      name: "Agenda",
+      description: "Gestión de agenda y calendarización.",
+      optionType: "secondary",
+      sortOrder: 101,
+      isActive: true,
+    },
+    {
+      code: "campaigns",
+      name: "Campañas",
+      description: "Automatización y seguimiento de campañas.",
+      optionType: "secondary",
+      sortOrder: 102,
+      isActive: true,
+    },
+    {
+      code: "dashboard",
+      name: "Dashboard",
+      description: "Visualización de métricas y reportes.",
+      optionType: "secondary",
+      sortOrder: 103,
+      isActive: true,
+    },
+    {
+      code: "delivery",
+      name: "Delivery",
+      description: "Seguimiento y coordinación de entregas.",
+      optionType: "secondary",
+      sortOrder: 104,
+      isActive: true,
+    },
+    {
+      code: "payments",
+      name: "Pagos",
+      description: "Cobros, confirmación y trazabilidad de pagos.",
+      optionType: "secondary",
+      sortOrder: 105,
+      isActive: true,
+    },
+  ]
+});
 
   await prisma.packageRecommendationRule.createMany({
     data: [
