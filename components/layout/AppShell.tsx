@@ -30,11 +30,7 @@ export default function AppShell({
   progress,
   summary,
   children,
-  {isLoading ? (
-  <div className="animate-pulse">Cargando...</div>
-) : (
-  children
-)}
+  isLoading= false,
 }: Props) {
   return (
     <div className="shell">
@@ -77,7 +73,13 @@ export default function AppShell({
           </section>
 
           <section className="shell-grid">
-            <div className="shell-content">{children}</div>
+            <div className="shell-content">
+              {isLoading ? (
+                <div className="animate-pulse">Cargando...</div>
+              ) : (
+                children
+              )}
+            </div>
 
             <aside className="shell-summary">
               <h3 className="shell-summary-title">Resumen del proyecto</h3>
