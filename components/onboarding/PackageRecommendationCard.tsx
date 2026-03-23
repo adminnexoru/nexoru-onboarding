@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 type PackageRecommendation = {
   packageName: string;
   setupPrice: string;
@@ -12,185 +10,71 @@ type PackageRecommendation = {
 
 type PackageRecommendationCardProps = {
   recommendation: PackageRecommendation;
+  isSubmitting?: boolean;
+  onBack: () => void;
+  onContinue: () => void;
 };
 
 export default function PackageRecommendationCard({
   recommendation,
+  isSubmitting = false,
+  onBack,
+  onContinue,
 }: PackageRecommendationCardProps) {
   return (
-    <div
-      style={{
-        backgroundColor: "#FFFFFF",
-        border: "1px solid #E5E7EB",
-        borderRadius: "24px",
-        padding: "40px",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-      }}
-    >
-      <div style={{ marginBottom: "32px" }}>
-        <div
-          style={{
-            display: "inline-block",
-            backgroundColor: "#E8EBF8",
-            color: "#3A3D91",
-            fontSize: "14px",
-            fontWeight: 500,
-            padding: "8px 14px",
-            borderRadius: "999px",
-            marginBottom: "18px",
-          }}
-        >
+    <div className="rounded-[32px] border border-[#E5E7EB] bg-white px-12 py-12 shadow-sm">
+      <div className="mb-8">
+        <span className="mb-6 inline-flex rounded-full bg-[#EEF2FF] px-5 py-3 text-sm font-medium text-[#4F46E5]">
           Recomendación preliminar
-        </div>
+        </span>
 
-        <h2
-          style={{
-            fontSize: "42px",
-            lineHeight: 1.1,
-            fontWeight: 700,
-            color: "#2B2F36",
-            margin: "0 0 16px",
-          }}
-        >
+        <h1 className="mb-4 text-[56px] font-semibold leading-[1.02] tracking-[-0.03em] text-[#202430]">
           Este es el paquete recomendado para tu caso
-        </h2>
+        </h1>
 
-        <p
-          style={{
-            fontSize: "19px",
-            lineHeight: 1.6,
-            color: "#4A4F57",
-            maxWidth: "900px",
-            margin: 0,
-          }}
-        >
+        <p className="max-w-4xl text-[20px] leading-9 text-[#4B5563]">
           Con base en la información de tu negocio, objetivo, proceso actual y
           volumen operativo, esta es la configuración Nexoru que mejor encaja
           en esta etapa.
         </p>
       </div>
 
-      <div
-        style={{
-          border: "1px solid #E5E7EB",
-          backgroundColor: "#F8F9FC",
-          borderRadius: "20px",
-          padding: "28px",
-          marginBottom: "28px",
-        }}
-      >
-        <div
-          style={{
-            fontSize: "15px",
-            color: "#3A3D91",
-            fontWeight: 600,
-            marginBottom: "12px",
-          }}
-        >
+      <div className="mb-8 rounded-[24px] border border-[#E5E7EB] bg-[#F8F9FC] p-7">
+        <div className="mb-3 text-[15px] font-semibold text-[#4F46E5]">
           Paquete sugerido
         </div>
 
-        <div
-          style={{
-            fontSize: "34px",
-            fontWeight: 700,
-            color: "#2B2F36",
-            marginBottom: "18px",
-          }}
-        >
+        <div className="mb-5 text-[36px] font-bold text-[#202430]">
           {recommendation.packageName}
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "18px",
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: "#FFFFFF",
-              border: "1px solid #E5E7EB",
-              borderRadius: "16px",
-              padding: "18px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "14px",
-                color: "#6B7280",
-                marginBottom: "6px",
-              }}
-            >
-              Setup estimado
-            </div>
-            <div
-              style={{
-                fontSize: "26px",
-                fontWeight: 700,
-                color: "#2B2F36",
-              }}
-            >
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div className="rounded-[18px] border border-[#E5E7EB] bg-white p-5">
+            <div className="mb-2 text-sm text-[#6B7280]">Setup estimado</div>
+            <div className="text-[28px] font-bold text-[#202430]">
               {recommendation.setupPrice}
             </div>
           </div>
 
-          <div
-            style={{
-              backgroundColor: "#FFFFFF",
-              border: "1px solid #E5E7EB",
-              borderRadius: "16px",
-              padding: "18px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "14px",
-                color: "#6B7280",
-                marginBottom: "6px",
-              }}
-            >
-              Mensualidad estimada
-            </div>
-            <div
-              style={{
-                fontSize: "26px",
-                fontWeight: 700,
-                color: "#2B2F36",
-              }}
-            >
+          <div className="rounded-[18px] border border-[#E5E7EB] bg-white p-5">
+            <div className="mb-2 text-sm text-[#6B7280]">Mensualidad estimada</div>
+            <div className="text-[28px] font-bold text-[#202430]">
               {recommendation.monthlyPrice}
             </div>
           </div>
         </div>
       </div>
 
-      <div style={{ marginBottom: "28px" }}>
-        <h3
-          style={{
-            fontSize: "24px",
-            fontWeight: 700,
-            color: "#2B2F36",
-            margin: "0 0 18px",
-          }}
-        >
+      <div className="mb-8">
+        <h2 className="mb-5 text-[26px] font-bold text-[#202430]">
           ¿Por qué esta recomendación?
-        </h3>
+        </h2>
 
-        <div style={{ display: "grid", gap: "14px" }}>
+        <div className="grid gap-4">
           {recommendation.rationale.map((item, index) => (
             <div
               key={index}
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: "1px solid #E5E7EB",
-                borderRadius: "16px",
-                padding: "16px 18px",
-                fontSize: "16px",
-                lineHeight: 1.6,
-                color: "#4A4F57",
-              }}
+              className="rounded-[18px] border border-[#E5E7EB] bg-white px-5 py-4 text-[16px] leading-8 text-[#4B5563]"
             >
               {item}
             </div>
@@ -198,72 +82,32 @@ export default function PackageRecommendationCard({
         </div>
       </div>
 
-      {recommendation.notes && (
-        <div
-          style={{
-            marginBottom: "32px",
-            backgroundColor: "#FFFBEA",
-            border: "1px solid #FDE68A",
-            borderRadius: "16px",
-            padding: "18px",
-            fontSize: "15px",
-            lineHeight: 1.6,
-            color: "#92400E",
-          }}
-        >
+      {recommendation.notes ? (
+        <div className="mb-8 rounded-[18px] border border-[#FDE68A] bg-[#FFFBEA] px-5 py-4 text-[15px] leading-7 text-[#92400E]">
           {recommendation.notes}
         </div>
-      )}
+      ) : null}
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "16px",
-          marginTop: "8px",
-        }}
-      >
-        <Link
-          href="/onboarding/volume-operations"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            border: "1px solid #D1D5DB",
-            backgroundColor: "#FFFFFF",
-            color: "#2B2F36",
-            borderRadius: "14px",
-            padding: "14px 22px",
-            fontSize: "15px",
-            fontWeight: 600,
-            textDecoration: "none",
-          }}
+      <div className="mt-10 flex items-center justify-between gap-4">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex h-14 min-w-[108px] items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-6 text-[16px] font-semibold text-[#202430] transition hover:bg-[#F9FAFB]"
         >
           Atrás
-        </Link>
+        </button>
 
         <button
           type="button"
-          onClick={() => {
-                sessionStorage.setItem(
-                    "nexoru_package_recommendation",
-                    JSON.stringify(recommendation)
-                );
-                window.location.href = "/onboarding/scope-confirmation";
-                }}
-          style={{
-            border: "none",
-            backgroundColor: "#2B2F36",
-            color: "#FFFFFF",
-            borderRadius: "14px",
-            padding: "14px 24px",
-            fontSize: "15px",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
+          onClick={onContinue}
+          disabled={isSubmitting}
+          className={`inline-flex h-14 min-w-[180px] items-center justify-center rounded-2xl px-8 text-[16px] font-semibold text-white transition ${
+            isSubmitting
+              ? "cursor-not-allowed bg-[#A7AFBE]"
+              : "bg-[#202430] hover:bg-[#111827]"
+          }`}
         >
-          Continuar
+          {isSubmitting ? "Guardando..." : "Continuar"}
         </button>
       </div>
     </div>

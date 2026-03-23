@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import PackageRecommendationCard from "@/components/onboarding/PackageRecommendationCard";
+import { getOnboardingSessionToken } from "@/lib/onboarding-storage";
 
 type Recommendation = {
   packageName: string;
@@ -12,93 +14,136 @@ type Recommendation = {
   notes?: string;
 };
 
-function buildRecommendation(primaryGoal: any, volumeOps: any): Recommendation {
-  const goal = primaryGoal?.selectedGoal || "other";
-  const conversations = Number(volumeOps?.monthlyConversations || 0);
-  const tickets = Number(volumeOps?.monthlyTickets || 0);
-  const bookings = Number(volumeOps?.monthlyBookings || 0);
-  const teamSize = Number(volumeOps?.teamSizeOperating || 0);
+type SessionResponse = {
+  ok: boolean;
+  data?: {
+    businessProfile?: {
+      commercialName?: string;
+      industry?: string;
+    } | null;
+    primaryGoal?: {
+      primaryGoalCode?: string;
+      primaryGoalLabel?: string;
+      primaryGoalDescription?: string;
+    } | null;
+    currentProcess?: {
+      currentProcess?: string;
+      manualSteps?: string;
+      toolsUsed?: string;
+      painPoints?: string;
+    } | null;
+    volumeOperations?: {
+      monthlyConversations?: number | null;
+      monthlyTickets?: number | null;
+      monthlyBookings?: number | null;
+      averageTicketValue?: string | null;
+      teamSizeOperating?: number | null;
+      peakDemandNotes?: string | null;
+    } | null;
+    recommendedPackage?: {
+      id: string;
+      code: string;
+      name: string;
+      description?: string | null;
+      setupPrice?: string | null;
+      monthlyPrice?: string | null;
+    } | null;
+  };
+};
 
-  if (goal === "base0") {
-    return {
-      packageName: "Nexoru Base 0",
-      setupPrice: "$7,000 MXN",
-      monthlyPrice: "$2,000 MXN",
-      rationale: [
-        "Tu necesidad principal está orientada a automatizar respuestas básicas y atención inicial.",
-        "No se detecta una lógica compleja de pagos, loyalty o reservas como eje principal.",
-        "Este paquete permite comenzar con una base mínima pero escalable.",
-      ],
-      notes:
-        conversations > 500
-          ? "Detectamos un volumen relevante. Si el canal crece, podrías evolucionar a Sales OS."
-          : undefined,
-    };
+function formatCurrency(value: string | null | undefined) {
+  if (!value) return "A definir";
+
+  const numericValue = Number(value);
+
+  if (Number.isNaN(numericValue)) {
+    return String(value);
   }
 
-  if (goal === "sales") {
-    return {
-      packageName: "Nexoru Sales OS",
-      setupPrice: "$28,000 MXN",
-      monthlyPrice: "$9,000 MXN",
-      rationale: [
-        "Tu objetivo principal está orientado a ventas, seguimiento y/o cobro por WhatsApp.",
-        "El proceso actual muestra fricción comercial y necesidad de automatizar interacción con clientes.",
-        "El paquete Sales OS es la base correcta para capturar, responder y operar el flujo comercial.",
-      ],
-      notes:
-        teamSize >= 3 || conversations >= 1000
-          ? "El volumen y tamaño operativo sugieren que este caso podría evolucionar a un tier de mayor capacidad."
-          : undefined,
-    };
+  return new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: "MXN",
+    maximumFractionDigits: 0,
+  }).format(numericValue);
+}
+
+function buildRecommendationFromSession(session: SessionResponse["data"]): Recommendation {
+  const primaryGoal = session?.primaryGoal;
+  const currentProcess = session?.currentProcess;
+  const volumeOps = session?.volumeOperations;
+  const recommendedPackage = session?.recommendedPackage;
+
+  const goalLabel = primaryGoal?.primaryGoalLabel || "Pendiente";
+  const goalDescription = primaryGoal?.primaryGoalDescription || "";
+  const currentProcessText = currentProcess?.currentProcess || "";
+  const manualStepsText = currentProcess?.manualSteps || "";
+  const painPointsText = currentProcess?.painPoints || "";
+
+  const monthlyConversations = Number(volumeOps?.monthlyConversations || 0);
+  const monthlyTickets = Number(volumeOps?.monthlyTickets || 0);
+  const monthlyBookings = Number(volumeOps?.monthlyBookings || 0);
+  const teamSizeOperating = Number(volumeOps?.teamSizeOperating || 0);
+
+  const rationale: string[] = [];
+
+  rationale.push(
+    `Tu objetivo principal actual es: ${goalLabel}.`
+  );
+
+  if (goalDescription) {
+    rationale.push(goalDescription);
   }
 
-  if (goal === "loyalty") {
-    return {
-      packageName: "Nexoru Loyalty OS",
-      setupPrice: "$72,000 MXN",
-      monthlyPrice: "$18,000 MXN",
-      rationale: [
-        "Tu necesidad principal está orientada a registro de tickets, puntos o redenciones.",
-        "Este tipo de operación requiere mayor lógica operativa, control de validaciones y base de datos estructurada.",
-        "Loyalty OS está diseñado para programas de fidelización con operación automatizada.",
-      ],
-      notes:
-        tickets >= 1000
-          ? "El volumen de tickets sugiere un caso de loyalty con complejidad media/alta."
-          : undefined,
-    };
+  if (currentProcessText) {
+    rationale.push(
+      `Proceso actual detectado: ${currentProcessText}.`
+    );
   }
 
-  if (goal === "booking") {
-    return {
-      packageName: "Nexoru Booking OS",
-      setupPrice: "$25,000 MXN",
-      monthlyPrice: "$8,000 MXN",
-      rationale: [
-        "Tu objetivo principal está orientado a reservas, cursos, sesiones o citas.",
-        "El proceso necesita coordinación operativa, disponibilidad y control del flujo de atención.",
-        "Booking OS es el paquete adecuado para estructurar este tipo de operación.",
-      ],
-      notes:
-        bookings >= 300
-          ? "El volumen de reservas indica que podrías requerir una capa adicional de control operativo en el futuro."
-          : undefined,
-    };
+  if (manualStepsText) {
+    rationale.push(
+      `Hoy todavía existen pasos manuales relevantes: ${manualStepsText}.`
+    );
+  }
+
+  if (painPointsText) {
+    rationale.push(
+      `También identificamos fricciones operativas: ${painPointsText}.`
+    );
+  }
+
+  if (monthlyConversations > 0 || monthlyTickets > 0 || monthlyBookings > 0) {
+    rationale.push(
+      `El volumen capturado (${monthlyConversations} conversaciones, ${monthlyTickets} tickets, ${monthlyBookings} reservas) confirma que ya existe una operación real que vale la pena estructurar.`
+    );
+  }
+
+  if (teamSizeOperating > 0) {
+    rationale.push(
+      `Actualmente operan ${teamSizeOperating} persona(s), lo que ayuda a dimensionar la complejidad inicial de implementación.`
+    );
   }
 
   return {
-    packageName: "Por definir",
-    setupPrice: "A definir",
-    monthlyPrice: "A definir",
-    rationale: [
-      "El caso actual no encaja completamente en una sola categoría del catálogo base.",
-      "Se recomienda una revisión adicional para definir la mejor configuración inicial.",
-    ],
+    packageName: recommendedPackage?.name || "Pendiente",
+    setupPrice: formatCurrency(recommendedPackage?.setupPrice),
+    monthlyPrice: formatCurrency(recommendedPackage?.monthlyPrice),
+    rationale:
+      rationale.length > 0
+        ? rationale
+        : [
+            "Con base en la información capturada, ya existe una recomendación preliminar disponible para tu caso.",
+          ],
+    notes: recommendedPackage?.description || undefined,
   };
 }
 
 export default function PackageRecommendationPage() {
+  const router = useRouter();
+
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [summary, setSummary] = useState({
     businessName: "Pendiente",
     industry: "Pendiente",
@@ -114,61 +159,87 @@ export default function PackageRecommendationPage() {
   });
 
   useEffect(() => {
-    const businessProfileRaw = sessionStorage.getItem("nexoru_business_profile");
-    const primaryGoalRaw = sessionStorage.getItem("nexoru_primary_goal");
-    const volumeOpsRaw = sessionStorage.getItem("nexoru_volume_operations");
+    const token = getOnboardingSessionToken();
 
-    let businessProfile: any = null;
-    let primaryGoal: any = null;
-    let volumeOps: any = null;
-
-    if (businessProfileRaw) {
-      try {
-        businessProfile = JSON.parse(businessProfileRaw);
-      } catch (error) {
-        console.error("Error reading business profile", error);
-      }
+    if (!token) {
+      router.push("/onboarding/start");
+      return;
     }
 
-    if (primaryGoalRaw) {
-      try {
-        primaryGoal = JSON.parse(primaryGoalRaw);
-      } catch (error) {
-        console.error("Error reading primary goal", error);
+    setSessionToken(token);
+
+    fetch(`/api/onboarding/session/${token}`)
+      .then((res) => res.json())
+      .then((res: SessionResponse) => {
+        if (!res?.ok || !res.data) {
+          router.push("/onboarding/start");
+          return;
+        }
+
+        const session = res.data;
+
+        setSummary({
+          businessName:
+            session.businessProfile?.commercialName || "Pendiente",
+          industry: session.businessProfile?.industry || "Pendiente",
+          goal: session.primaryGoal?.primaryGoalLabel || "Pendiente",
+          packageName: session.recommendedPackage?.name || "Pendiente",
+        });
+
+        setRecommendation(buildRecommendationFromSession(session));
+      })
+      .catch((error) => {
+        console.error("PACKAGE_RECOMMENDATION_LOAD_ERROR:", error);
+        router.push("/onboarding/start");
+      });
+  }, [router]);
+
+  const handleContinue = async () => {
+    if (!sessionToken) return;
+
+    try {
+      setIsSubmitting(true);
+
+      const response = await fetch("/api/onboarding/package-recommendation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sessionToken,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result?.ok) {
+        throw new Error(
+          result?.error || "No fue posible continuar a scope confirmation"
+        );
       }
+
+      router.push("/onboarding/scope-confirmation");
+    } catch (error) {
+      console.error("PACKAGE_RECOMMENDATION_SUBMIT_ERROR:", error);
+      alert("No fue posible continuar. Intenta nuevamente.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (volumeOpsRaw) {
-      try {
-        volumeOps = JSON.parse(volumeOpsRaw);
-      } catch (error) {
-        console.error("Error reading volume operations", error);
-      }
-    }
-
-    setSummary({
-      businessName: businessProfile?.commercialName || "Pendiente",
-      industry: businessProfile?.industry || "Pendiente",
-      goal: primaryGoal?.goalLabel || "Pendiente",
-      packageName: primaryGoal?.suggestedPackage || "Pendiente",
-    });
-
-    setRecommendation(buildRecommendation(primaryGoal, volumeOps));
-  }, []);
+  };
 
   return (
     <AppShell
       step={5}
       totalSteps={5}
       progress={90}
-      summary={{
-        businessName: summary.businessName,
-        industry: summary.industry,
-        goal: summary.goal,
-        packageName: recommendation.packageName,
-      }}
+      summary={summary}
     >
-      <PackageRecommendationCard recommendation={recommendation} />
+      <PackageRecommendationCard
+        recommendation={recommendation}
+        isSubmitting={isSubmitting}
+        onBack={() => router.push("/onboarding/volume-operations")}
+        onContinue={handleContinue}
+      />
     </AppShell>
   );
 }
