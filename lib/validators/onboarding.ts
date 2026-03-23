@@ -31,3 +31,13 @@ export const currentProcessPayloadSchema = z.object({
   toolsUsed: z.string().optional().default(""),
   painPoints: z.string().optional().default(""),
 });
+
+export const volumeOperationsPayloadSchema = z.object({
+  sessionToken: z.string().min(1, "Session token is required"),
+  monthlyConversations: z.number().int().positive().nullable(),
+  monthlyTickets: z.number().int().positive().nullable(),
+  monthlyBookings: z.number().int().positive().nullable(),
+  averageTicketValue: z.number().positive().nullable(),
+  teamSizeOperating: z.number().int().positive(),
+  peakDemandNotes: z.string().max(2000).optional().nullable(),
+});

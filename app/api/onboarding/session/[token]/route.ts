@@ -135,7 +135,23 @@ export async function GET(_: Request, context: RouteContext) {
                 updatedAt: session.currentProcess.updatedAt,
                 }
             : null,
-        volumeOperations: session.volumeOperations,
+        volumeOperations: session.volumeOperations
+            ? {
+                id: session.volumeOperations.id,
+                sessionId: session.volumeOperations.sessionId,
+                monthlyConversations:
+                    session.volumeOperations.monthlyConversations ?? null,
+                monthlyTickets: session.volumeOperations.monthlyTickets ?? null,
+                monthlyBookings: session.volumeOperations.monthlyBookings ?? null,
+                averageTicketValue: serializeDecimal(
+                    session.volumeOperations.averageTicketValue
+                ),
+                teamSizeOperating: session.volumeOperations.teamSizeOperating,
+                peakDemandNotes: session.volumeOperations.peakDemandNotes ?? "",
+                createdAt: session.volumeOperations.createdAt,
+                updatedAt: session.volumeOperations.updatedAt,
+                }
+            : null,
         scopeConfirmation: session.scopeConfirmation,
         paymentAttempts: session.paymentAttempts,
 
