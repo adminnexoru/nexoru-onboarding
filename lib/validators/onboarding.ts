@@ -24,3 +24,10 @@ export const primaryGoalPayloadSchema = z.object({
   secondaryNeedCodes: z.array(z.string()).default([]),
 });
 
+export const currentProcessPayloadSchema = z.object({
+  sessionToken: z.string().min(1, "sessionToken is required"),
+  currentProcess: z.string().min(1, "currentProcess is required"),
+  manualSteps: z.string().optional().default(""),
+  toolsUsed: z.string().optional().default(""),
+  painPoints: z.string().optional().default(""),
+});

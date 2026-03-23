@@ -123,7 +123,18 @@ export async function GET(_: Request, context: RouteContext) {
           createdAt: item.createdAt,
         })),
 
-        currentProcess: session.currentProcess,
+        currentProcess: session.currentProcess
+            ? {
+                id: session.currentProcess.id,
+                sessionId: session.currentProcess.sessionId,
+                currentProcess: session.currentProcess.currentProcess ?? "",
+                manualSteps: session.currentProcess.manualSteps ?? "",
+                toolsUsed: session.currentProcess.toolsUsed ?? "",
+                painPoints: session.currentProcess.painPoints ?? "",
+                createdAt: session.currentProcess.createdAt,
+                updatedAt: session.currentProcess.updatedAt,
+                }
+            : null,
         volumeOperations: session.volumeOperations,
         scopeConfirmation: session.scopeConfirmation,
         paymentAttempts: session.paymentAttempts,

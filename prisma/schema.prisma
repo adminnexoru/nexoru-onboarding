@@ -105,9 +105,9 @@ model OnboardingSecondaryNeed {
 model OnboardingCurrentProcess {
   id                 String             @id @default(cuid())
   sessionId          String             @unique
-  processDescription String
+  currentProcess     String
   manualSteps        String?
-  currentTools       String?
+  toolsUsed          String?
   painPoints         String?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt

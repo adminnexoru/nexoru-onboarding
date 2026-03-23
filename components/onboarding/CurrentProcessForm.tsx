@@ -1,293 +1,252 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-type CurrentProcessFormData = {
-  processDescription: string;
+type CurrentProcessValues = {
+  currentProcess: string;
   manualSteps: string;
-  currentTools: string;
+  toolsUsed: string;
   painPoints: string;
 };
 
-type CurrentProcessFormProps = {
-  onSaveSummary?: (data: {
-    processDescription?: string;
-  }) => void;
+type FieldErrors = Partial<Record<keyof CurrentProcessValues, string>>;
+
+type Props = {
+  initialValues?: Partial<CurrentProcessValues>;
+  isSubmitting?: boolean;
+  submitError?: string;
+  onBack?: () => void;
+  onSubmit: (values: CurrentProcessValues) => Promise<void>;
 };
 
-type FormErrors = Partial<Record<keyof CurrentProcessFormData, string>>;
-
-const initialFormData: CurrentProcessFormData = {
-  processDescription: "",
+const defaultValues: CurrentProcessValues = {
+  currentProcess: "",
   manualSteps: "",
-  currentTools: "",
+  toolsUsed: "",
   painPoints: "",
 };
 
 export default function CurrentProcessForm({
-  onSaveSummary,
-}: CurrentProcessFormProps) {
-  const [formData, setFormData] = useState<CurrentProcessFormData>(initialFormData);
-  const [errors, setErrors] = useState<FormErrors>({});
+  initialValues,
+  isSubmitting = false,
+  submitError = "",
+  onBack,
+  onSubmit,
+}: Props) {
+  const [formData, setFormData] = useState<CurrentProcessValues>({
+    ...defaultValues,
+    ...initialValues,
+  });
 
-  const updateField = (field: keyof CurrentProcessFormData, value: string) => {
-    const nextData = {
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  useEffect(() => {
+    setFormData({
+      ...defaultValues,
+      ...initialValues,
+    });
+  }, [initialValues]);
+
+  const validate = (values: CurrentProcessValues): FieldErrors => {
+    const errors: FieldErrors = {};
+
+    if (!values.currentProcess.trim()) {
+      errors.currentProcess =
+        "La descripción del proceso actual es obligatoria.";
+    }
+
+    return errors;
+  };
+
+  const isFormValid = useMemo(() => {
+    return Object.keys(validate(formData)).length === 0;
+  }, [formData]);
+
+  const updateField = (field: keyof CurrentProcessValues, value: string) => {
+    const nextValues = {
       ...formData,
       [field]: value,
     };
 
-    setFormData(nextData);
+    setFormData(nextValues);
 
-    if (errors[field]) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: "",
-      }));
+    if (hasSubmitted) {
+      setFieldErrors(validate(nextValues));
+    }
+  };
+
+  const handleBlur = (field: keyof CurrentProcessValues) => {
+    const nextErrors = validate(formData);
+    setFieldErrors((prev) => ({
+      ...prev,
+      [field]: nextErrors[field],
+    }));
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    setHasSubmitted(true);
+
+    const errors = validate(formData);
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      return;
     }
 
-    onSaveSummary?.({
-      processDescription: nextData.processDescription,
+    await onSubmit({
+      currentProcess: formData.currentProcess.trim(),
+      manualSteps: formData.manualSteps.trim(),
+      toolsUsed: formData.toolsUsed.trim(),
+      painPoints: formData.painPoints.trim(),
     });
   };
 
-  const validate = () => {
-    const newErrors: FormErrors = {};
+  const textareaClass = (field: keyof CurrentProcessValues) =>
+    `w-full min-h-[140px] rounded-2xl border bg-white px-5 py-4 text-[16px] text-[#202430] shadow-sm transition outline-none placeholder:text-[#9CA3AF] resize-none ${
+      fieldErrors[field]
+        ? "border-[#DC2626] focus:border-[#DC2626]"
+        : "border-[#E5E7EB] focus:border-[#4F46E5]"
+    }`;
 
-    if (!formData.processDescription.trim()) {
-      newErrors.processDescription =
-        "La descripción del proceso actual es obligatoria.";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const isFormValid = useMemo(() => {
-    return formData.processDescription.trim();
-  }, [formData]);
-
-  const textareaStyle: React.CSSProperties = {
-    width: "100%",
-    minHeight: "130px",
-    borderRadius: "14px",
-    border: "1px solid #D1D5DB",
-    backgroundColor: "#FFFFFF",
-    padding: "16px",
-    fontSize: "16px",
-    lineHeight: 1.6,
-    color: "#2B2F36",
-    outline: "none",
-    resize: "vertical",
-  };
-
-  const labelStyle: React.CSSProperties = {
-    display: "block",
-    fontSize: "17px",
-    fontWeight: 600,
-    color: "#2B2F36",
-    marginBottom: "10px",
-  };
-
-  const errorStyle: React.CSSProperties = {
-    marginTop: "10px",
-    fontSize: "14px",
-    color: "#DC2626",
-    fontWeight: 500,
-  };
-
-  const helpTextStyle: React.CSSProperties = {
-    fontSize: "15px",
-    lineHeight: 1.6,
-    color: "#6B7280",
-    margin: "0 0 10px",
-  };
-
-  const handleSubmit = () => {
-  const valid = validate();
-
-  if (!valid) return;
-
-  sessionStorage.setItem(
-    "nexoru_current_process",
-    JSON.stringify({
-      processDescription: formData.processDescription,
-      manualSteps: formData.manualSteps,
-      currentTools: formData.currentTools,
-      painPoints: formData.painPoints,
-    })
-  );
-
-  window.location.href = "/onboarding/volume-operations";
-};
+  const renderError = (field: keyof CurrentProcessValues) =>
+    fieldErrors[field] ? (
+      <p className="mt-2 text-sm font-medium text-[#DC2626]">
+        {fieldErrors[field]}
+      </p>
+    ) : null;
 
   return (
-    <div
-      style={{
-        backgroundColor: "#FFFFFF",
-        border: "1px solid #E5E7EB",
-        borderRadius: "24px",
-        padding: "40px",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-      }}
-    >
-      <div style={{ marginBottom: "32px" }}>
-        <div
-          style={{
-            display: "inline-block",
-            backgroundColor: "#E8EBF8",
-            color: "#3A3D91",
-            fontSize: "14px",
-            fontWeight: 500,
-            padding: "8px 14px",
-            borderRadius: "999px",
-            marginBottom: "18px",
-          }}
-        >
+    <form onSubmit={handleSubmit} noValidate>
+      <div className="rounded-[32px] border border-[#E5E7EB] bg-white px-12 py-12 shadow-sm">
+        <span className="mb-6 inline-flex rounded-full bg-[#EEF2FF] px-5 py-3 text-sm font-medium text-[#4F46E5]">
           Paso 4 · Proceso actual
-        </div>
+        </span>
 
-        <h2
-          style={{
-            fontSize: "42px",
-            lineHeight: 1.1,
-            fontWeight: 700,
-            color: "#2B2F36",
-            margin: "0 0 16px",
-          }}
-        >
+        <h1 className="mb-4 text-[64px] font-semibold leading-[1.02] tracking-[-0.03em] text-[#202430]">
           Cuéntanos cómo operas hoy
-        </h2>
+        </h1>
 
-        <p
-          style={{
-            fontSize: "19px",
-            lineHeight: 1.6,
-            color: "#4A4F57",
-            maxWidth: "880px",
-            margin: 0,
-          }}
-        >
+        <p className="mb-12 max-w-4xl text-[20px] leading-9 text-[#4B5563]">
           Queremos entender tu proceso actual para identificar pasos manuales,
           herramientas utilizadas y puntos de fricción antes de diseñar la
           solución Nexoru.
         </p>
+
+        <div className="grid grid-cols-1 gap-y-8">
+          <div>
+            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
+              Describe brevemente cómo funciona hoy tu proceso *
+            </label>
+            <p className="mb-3 text-[15px] leading-7 text-[#6B7280]">
+              Explica qué ocurre actualmente desde que inicia la interacción
+              hasta que termina el proceso principal.
+            </p>
+            <textarea
+              value={formData.currentProcess}
+              onChange={(e) => updateField("currentProcess", e.target.value)}
+              onBlur={() => handleBlur("currentProcess")}
+              placeholder="Ej. Hoy recibimos mensajes por WhatsApp, una persona responde manualmente, valida información, registra datos en una hoja y después coordina el siguiente paso..."
+              className={textareaClass("currentProcess")}
+            />
+            {renderError("currentProcess")}
+          </div>
+
+          <div>
+            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
+              ¿Qué pasos haces manualmente hoy?
+            </label>
+            <p className="mb-3 text-[15px] leading-7 text-[#6B7280]">
+              Describe tareas que hoy dependen de una persona o se hacen sin
+              automatización.
+            </p>
+            <textarea
+              value={formData.manualSteps}
+              onChange={(e) => updateField("manualSteps", e.target.value)}
+              onBlur={() => handleBlur("manualSteps")}
+              placeholder="Ej. Validar datos, registrar información, confirmar pagos, asignar puntos, reagendar..."
+              className={textareaClass("manualSteps")}
+            />
+          </div>
+
+          <div>
+            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
+              ¿Qué herramientas usas actualmente?
+            </label>
+            <p className="mb-3 text-[15px] leading-7 text-[#6B7280]">
+              Menciona apps, hojas de cálculo, WhatsApp, CRM u otras
+              herramientas que hoy forman parte del proceso.
+            </p>
+            <textarea
+              value={formData.toolsUsed}
+              onChange={(e) => updateField("toolsUsed", e.target.value)}
+              onBlur={() => handleBlur("toolsUsed")}
+              placeholder="Ej. WhatsApp, Google Sheets, Excel, Mercado Pago, calendario, CRM..."
+              className={textareaClass("toolsUsed")}
+            />
+          </div>
+
+          <div>
+            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
+              ¿Dónde están hoy los principales problemas o fricciones?
+            </label>
+            <p className="mb-3 text-[15px] leading-7 text-[#6B7280]">
+              Explica retrasos, errores, retrabajos o cuellos de botella del
+              proceso actual.
+            </p>
+            <textarea
+              value={formData.painPoints}
+              onChange={(e) => updateField("painPoints", e.target.value)}
+              onBlur={() => handleBlur("painPoints")}
+              placeholder="Ej. Respuesta lenta, errores de captura, seguimiento inconsistente, poca visibilidad, pérdida de clientes..."
+              className={textareaClass("painPoints")}
+            />
+          </div>
+        </div>
+
+        {submitError ? (
+          <div className="mt-8 rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm font-medium text-[#B91C1C]">
+            {submitError}
+          </div>
+        ) : null}
+
+        <div className="mt-10 flex items-center justify-between gap-4">
+          <button
+            type="button"
+            onClick={() => {
+              if (onBack) {
+                onBack();
+                return;
+              }
+
+              window.history.back();
+            }}
+            className="inline-flex h-14 min-w-[108px] items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-6 text-[16px] font-semibold text-[#202430] transition hover:bg-[#F9FAFB]"
+          >
+            Atrás
+          </button>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={`inline-flex h-14 min-w-[180px] items-center justify-center rounded-2xl px-8 text-[16px] font-semibold text-white transition ${
+              isSubmitting
+                ? "cursor-not-allowed bg-[#A7AFBE]"
+                : "bg-[#202430] hover:bg-[#111827]"
+            }`}
+          >
+            {isSubmitting ? "Guardando..." : "Siguiente"}
+          </button>
+        </div>
+
+        {!isFormValid && hasSubmitted ? (
+          <p className="mt-4 text-right text-sm font-medium text-[#B45309]">
+            Completa el campo obligatorio para continuar.
+          </p>
+        ) : null}
       </div>
-
-      <div style={{ display: "grid", gap: "28px", marginBottom: "36px" }}>
-        <div>
-          <label style={labelStyle}>
-            Describe brevemente cómo funciona hoy tu proceso *
-          </label>
-          <p style={helpTextStyle}>
-            Explica qué ocurre actualmente desde que inicia la interacción hasta
-            que termina el proceso principal.
-          </p>
-          <textarea
-            value={formData.processDescription}
-            onChange={(e) => updateField("processDescription", e.target.value)}
-            placeholder="Ej. Hoy recibimos mensajes por WhatsApp, una persona responde manualmente, valida información, registra datos en una hoja y después coordina el siguiente paso..."
-            style={textareaStyle}
-          />
-          {errors.processDescription && (
-            <p style={errorStyle}>{errors.processDescription}</p>
-          )}
-        </div>
-
-        <div>
-          <label style={labelStyle}>
-            ¿Qué pasos haces manualmente hoy?
-          </label>
-          <p style={helpTextStyle}>
-            Describe tareas que hoy dependen de una persona o se hacen sin
-            automatización.
-          </p>
-          <textarea
-            value={formData.manualSteps}
-            onChange={(e) => updateField("manualSteps", e.target.value)}
-            placeholder="Ej. Validar datos, registrar información, confirmar pagos, asignar puntos, reagendar..."
-            style={textareaStyle}
-          />
-        </div>
-
-        <div>
-          <label style={labelStyle}>
-            ¿Qué herramientas usas actualmente?
-          </label>
-          <p style={helpTextStyle}>
-            Menciona si usas WhatsApp, Google Sheets, Airtable, CRM, Excel,
-            correo o cualquier otra herramienta.
-          </p>
-          <textarea
-            value={formData.currentTools}
-            onChange={(e) => updateField("currentTools", e.target.value)}
-            placeholder="Ej. WhatsApp, Google Sheets, Excel, correo, ManyChat..."
-            style={textareaStyle}
-          />
-        </div>
-
-        <div>
-          <label style={labelStyle}>
-            ¿Dónde se generan más errores, retrasos o pérdida de tiempo?
-          </label>
-          <p style={helpTextStyle}>
-            Identifica fricciones operativas: validaciones, seguimiento, captura
-            de datos, redención, pagos, confirmaciones, etc.
-          </p>
-          <textarea
-            value={formData.painPoints}
-            onChange={(e) => updateField("painPoints", e.target.value)}
-            placeholder="Ej. Se pierden mensajes, no sabemos qué usuario ya fue atendido, se duplican tickets, la redención es manual..."
-            style={textareaStyle}
-          />
-        </div>
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "16px",
-          marginTop: "8px",
-        }}
-      >
-        <Link
-          href="/onboarding/primary-goal"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            border: "1px solid #D1D5DB",
-            backgroundColor: "#FFFFFF",
-            color: "#2B2F36",
-            borderRadius: "14px",
-            padding: "14px 22px",
-            fontSize: "15px",
-            fontWeight: 600,
-            textDecoration: "none",
-          }}
-        >
-          Atrás
-        </Link>
-
-        <button
-          type="button"
-          onClick={handleSubmit}
-          style={{
-            border: "none",
-            backgroundColor: isFormValid ? "#2B2F36" : "#9CA3AF",
-            color: "#FFFFFF",
-            borderRadius: "14px",
-            padding: "14px 24px",
-            fontSize: "15px",
-            fontWeight: 600,
-            cursor: isFormValid ? "pointer" : "not-allowed",
-          }}
-        >
-          Siguiente
-        </button>
-      </div>
-    </div>
+    </form>
   );
 }
