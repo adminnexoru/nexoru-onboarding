@@ -41,6 +41,14 @@ export async function GET(_: Request, context: RouteContext) {
         currentProcess: true,
         volumeOperations: true,
         scopeConfirmation: true,
+        selectedAddons:{
+            include: {
+                addon: true,
+            },
+            orderBy: {
+                createdAt: "asc",
+            },
+        },
         paymentAttempts: {
           orderBy: {
             createdAt: "desc",
@@ -152,6 +160,20 @@ export async function GET(_: Request, context: RouteContext) {
                 updatedAt: session.volumeOperations.updatedAt,
                 }
             : null,
+        selectedAddons: session.selectedAddons.map((item) => ({
+            id: item.id,
+            sessionId: item.sessionId,
+            addonId: item.addonId,
+            createdAt: item.createdAt,
+            addon: {
+                id: item.addon.id,
+                code: item.addon.code,
+                name: item.addon.name,
+                description: item.addon.description ?? "",
+                priceType: item.addon.priceType,
+                priceAmount: serializeDecimal(item.addon.priceAmount),
+            },
+            })),
         scopeConfirmation: session.scopeConfirmation,
         paymentAttempts: session.paymentAttempts,
 

@@ -1,346 +1,293 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 
-type ScopeConfirmationCardProps = {
+type OptionalAddon = {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  priceType: string;
+  priceAmount: string | null;
+};
+
+type Props = {
+  sessionToken: string;
   packageName: string;
   includedItems: string[];
   excludedItems: string[];
-  optionalAddons: string[];
+  optionalAddons: OptionalAddon[];
+  initialAcceptedScope?: boolean;
+  initialSelectedAddonIds?: string[];
+  onBack?: () => void;
+  onSuccess?: () => void;
 };
 
 export default function ScopeConfirmationCard({
+  sessionToken,
   packageName,
   includedItems,
   excludedItems,
   optionalAddons,
-}: ScopeConfirmationCardProps) {
-  const [acceptedScope, setAcceptedScope] = useState(false);
-  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  initialAcceptedScope = false,
+  initialSelectedAddonIds = [],
+  onBack,
+  onSuccess,
+}: Props) {
+  const [acceptedScope, setAcceptedScope] = useState(initialAcceptedScope);
+  const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>(
+    initialSelectedAddonIds
+  );
   const [error, setError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const toggleAddon = (addon: string) => {
-    setSelectedAddons((prev) =>
-      prev.includes(addon)
-        ? prev.filter((item) => item !== addon)
-        : [...prev, addon]
+  const canContinue = useMemo(() => !isSubmitting, [isSubmitting]);
+
+  const toggleAddon = (addonId: string) => {
+    setSelectedAddonIds((prev) =>
+      prev.includes(addonId)
+        ? prev.filter((item) => item !== addonId)
+        : [...prev, addonId]
     );
   };
 
-  const canContinue = useMemo(() => acceptedScope, [acceptedScope]);
-
-    const handleContinue = () => {
-    if (!acceptedScope) {
-        setError("Debes confirmar que entiendes el alcance para continuar.");
-        return;
+  const formatAddonPrice = (
+    priceType: string,
+    priceAmount: string | null
+  ) => {
+    if (priceType === "CUSTOM") {
+      return "Precio personalizado";
     }
 
-    sessionStorage.setItem(
-        "nexoru_scope_confirmation",
-        JSON.stringify({
-        acceptedScope: true,
-        selectedAddons,
-        })
-    );
+    if (!priceAmount) {
+      return priceType === "MONTHLY" ? "Mensual" : "Único";
+    }
 
-    window.location.href = "/onboarding/executive-summary";
-    };
+    const formatted = `$${priceAmount} MXN`;
+
+    if (priceType === "MONTHLY") {
+      return `${formatted} / mes`;
+    }
+
+    if (priceType === "ONE_TIME") {
+      return `${formatted} único`;
+    }
+
+    return formatted;
+  };
+
+const handleContinue = async () => {
+  if (!acceptedScope) {
+    setError("Debes confirmar que entiendes el alcance para continuar.");
+    return;
+  }
+
+  try {
+    setIsSubmitting(true);
+    setSubmitError("");
+    setError("");
+
+    const response = await fetch("/api/onboarding/scope-confirmation", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sessionToken,
+        acceptedScope: true,
+        selectedAddonIds,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result?.ok) {
+      throw new Error(
+        result?.error ||
+          "No fue posible guardar la confirmación de alcance."
+      );
+    }
+
+    if (onSuccess) {
+      onSuccess();
+      return;
+    }
+
+    window.location.href = "/onboarding/payment";
+  } catch (error) {
+    console.error("SCOPE_CONFIRMATION_SUBMIT_ERROR:", error);
+    setSubmitError(
+      error instanceof Error
+        ? error.message
+        : "No fue posible guardar la confirmación de alcance."
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
-    <div
-      style={{
-        backgroundColor: "#FFFFFF",
-        border: "1px solid #E5E7EB",
-        borderRadius: "24px",
-        padding: "40px",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-      }}
-    >
-      <div style={{ marginBottom: "32px" }}>
-        <div
-          style={{
-            display: "inline-block",
-            backgroundColor: "#E8EBF8",
-            color: "#3A3D91",
-            fontSize: "14px",
-            fontWeight: 500,
-            padding: "8px 14px",
-            borderRadius: "999px",
-            marginBottom: "18px",
-          }}
-        >
+    <div className="rounded-[32px] border border-[#E5E7EB] bg-white px-12 py-12 shadow-sm">
+      <div className="mb-8">
+        <span className="mb-6 inline-flex rounded-full bg-[#EEF2FF] px-5 py-3 text-sm font-medium text-[#4F46E5]">
           Confirmación de alcance
-        </div>
+        </span>
 
-        <h2
-          style={{
-            fontSize: "42px",
-            lineHeight: 1.1,
-            fontWeight: 700,
-            color: "#2B2F36",
-            margin: "0 0 16px",
-          }}
-        >
+        <h1 className="mb-4 text-[56px] font-semibold leading-[1.04] tracking-[-0.03em] text-[#202430]">
           Esto incluye tu paquete recomendado
-        </h2>
+        </h1>
 
-        <p
-          style={{
-            fontSize: "19px",
-            lineHeight: 1.6,
-            color: "#4A4F57",
-            maxWidth: "920px",
-            margin: 0,
-          }}
-        >
+        <p className="max-w-5xl text-[20px] leading-9 text-[#4B5563]">
           Antes de continuar, revisa claramente lo que sí incluye el paquete{" "}
           <strong>{packageName}</strong>, lo que queda fuera del alcance base y
           los complementos opcionales que podrían añadirse después.
         </p>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "24px",
-          marginBottom: "28px",
-        }}
-      >
-        <div
-          style={{
-            backgroundColor: "#F8F9FC",
-            border: "1px solid #E5E7EB",
-            borderRadius: "20px",
-            padding: "24px",
-          }}
-        >
-          <h3
-            style={{
-              fontSize: "22px",
-              fontWeight: 700,
-              color: "#2B2F36",
-              margin: "0 0 18px",
-            }}
-          >
+      <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <div className="rounded-[24px] border border-[#E5E7EB] bg-[#F8F9FC] p-6">
+          <h3 className="mb-5 text-[24px] font-semibold text-[#202430]">
             Incluye
           </h3>
 
-          <div style={{ display: "grid", gap: "12px" }}>
-            {includedItems.map((item, index) => (
-              <div
-                key={index}
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: "1px solid #E5E7EB",
-                  borderRadius: "14px",
-                  padding: "14px 16px",
-                  fontSize: "15px",
-                  color: "#2B2F36",
-                  lineHeight: 1.5,
-                }}
-              >
-                {item}
+          <div className="grid gap-3">
+            {includedItems.length > 0 ? (
+              includedItems.map((item, index) => (
+                <div
+                  key={`${item}-${index}`}
+                  className="rounded-2xl border border-[#E5E7EB] bg-white px-4 py-4 text-[15px] leading-7 text-[#202430]"
+                >
+                  {item}
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-[#E5E7EB] bg-white px-4 py-4 text-[15px] leading-7 text-[#6B7280]">
+                No hay elementos incluidos configurados para este paquete.
               </div>
-            ))}
+            )}
           </div>
         </div>
 
-        <div
-          style={{
-            backgroundColor: "#FFF8F5",
-            border: "1px solid #F3D4C2",
-            borderRadius: "20px",
-            padding: "24px",
-          }}
-        >
-          <h3
-            style={{
-              fontSize: "22px",
-              fontWeight: 700,
-              color: "#2B2F36",
-              margin: "0 0 18px",
-            }}
-          >
+        <div className="rounded-[24px] border border-[#F3D4C2] bg-[#FFF8F5] p-6">
+          <h3 className="mb-5 text-[24px] font-semibold text-[#202430]">
             No incluye
           </h3>
 
-          <div style={{ display: "grid", gap: "12px" }}>
-            {excludedItems.map((item, index) => (
-              <div
-                key={index}
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: "1px solid #F3D4C2",
-                  borderRadius: "14px",
-                  padding: "14px 16px",
-                  fontSize: "15px",
-                  color: "#7C2D12",
-                  lineHeight: 1.5,
-                }}
-              >
-                {item}
+          <div className="grid gap-3">
+            {excludedItems.length > 0 ? (
+              excludedItems.map((item, index) => (
+                <div
+                  key={`${item}-${index}`}
+                  className="rounded-2xl border border-[#F3D4C2] bg-white px-4 py-4 text-[15px] leading-7 text-[#7C2D12]"
+                >
+                  {item}
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-[#F3D4C2] bg-white px-4 py-4 text-[15px] leading-7 text-[#7C2D12]">
+                No hay exclusiones configuradas para este paquete.
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
 
-      <div
-        style={{
-          marginBottom: "28px",
-          backgroundColor: "#FFFFFF",
-          border: "1px solid #E5E7EB",
-          borderRadius: "20px",
-          padding: "24px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "22px",
-            fontWeight: 700,
-            color: "#2B2F36",
-            margin: "0 0 18px",
-          }}
-        >
+      <div className="mb-8 rounded-[24px] border border-[#E5E7EB] bg-white p-6">
+        <h3 className="mb-5 text-[24px] font-semibold text-[#202430]">
           Add-ons opcionales
         </h3>
 
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "12px",
-          }}
-        >
-          {optionalAddons.map((addon) => {
-            const active = selectedAddons.includes(addon);
+        {optionalAddons.length > 0 ? (
+          <div className="flex flex-wrap gap-3">
+            {optionalAddons.map((addon) => {
+              const active = selectedAddonIds.includes(addon.id);
 
-            return (
-              <button
-                key={addon}
-                type="button"
-                onClick={() => toggleAddon(addon)}
-                style={{
-                  border: active ? "1px solid #3A3D91" : "1px solid #D1D5DB",
-                  backgroundColor: active ? "#EEF1FF" : "#FFFFFF",
-                  color: active ? "#2B2F36" : "#4A4F57",
-                  borderRadius: "999px",
-                  padding: "10px 16px",
-                  fontSize: "15px",
-                  fontWeight: 500,
-                  cursor: "pointer",
-                }}
-              >
-                {addon}
-              </button>
-            );
-          })}
-        </div>
+              return (
+                <button
+                  key={addon.id}
+                  type="button"
+                  onClick={() => toggleAddon(addon.id)}
+                  className={`rounded-full border px-4 py-3 text-left text-sm transition ${
+                    active
+                      ? "border-[#4F46E5] bg-[#EEF2FF] text-[#312E81]"
+                      : "border-[#D1D5DB] bg-white text-[#4B5563] hover:border-[#9CA3AF]"
+                  }`}
+                >
+                  <span className="block font-semibold">{addon.name}</span>
+                  <span className="mt-1 block text-xs opacity-80">
+                    {formatAddonPrice(addon.priceType, addon.priceAmount)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-[15px] leading-7 text-[#6B7280]">
+            Este paquete no tiene add-ons opcionales configurados por ahora.
+          </p>
+        )}
       </div>
 
-      <div
-        style={{
-          marginBottom: "24px",
-          backgroundColor: "#F8F9FC",
-          border: "1px solid #E5E7EB",
-          borderRadius: "18px",
-          padding: "20px",
-        }}
-      >
-        <label
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: "12px",
-            cursor: "pointer",
-          }}
-        >
+      <div className="mb-8 rounded-[20px] border border-[#E5E7EB] bg-[#F8F9FC] px-5 py-5">
+        <label className="flex cursor-pointer items-start gap-3">
           <input
             type="checkbox"
             checked={acceptedScope}
             onChange={(e) => {
               setAcceptedScope(e.target.checked);
-              if (e.target.checked) setError("");
+              if (e.target.checked) {
+                setError("");
+              }
             }}
-            style={{
-              marginTop: "3px",
-              width: "18px",
-              height: "18px",
-            }}
+            className="mt-1 h-[18px] w-[18px]"
           />
 
-          <span
-            style={{
-              fontSize: "16px",
-              lineHeight: 1.6,
-              color: "#2B2F36",
-            }}
-          >
+          <span className="text-[16px] leading-8 text-[#202430]">
             Confirmo que entiendo lo que incluye este paquete, lo que queda
             fuera del alcance base y que cualquier requerimiento adicional puede
             implicar una ampliación de alcance o un add-on.
           </span>
         </label>
 
-        {error && (
-          <p
-            style={{
-              marginTop: "12px",
-              fontSize: "14px",
-              color: "#DC2626",
-              fontWeight: 500,
-            }}
-          >
-            {error}
-          </p>
-        )}
+        {error ? (
+          <p className="mt-3 text-sm font-medium text-[#DC2626]">{error}</p>
+        ) : null}
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "16px",
-          marginTop: "8px",
-        }}
-      >
-        <Link
-          href="/onboarding/package-recommendation"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            border: "1px solid #D1D5DB",
-            backgroundColor: "#FFFFFF",
-            color: "#2B2F36",
-            borderRadius: "14px",
-            padding: "14px 22px",
-            fontSize: "15px",
-            fontWeight: 600,
-            textDecoration: "none",
-          }}
-        >
-          Atrás
-        </Link>
+      {submitError ? (
+        <div className="mb-8 rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm font-medium text-[#B91C1C]">
+          {submitError}
+        </div>
+      ) : null}
 
+      <div className="mt-10 flex items-center justify-between gap-4">
         <button
           type="button"
-          onClick={handleContinue}
-          style={{
-            border: "none",
-            backgroundColor: canContinue ? "#2B2F36" : "#9CA3AF",
-            color: "#FFFFFF",
-            borderRadius: "14px",
-            padding: "14px 24px",
-            fontSize: "15px",
-            fontWeight: 600,
-            cursor: canContinue ? "pointer" : "not-allowed",
+          onClick={() => {
+            if (onBack) {
+              onBack();
+              return;
+            }
+
+            window.history.back();
           }}
+          className="inline-flex h-14 min-w-[108px] items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-6 text-[16px] font-semibold text-[#202430] transition hover:bg-[#F9FAFB]"
         >
-          Continuar
+          Atrás
+        </button>
+
+        <button
+        type="button"
+        onClick={handleContinue}
+        disabled={isSubmitting}
+        className={`inline-flex h-14 min-w-[180px] items-center justify-center rounded-2xl px-8 text-[16px] font-semibold text-white transition ${
+            isSubmitting
+            ? "cursor-not-allowed bg-[#A7AFBE]"
+            : "bg-[#202430] hover:bg-[#111827]"
+        }`}
+        >
+        {isSubmitting ? "Guardando..." : "Continuar"}
         </button>
       </div>
     </div>
