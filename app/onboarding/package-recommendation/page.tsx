@@ -6,156 +6,58 @@ import AppShell from "@/components/layout/AppShell";
 import PackageRecommendationCard from "@/components/onboarding/PackageRecommendationCard";
 import { getOnboardingSessionToken } from "@/lib/onboarding-storage";
 
-type Recommendation = {
+type SummaryState = {
+  businessName: string;
+  industry: string;
+  goal: string;
   packageName: string;
-  setupPrice: string;
-  monthlyPrice: string;
+};
+
+type RecommendationState = {
+  packageCode: string | null;
+  packageName: string;
+  packageDescription: string;
+  setupPrice: string | null;
+  monthlyPrice: string | null;
   rationale: string[];
-  notes?: string;
+  strategicAnalysis: string;
+  notes: string;
 };
 
 type SessionResponse = {
-  ok: boolean;
-  data?: {
-    businessProfile?: {
-      commercialName?: string;
-      industry?: string;
-    } | null;
-    primaryGoal?: {
-      primaryGoalCode?: string;
-      primaryGoalLabel?: string;
-      primaryGoalDescription?: string;
-    } | null;
-    currentProcess?: {
-      currentProcess?: string;
-      manualSteps?: string;
-      toolsUsed?: string;
-      painPoints?: string;
-    } | null;
-    volumeOperations?: {
-      monthlyConversations?: number | null;
-      monthlyTickets?: number | null;
-      monthlyBookings?: number | null;
-      averageTicketValue?: string | null;
-      teamSizeOperating?: number | null;
-      peakDemandNotes?: string | null;
-    } | null;
-    recommendedPackage?: {
-      id: string;
-      code: string;
-      name: string;
-      description?: string | null;
-      setupPrice?: string | null;
-      monthlyPrice?: string | null;
-    } | null;
-  };
+  businessProfile: {
+    commercialName?: string | null;
+    industry?: string | null;
+  } | null;
+  primaryGoal: {
+    primaryGoalLabel?: string | null;
+  } | null;
 };
-
-function formatCurrency(value: string | null | undefined) {
-  if (!value) return "A definir";
-
-  const numericValue = Number(value);
-
-  if (Number.isNaN(numericValue)) {
-    return String(value);
-  }
-
-  return new Intl.NumberFormat("es-MX", {
-    style: "currency",
-    currency: "MXN",
-    maximumFractionDigits: 0,
-  }).format(numericValue);
-}
-
-function buildRecommendationFromSession(session: SessionResponse["data"]): Recommendation {
-  const primaryGoal = session?.primaryGoal;
-  const currentProcess = session?.currentProcess;
-  const volumeOps = session?.volumeOperations;
-  const recommendedPackage = session?.recommendedPackage;
-
-  const goalLabel = primaryGoal?.primaryGoalLabel || "Pendiente";
-  const goalDescription = primaryGoal?.primaryGoalDescription || "";
-  const currentProcessText = currentProcess?.currentProcess || "";
-  const manualStepsText = currentProcess?.manualSteps || "";
-  const painPointsText = currentProcess?.painPoints || "";
-
-  const monthlyConversations = Number(volumeOps?.monthlyConversations || 0);
-  const monthlyTickets = Number(volumeOps?.monthlyTickets || 0);
-  const monthlyBookings = Number(volumeOps?.monthlyBookings || 0);
-  const teamSizeOperating = Number(volumeOps?.teamSizeOperating || 0);
-
-  const rationale: string[] = [];
-
-  rationale.push(
-    `Tu objetivo principal actual es: ${goalLabel}.`
-  );
-
-  if (goalDescription) {
-    rationale.push(goalDescription);
-  }
-
-  if (currentProcessText) {
-    rationale.push(
-      `Proceso actual detectado: ${currentProcessText}.`
-    );
-  }
-
-  if (manualStepsText) {
-    rationale.push(
-      `Hoy todavía existen pasos manuales relevantes: ${manualStepsText}.`
-    );
-  }
-
-  if (painPointsText) {
-    rationale.push(
-      `También identificamos fricciones operativas: ${painPointsText}.`
-    );
-  }
-
-  if (monthlyConversations > 0 || monthlyTickets > 0 || monthlyBookings > 0) {
-    rationale.push(
-      `El volumen capturado (${monthlyConversations} conversaciones, ${monthlyTickets} tickets, ${monthlyBookings} reservas) confirma que ya existe una operación real que vale la pena estructurar.`
-    );
-  }
-
-  if (teamSizeOperating > 0) {
-    rationale.push(
-      `Actualmente operan ${teamSizeOperating} persona(s), lo que ayuda a dimensionar la complejidad inicial de implementación.`
-    );
-  }
-
-  return {
-    packageName: recommendedPackage?.name || "Pendiente",
-    setupPrice: formatCurrency(recommendedPackage?.setupPrice),
-    monthlyPrice: formatCurrency(recommendedPackage?.monthlyPrice),
-    rationale:
-      rationale.length > 0
-        ? rationale
-        : [
-            "Con base en la información capturada, ya existe una recomendación preliminar disponible para tu caso.",
-          ],
-    notes: recommendedPackage?.description || undefined,
-  };
-}
 
 export default function PackageRecommendationPage() {
   const router = useRouter();
 
-  const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [sessionToken, setSessionToken] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
-  const [summary, setSummary] = useState({
-    businessName: "Pendiente",
-    industry: "Pendiente",
-    goal: "Pendiente",
-    packageName: "Pendiente",
+  const [summary, setSummary] = useState<SummaryState>({
+    businessName: "Cargando...",
+    industry: "Cargando...",
+    goal: "Cargando...",
+    packageName: "Cargando...",
   });
 
-  const [recommendation, setRecommendation] = useState<Recommendation>({
+  const [recommendation, setRecommendation] = useState<RecommendationState>({
+    packageCode: null,
     packageName: "Analizando...",
-    setupPrice: "-",
-    monthlyPrice: "-",
+    packageDescription: "",
+    setupPrice: null,
+    monthlyPrice: null,
     rationale: [],
+    strategicAnalysis: "Analizando contexto operativo...",
+    notes: "",
   });
 
   useEffect(() => {
@@ -168,37 +70,55 @@ export default function PackageRecommendationPage() {
 
     setSessionToken(token);
 
-    fetch(`/api/onboarding/session/${token}`)
-      .then((res) => res.json())
-      .then((res: SessionResponse) => {
-        if (!res?.ok || !res.data) {
-          router.push("/onboarding/start");
-          return;
+    const loadData = async () => {
+      try {
+        const [sessionRes, recommendationRes] = await Promise.all([
+          fetch(`/api/onboarding/session/${token}`, {
+            cache: "no-store",
+          }),
+          fetch(`/api/onboarding/package-recommendation?sessionToken=${token}`, {
+            cache: "no-store",
+          }),
+        ]);
+
+        const sessionJson = await sessionRes.json();
+        const recommendationJson = await recommendationRes.json();
+
+        if (!sessionRes.ok || !sessionJson?.ok) {
+          throw new Error("No fue posible cargar sesión");
         }
 
-        const session = res.data;
+        if (!recommendationRes.ok || !recommendationJson?.ok) {
+          throw new Error("No fue posible generar recomendación");
+        }
+
+        const sessionData = sessionJson.data as SessionResponse;
+        const recommendationData = recommendationJson.data as RecommendationState;
 
         setSummary({
           businessName:
-            session.businessProfile?.commercialName || "Pendiente",
-          industry: session.businessProfile?.industry || "Pendiente",
-          goal: session.primaryGoal?.primaryGoalLabel || "Pendiente",
-          packageName: session.recommendedPackage?.name || "Pendiente",
+            sessionData.businessProfile?.commercialName || "Pendiente",
+          industry: sessionData.businessProfile?.industry || "Pendiente",
+          goal: sessionData.primaryGoal?.primaryGoalLabel || "Pendiente",
+          packageName: recommendationData.packageName || "Pendiente",
         });
 
-        setRecommendation(buildRecommendationFromSession(session));
-      })
-      .catch((error) => {
-        console.error("PACKAGE_RECOMMENDATION_LOAD_ERROR:", error);
+        setRecommendation(recommendationData);
+      } catch (error) {
+        console.error("PACKAGE_RECOMMENDATION_PAGE_LOAD_ERROR:", error);
         router.push("/onboarding/start");
-      });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
   }, [router]);
 
   const handleContinue = async () => {
-    if (!sessionToken) return;
-
     try {
       setIsSubmitting(true);
+      setSubmitError("");
 
       const response = await fetch("/api/onboarding/package-recommendation", {
         method: "POST",
@@ -214,29 +134,54 @@ export default function PackageRecommendationPage() {
 
       if (!response.ok || !result?.ok) {
         throw new Error(
-          result?.error || "No fue posible continuar a scope confirmation"
+          result?.error ||
+            "No fue posible continuar con la recomendación. Intenta nuevamente."
         );
       }
 
       router.push("/onboarding/scope-confirmation");
     } catch (error) {
-      console.error("PACKAGE_RECOMMENDATION_SUBMIT_ERROR:", error);
-      alert("No fue posible continuar. Intenta nuevamente.");
+      console.error("PACKAGE_RECOMMENDATION_CONTINUE_ERROR:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "No fue posible continuar con la recomendación. Intenta nuevamente."
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (isLoading) {
+    return (
+      <AppShell
+        step={5}
+        totalSteps={5}
+        progress={90}
+        summary={{
+          businessName: "Cargando...",
+          industry: "Cargando...",
+          goal: "Cargando...",
+          packageName: "Cargando...",
+        }}
+        isLoading
+      >
+        <div className="rounded-[32px] border border-[#E5E7EB] bg-white p-12 shadow-sm">
+          <div className="h-8 w-56 animate-pulse rounded-full bg-[#E5E7EB]" />
+          <div className="mt-8 h-16 w-[70%] animate-pulse rounded-2xl bg-[#E5E7EB]" />
+          <div className="mt-6 h-8 w-[85%] animate-pulse rounded-2xl bg-[#E5E7EB]" />
+          <div className="mt-10 h-[520px] animate-pulse rounded-[28px] bg-[#F3F4F6]" />
+        </div>
+      </AppShell>
+    );
+  }
+
   return (
-    <AppShell
-      step={5}
-      totalSteps={5}
-      progress={90}
-      summary={summary}
-    >
+    <AppShell step={5} totalSteps={5} progress={90} summary={summary}>
       <PackageRecommendationCard
         recommendation={recommendation}
         isSubmitting={isSubmitting}
+        submitError={submitError}
         onBack={() => router.push("/onboarding/volume-operations")}
         onContinue={handleContinue}
       />

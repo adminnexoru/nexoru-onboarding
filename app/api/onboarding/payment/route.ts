@@ -1,24 +1,26 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-type PaymentAddon = {
-  addonId: string;
-  name: string;
-  priceType: string;
-  priceAmount: string | null;
-};
+function buildPaymentReference(sessionId: string) {
+  return `NXR-${sessionId}-${Date.now()}`;
+}
+
+function decimalToNumber(value: unknown) {
+  if (value === null || value === undefined) return 0;
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
-
     const sessionToken = body?.sessionToken;
 
     if (!sessionToken || typeof sessionToken !== "string") {
       return NextResponse.json(
         {
           ok: false,
-          error: "Session token is required",
+          error: "sessionToken is required",
         },
         { status: 400 }
       );
@@ -29,12 +31,15 @@ export async function POST(request: Request) {
         sessionToken,
       },
       include: {
+        businessProfile: true,
+        primaryGoal: true,
         recommendedPackage: true,
         selectedAddons: {
           include: {
             addon: true,
           },
         },
+        scopeConfirmation: true,
       },
     });
 
@@ -48,6 +53,16 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!session.scopeConfirmation?.acceptedScope) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Scope must be confirmed before payment",
+        },
+        { status: 400 }
+      );
+    }
+
     if (!session.recommendedPackage) {
       return NextResponse.json(
         {
@@ -58,27 +73,27 @@ export async function POST(request: Request) {
       );
     }
 
-    const setupAmountNumber =
-      Number(session.setupPriceSnapshot ?? session.recommendedPackage.setupPrice ?? 0);
+    const packageSetup = decimalToNumber(
+      session.setupPriceSnapshot ?? session.recommendedPackage.setupPrice
+    );
 
-    const addonsForResponse: PaymentAddon[] = session.selectedAddons.map((item) => ({
+    const selectedAddons = session.selectedAddons.map((item) => ({
       addonId: item.addon.id,
+      code: item.addon.code,
       name: item.addon.name,
-      priceType: item.addon.priceType,
-      priceAmount: item.addon.priceAmount ? String(item.addon.priceAmount) : null,
+      setupPrice: item.addon.setupPrice ? String(item.addon.setupPrice) : null,
+      monthlyPrice: item.addon.monthlyPrice
+        ? String(item.addon.monthlyPrice)
+        : null,
     }));
 
-    const pricedAddonsTotal = session.selectedAddons.reduce((acc, item) => {
-      if (item.addon.priceAmount) {
-        return acc + Number(item.addon.priceAmount);
-      }
-
-      return acc;
+    const addonsSetupTotal = selectedAddons.reduce((sum, addon) => {
+      return sum + decimalToNumber(addon.setupPrice);
     }, 0);
 
-    const totalSetupAmount = setupAmountNumber + pricedAddonsTotal;
+    const totalSetupAmount = packageSetup + addonsSetupTotal;
 
-    const paymentReference = `NXR-${session.id}-${Date.now()}`;
+    const paymentReference = buildPaymentReference(session.id);
     const paymentUrl = `/onboarding/executive-summary?payment_ref=${paymentReference}`;
 
     const result = await prisma.$transaction(async (tx) => {
@@ -104,38 +119,40 @@ export async function POST(request: Request) {
       });
 
       return {
-        paymentAttempt,
-        session: updatedSession,
+        paymentAttempt: {
+          id: paymentAttempt.id,
+          provider: paymentAttempt.provider,
+          status: paymentAttempt.status,
+          setupAmount: String(paymentAttempt.setupAmount),
+          paymentReference: paymentAttempt.paymentReference,
+          paymentUrl: paymentAttempt.paymentUrl,
+          createdAt: paymentAttempt.createdAt,
+        },
+        session: {
+          id: updatedSession.id,
+          currentStep: updatedSession.currentStep,
+          status: updatedSession.status,
+        },
+        pricing: {
+          packageSetup: String(packageSetup),
+          addonsSetupTotal: String(addonsSetupTotal),
+          totalSetupAmount: String(totalSetupAmount),
+        },
+        selectedAddons,
       };
     });
 
     return NextResponse.json({
       ok: true,
-      data: {
-        paymentAttempt: {
-          id: result.paymentAttempt.id,
-          provider: result.paymentAttempt.provider,
-          status: result.paymentAttempt.status,
-          setupAmount: String(result.paymentAttempt.setupAmount),
-          paymentReference: result.paymentAttempt.paymentReference,
-          paymentUrl: result.paymentAttempt.paymentUrl,
-          createdAt: result.paymentAttempt.createdAt,
-        },
-        session: {
-          id: result.session.id,
-          currentStep: result.session.currentStep,
-          status: result.session.status,
-        },
-        addons: addonsForResponse,
-      },
+      data: result,
     });
   } catch (error) {
-    console.error("POST /api/onboarding/payment error:", error);
+    console.error("PAYMENT POST error:", error);
 
     return NextResponse.json(
       {
         ok: false,
-        error: error instanceof Error ? error.message : "Internal server error",
+        error: "Internal server error",
       },
       { status: 500 }
     );

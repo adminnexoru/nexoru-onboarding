@@ -40,3 +40,7 @@ export const volumeOperationsPayloadSchema = z.object({
   teamSizeOperating: z.number().int().positive(),
   peakDemandNotes: z.string().max(2000).optional().nullable(),
 });
+
+export const packageRecommendationPayloadSchema = z.object({
+  sessionToken: z.string().min(1, "La sesión es obligatoria"),
+});

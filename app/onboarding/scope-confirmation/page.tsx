@@ -18,8 +18,8 @@ type OptionalAddon = {
   code: string;
   name: string;
   description: string;
-  priceType: string;
-  priceAmount: string | null;
+  setupPrice: string | null;
+  monthlyPrice: string | null;
 };
 
 type ScopePageData = {
@@ -67,7 +67,10 @@ export default function ScopeConfirmationPage() {
 
     const loadSession = async () => {
       try {
-        const response = await fetch(`/api/onboarding/session/${token}`);
+        const response = await fetch(`/api/onboarding/session/${token}`, {
+          cache: "no-store",
+        });
+
         const result = await response.json();
 
         if (!response.ok || !result?.ok) {
@@ -103,16 +106,16 @@ export default function ScopeConfirmationPage() {
                   code: string;
                   name: string;
                   description?: string | null;
-                  priceType: string;
-                  priceAmount?: string | null;
+                  setupPrice?: string | null;
+                  monthlyPrice?: string | null;
                 };
               }) => ({
                 id: item.addon.id,
                 code: item.addon.code,
                 name: item.addon.name,
                 description: item.addon.description ?? "",
-                priceType: item.addon.priceType,
-                priceAmount: item.addon.priceAmount ?? null,
+                setupPrice: item.addon.setupPrice ?? null,
+                monthlyPrice: item.addon.monthlyPrice ?? null,
               })
             ) || [],
           acceptedScope: !!session.scopeConfirmation?.acceptedScope,
@@ -157,7 +160,10 @@ export default function ScopeConfirmationPage() {
       const result = await response.json();
 
       if (!response.ok || !result?.ok) {
-        throw new Error(result?.error || "Error al confirmar alcance");
+        throw new Error(
+          result?.error ||
+            "No fue posible guardar la confirmación de alcance."
+        );
       }
 
       router.push("/onboarding/payment");
@@ -166,7 +172,7 @@ export default function ScopeConfirmationPage() {
       setSubmitError(
         error instanceof Error
           ? error.message
-          : "No fue posible confirmar el alcance."
+          : "No fue posible guardar la confirmación de alcance."
       );
     } finally {
       setIsSubmitting(false);

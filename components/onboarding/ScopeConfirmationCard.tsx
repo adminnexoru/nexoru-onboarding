@@ -7,8 +7,8 @@ type OptionalAddon = {
   code: string;
   name: string;
   description: string;
-  priceType: string;
-  priceAmount: string | null;
+  setupPrice: string | null;
+  monthlyPrice: string | null;
 };
 
 type ScopeConfirmationCardProps = {
@@ -27,31 +27,36 @@ type ScopeConfirmationCardProps = {
   }) => Promise<void>;
 };
 
-function formatAddonPrice(
-  priceType: string,
-  priceAmount?: string | null
-): string {
-  if (!priceAmount) {
-    return "Precio personalizado";
-  }
+function formatMoney(value: string | null | undefined) {
+  const amount = Number(value ?? 0);
 
-  const amount = Number(priceAmount);
-
-  if (Number.isNaN(amount)) {
-    return "Precio personalizado";
-  }
-
-  const formatted = new Intl.NumberFormat("es-MX", {
+  return new Intl.NumberFormat("es-MX", {
     style: "currency",
     currency: "MXN",
     maximumFractionDigits: 0,
   }).format(amount);
+}
 
-  if (priceType === "MONTHLY") {
-    return `${formatted} / mes`;
+function formatAddonPricing(
+  setupPrice: string | null,
+  monthlyPrice: string | null
+) {
+  const setup = Number(setupPrice ?? 0);
+  const monthly = Number(monthlyPrice ?? 0);
+
+  if (setup <= 0 && monthly <= 0) {
+    return "Precio por definir";
   }
 
-  return formatted;
+  if (setup <= 0 && monthly > 0) {
+    return `${formatMoney(monthlyPrice)} / mes`;
+  }
+
+  if (setup > 0 && monthly <= 0) {
+    return `Setup ${formatMoney(setupPrice)}`;
+  }
+
+  return `Setup ${formatMoney(setupPrice)} · Mensual ${formatMoney(monthlyPrice)}`;
 }
 
 export default function ScopeConfirmationCard({
@@ -157,25 +162,26 @@ export default function ScopeConfirmationCard({
           </div>
         ) : (
           <div className="flex flex-wrap gap-3">
-            {optionalAddons.map((item) => {
-              const active = selected.includes(item.id);
+            {optionalAddons.map((addon) => {
+              const active = selected.includes(addon.id);
 
               return (
                 <button
-                  key={item.id}
+                  key={addon.id}
                   type="button"
-                  onClick={() => toggleAddon(item.id)}
-                  className={`rounded-full border px-4 py-3 text-left transition ${
+                  onClick={() => toggleAddon(addon.id)}
+                  className={`min-w-[220px] rounded-[20px] border px-4 py-3 text-left transition ${
                     active
                       ? "border-[#6366F1] bg-[#EEF2FF]"
                       : "border-[#D1D5DB] bg-white"
                   }`}
                 >
                   <div className="text-[16px] font-semibold text-[#202430]">
-                    {item.name}
+                    {addon.name}
                   </div>
-                  <div className="text-sm text-[#6B7280]">
-                    {formatAddonPrice(item.priceType, item.priceAmount)}
+
+                  <div className="mt-1 text-sm leading-6 text-[#6B7280]">
+                    {formatAddonPricing(addon.setupPrice, addon.monthlyPrice)}
                   </div>
                 </button>
               );

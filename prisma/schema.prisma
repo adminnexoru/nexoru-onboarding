@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 enum OnboardingStatus {
@@ -14,138 +14,133 @@ enum OnboardingStatus {
   PAYMENT_INITIATED
 }
 
-enum AddonPriceType {
-  ONE_TIME
-  MONTHLY
-  CUSTOM
-}
-
 model Organization {
-  id                 String              @id @default(cuid())
-  legalName          String?
-  commercialName     String?
-  industry           String?
-  country            String?
-  city               String?
-  websiteOrInstagram String?
-  whatsapp           String?
-  operatingHours     String?
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  id                  String              @id @default(cuid())
+  legalName           String?
+  commercialName      String?
+  industry            String?
+  country             String?
+  city                String?
+  websiteOrInstagram  String?
+  whatsapp            String?
+  operatingHours      String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 
-  onboardingSessions OnboardingSession[]
+  onboardingSessions  OnboardingSession[]
 }
 
 model OnboardingSession {
-  id                  String                   @id @default(cuid())
-  sessionToken        String                   @unique
-  status              OnboardingStatus         @default(STARTED)
-  currentStep         String                   @default("start")
-  organizationId      String?
+  id                   String                    @id @default(cuid())
+  sessionToken         String                    @unique
+  status               OnboardingStatus          @default(STARTED)
+  currentStep          String                    @default("start")
+  organizationId       String?
   recommendedPackageId String?
-  setupPriceSnapshot  Decimal?                 @db.Decimal(10, 2)
-  monthlyPriceSnapshot Decimal?                @db.Decimal(10, 2)
-  createdAt           DateTime                 @default(now())
-  updatedAt           DateTime                 @updatedAt
+  setupPriceSnapshot   Decimal?                  @db.Decimal(10, 2)
+  monthlyPriceSnapshot Decimal?                  @db.Decimal(10, 2)
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
 
-  organization        Organization?            @relation(fields: [organizationId], references: [id])
-  recommendedPackage  Package?                 @relation(fields: [recommendedPackageId], references: [id])
+  organization         Organization?             @relation(fields: [organizationId], references: [id])
+  recommendedPackage   Package?                  @relation(fields: [recommendedPackageId], references: [id])
 
-  businessProfile     OnboardingBusinessProfile?
-  primaryGoal         OnboardingPrimaryGoal?
-  currentProcess      OnboardingCurrentProcess?
-  volumeOperations    OnboardingVolumeOperations?
-  secondaryNeeds      OnboardingSecondaryNeed[]
-  selectedAddons      OnboardingSelectedAddon[]
-  scopeConfirmation   ScopeConfirmation?
-  paymentAttempts     PaymentAttempt[]
+  businessProfile      OnboardingBusinessProfile?
+  primaryGoal          OnboardingPrimaryGoal?
+  currentProcess       OnboardingCurrentProcess?
+  volumeOperations     OnboardingVolumeOperations?
+  secondaryNeeds       OnboardingSecondaryNeed[]
+  selectedAddons       OnboardingSelectedAddon[]
+  scopeConfirmation    ScopeConfirmation?
+  paymentAttempts      PaymentAttempt[]
 }
 
 model OnboardingBusinessProfile {
-  id                 String             @id @default(cuid())
-  sessionId          String             @unique
-  legalName          String?
-  commercialName     String
-  industry           String
-  country            String
-  city               String
-  websiteOrInstagram String?
-  whatsapp           String
-  operatingHours     String?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  id                  String              @id @default(cuid())
+  sessionId           String              @unique
+  legalName           String?
+  commercialName      String
+  industry            String
+  country             String
+  city                String
+  websiteOrInstagram  String?
+  whatsapp            String
+  operatingHours      String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 
-  session            OnboardingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session             OnboardingSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 model OnboardingPrimaryGoal {
-  id                     String   @id @default(cuid())
-  sessionId              String   @unique
-  primaryGoalCode        String
-  primaryGoalLabel       String
-  primaryGoalDescription String?
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  id                      String   @id @default(cuid())
+  sessionId               String   @unique
+  primaryGoalCode         String
+  primaryGoalLabel        String
+  primaryGoalDescription  String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
-  session OnboardingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session                 OnboardingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 model OnboardingSecondaryNeed {
-  id        String   @id @default(cuid())
-  sessionId String
-  needCode  String
-  needLabel String
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  sessionId  String
+  needCode   String
+  needLabel  String
+  createdAt  DateTime @default(now())
 
-  session OnboardingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session    OnboardingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
 }
 
 model OnboardingCurrentProcess {
-  id                 String             @id @default(cuid())
-  sessionId          String             @unique
-  currentProcess     String
-  manualSteps        String?
-  toolsUsed          String?
-  painPoints         String?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  id               String              @id @default(cuid())
+  sessionId        String              @unique
+  currentProcess   String
+  manualSteps      String?
+  toolsUsed        String?
+  painPoints       String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
-  session            OnboardingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session          OnboardingSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 model OnboardingVolumeOperations {
-  id                   String             @id @default(cuid())
-  sessionId            String             @unique
+  id                   String              @id @default(cuid())
+  sessionId            String              @unique
   monthlyConversations Int?
   monthlyTickets       Int?
   monthlyBookings      Int?
-  averageTicketValue   Decimal?           @db.Decimal(10, 2)
+  averageTicketValue   Decimal?            @db.Decimal(10, 2)
   teamSizeOperating    Int
   peakDemandNotes      String?
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
 
-  session              OnboardingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session              OnboardingSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 model Package {
-  id               String                      @id @default(cuid())
-  code             String                      @unique
-  name             String
-  description      String?
-  setupPrice       Decimal                     @db.Decimal(10, 2)
-  monthlyPrice     Decimal                     @db.Decimal(10, 2)
-  isActive         Boolean                     @default(true)
-  sortOrder        Int                         @default(0)
-  createdAt        DateTime                    @default(now())
-  updatedAt        DateTime                    @updatedAt
-  includedItems    PackageIncludedItem[]
-  excludedItems    PackageExcludedItem[]
-  packageAddons    PackageAddon[]
-  recommendationRules PackageRecommendationRule[]
-  onboardingSessions OnboardingSession[]
+  id                   String                       @id @default(cuid())
+  code                 String                       @unique
+  name                 String
+  description          String?
+  setupPrice           Decimal                      @db.Decimal(10, 2)
+  monthlyPrice         Decimal                      @db.Decimal(10, 2)
+  isActive             Boolean                      @default(true)
+  sortOrder            Int                          @default(0)
+  createdAt            DateTime                     @default(now())
+  updatedAt            DateTime                     @updatedAt
+
+  includedItems        PackageIncludedItem[]
+  excludedItems        PackageExcludedItem[]
+  packageAddons        PackageAddon[]
+  recommendationRules  PackageRecommendationRule[]
+  onboardingSessions   OnboardingSession[]
 }
 
 model PackageIncludedItem {
@@ -167,18 +162,18 @@ model PackageExcludedItem {
 }
 
 model Addon {
-  id          String             @id @default(cuid())
-  code        String             @unique
-  name        String
-  description String?
-  priceType   AddonPriceType
-  priceAmount Decimal?           @db.Decimal(10, 2)
-  isActive    Boolean            @default(true)
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  id            String                    @id @default(cuid())
+  code          String                    @unique
+  name          String
+  description   String?
+  setupPrice    Decimal                   @db.Decimal(10, 2)
+  monthlyPrice  Decimal                   @db.Decimal(10, 2)
+  isActive      Boolean                   @default(true)
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
 
-  packageAddons   PackageAddon[]
-  selectedAddons  OnboardingSelectedAddon[]
+  packageAddons  PackageAddon[]
+  selectedAddons OnboardingSelectedAddon[]
 }
 
 model PackageAddon {
@@ -193,13 +188,13 @@ model PackageAddon {
 }
 
 model OnboardingSelectedAddon {
-  id         String             @id @default(cuid())
+  id         String              @id @default(cuid())
   sessionId  String
   addonId    String
-  createdAt  DateTime           @default(now())
+  createdAt  DateTime            @default(now())
 
-  session    OnboardingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  addon      Addon              @relation(fields: [addonId], references: [id], onDelete: Cascade)
+  session    OnboardingSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  addon      Addon               @relation(fields: [addonId], references: [id], onDelete: Cascade)
 
   @@unique([sessionId, addonId])
 }
@@ -223,26 +218,26 @@ model PackageRecommendationRule {
 }
 
 model ScopeConfirmation {
-  id             String             @id @default(cuid())
-  sessionId      String             @unique
+  id             String              @id @default(cuid())
+  sessionId      String              @unique
   acceptedScope  Boolean
-  confirmedAt    DateTime           @default(now())
+  confirmedAt    DateTime            @default(now())
 
-  session        OnboardingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session        OnboardingSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 model PaymentAttempt {
-  id               String             @id @default(cuid())
+  id               String              @id @default(cuid())
   sessionId        String
   provider         String
   status           String
-  setupAmount      Decimal            @db.Decimal(10, 2)
+  setupAmount      Decimal             @db.Decimal(10, 2)
   paymentReference String?
   paymentUrl       String?
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
-  session          OnboardingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session          OnboardingSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 model GoalOption {
