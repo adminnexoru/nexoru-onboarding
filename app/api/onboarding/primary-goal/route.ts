@@ -5,13 +5,10 @@ import { primaryGoalPayloadSchema } from "@/lib/validators/onboarding";
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
-    console.log("PRIMARY_GOAL raw body:", body);
 
     const parsed = primaryGoalPayloadSchema.safeParse(body);
 
     if (!parsed.success) {
-      console.log("PRIMARY_GOAL validation error:", parsed.error.flatten());
-
       return NextResponse.json(
         {
           ok: false,
@@ -22,17 +19,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const { sessionToken, primaryGoalCode, secondaryNeedCodes } = parsed.data;
-
-    console.log("PRIMARY_GOAL parsed sessionToken:", sessionToken);
-    console.log("PRIMARY_GOAL parsed primaryGoalCode:", primaryGoalCode);
-    console.log("PRIMARY_GOAL parsed secondaryNeedCodes:", secondaryNeedCodes);
+    const { sessionToken, primaryGoalCode } = parsed.data;
 
     const session = await prisma.onboardingSession.findUnique({
       where: { sessionToken },
-      include: {
-        organization: true,
-      },
     });
 
     if (!session) {
@@ -46,12 +36,12 @@ export async function POST(request: Request) {
     }
 
     const primaryGoalOption = await prisma.goalOption.findFirst({
-        where: {
-            code: primaryGoalCode,
-            optionType: "primary",
-            isActive: true,
-        },
-        });
+      where: {
+        code: primaryGoalCode,
+        optionType: "primary",
+        isActive: true,
+      },
+    });
 
     if (!primaryGoalOption) {
       return NextResponse.json(
@@ -62,27 +52,6 @@ export async function POST(request: Request) {
         { status: 404 }
       );
     }
-
-    const secondaryOptions =
-      secondaryNeedCodes.length > 0
-        ? await prisma.goalOption.findMany({
-            where: {
-                optionType: "secondary",
-                isActive: true,
-              code: {
-                in: secondaryNeedCodes,
-              },
-            },
-          })
-        : [];
-
-    console.log(
-      "PRIMARY_GOAL secondaryOptions found:",
-      secondaryOptions.map((item) => ({
-        code: item.code,
-        name: item.name,
-      }))
-    );
 
     const recommendedPackage = await prisma.packageRecommendationRule.findFirst({
       where: {
@@ -120,20 +89,6 @@ export async function POST(request: Request) {
         },
       });
 
-      if (secondaryOptions.length > 0) {
-        const createManyResult = await tx.onboardingSecondaryNeed.createMany({
-          data: secondaryOptions.map((item) => ({
-            sessionId: session.id,
-            needCode: item.code,
-            needLabel: item.name,
-          })),
-        });
-
-        console.log("PRIMARY_GOAL createMany result:", createManyResult);
-      } else {
-        console.log("PRIMARY_GOAL no secondary options to insert");
-      }
-
       const updatedSession = await tx.onboardingSession.update({
         where: {
           id: session.id,
@@ -150,10 +105,6 @@ export async function POST(request: Request) {
 
       return {
         primaryGoal: savedPrimaryGoal,
-        secondaryNeeds: secondaryOptions.map((item) => ({
-          code: item.code,
-          label: item.name,
-        })),
         recommendedPackage: recommendedPackage?.package
           ? {
               id: recommendedPackage.package.id,

@@ -8,36 +8,35 @@ type GoalOption = {
   description: string | null;
 };
 
-type SecondaryNeedOption = {
-  code: string;
-  name: string;
-};
-
 type Props = {
   sessionToken: string;
   primaryGoals: GoalOption[];
-  secondaryNeeds: SecondaryNeedOption[];
   initialPrimaryGoalCode?: string;
-  initialSecondaryNeedCodes?: string[];
+  initialRecommendedPackageName?: string;
   onSummaryChange?: (data: { goal?: string; packageName?: string }) => void;
   onBack?: () => void;
 };
 
+function getPreliminarySolutionLabel(goalCode: string) {
+  switch (goalCode) {
+    case "other":
+      return "Solución por definir";
+    default:
+      return "Se determinará con base en tu operación";
+  }
+}
+
 export default function PrimaryGoalSelector({
   sessionToken,
   primaryGoals,
-  secondaryNeeds,
   initialPrimaryGoalCode = "",
-  initialSecondaryNeedCodes = [],
+  initialRecommendedPackageName = "",
   onSummaryChange,
   onBack,
 }: Props) {
   const [selectedPrimaryGoalCode, setSelectedPrimaryGoalCode] = useState(
     initialPrimaryGoalCode
   );
-  const [selectedSecondaryNeedCodes, setSelectedSecondaryNeedCodes] = useState<
-    string[]
-  >(initialSecondaryNeedCodes);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -47,23 +46,21 @@ export default function PrimaryGoalSelector({
     );
   }, [primaryGoals, selectedPrimaryGoalCode]);
 
-  const selectedPackageName = useMemo(() => {
-    switch (selectedPrimaryGoalCode) {
-      case "base0":
-        return "Nexoru Base 0";
-      case "sales":
-        return "Nexoru Sales OS";
-      case "loyalty":
-        return "Nexoru Loyalty OS";
-      case "booking":
-        return "Nexoru Booking OS";
-      default:
-        return "Pendiente";
+  const preliminarySolutionLabel = useMemo(() => {
+    if (initialRecommendedPackageName && selectedPrimaryGoalCode === initialPrimaryGoalCode) {
+      return initialRecommendedPackageName;
     }
-  }, [selectedPrimaryGoalCode]);
+
+    return getPreliminarySolutionLabel(selectedPrimaryGoalCode);
+  }, [
+    initialPrimaryGoalCode,
+    initialRecommendedPackageName,
+    selectedPrimaryGoalCode,
+  ]);
 
   const handleSelectPrimaryGoal = (goalCode: string) => {
-    const selected = primaryGoals.find((item) => item.code === goalCode) ?? null;
+    const selected =
+      primaryGoals.find((item) => item.code === goalCode) ?? null;
 
     setSelectedPrimaryGoalCode(goalCode);
     setError("");
@@ -71,24 +68,10 @@ export default function PrimaryGoalSelector({
     onSummaryChange?.({
       goal: selected?.name ?? "Pendiente",
       packageName:
-        goalCode === "base0"
-          ? "Nexoru Base 0"
-          : goalCode === "sales"
-          ? "Nexoru Sales OS"
-          : goalCode === "loyalty"
-          ? "Nexoru Loyalty OS"
-          : goalCode === "booking"
-          ? "Nexoru Booking OS"
-          : "Pendiente",
+        goalCode === "other"
+          ? "Solución por definir"
+          : "Se determinará con base en tu operación",
     });
-  };
-
-  const handleToggleSecondaryNeed = (code: string) => {
-    setSelectedSecondaryNeedCodes((prev) =>
-      prev.includes(code)
-        ? prev.filter((item) => item !== code)
-        : [...prev, code]
-    );
   };
 
   const handleSubmit = async () => {
@@ -109,7 +92,6 @@ export default function PrimaryGoalSelector({
         body: JSON.stringify({
           sessionToken,
           primaryGoalCode: selectedPrimaryGoalCode,
-          secondaryNeedCodes: selectedSecondaryNeedCodes,
         }),
       });
 
@@ -127,7 +109,11 @@ export default function PrimaryGoalSelector({
           result?.data?.primaryGoal?.primaryGoalLabel ??
           selectedPrimaryGoal?.name ??
           "Pendiente",
-        packageName: result?.data?.recommendedPackage?.name ?? selectedPackageName,
+        packageName:
+          result?.data?.recommendedPackage?.name ??
+          (selectedPrimaryGoalCode === "other"
+            ? "Solución por definir"
+            : "Se determinará con base en tu operación"),
       });
 
       window.location.href = "/onboarding/current-process";
@@ -154,8 +140,9 @@ export default function PrimaryGoalSelector({
       </h1>
 
       <p className="mt-5 max-w-[920px] text-[19px] leading-8 text-[#4B5563] md:text-[20px]">
-        Elige la necesidad principal de tu negocio. Después podrás agregar
-        necesidades secundarias para complementar la solución.
+        Elige la necesidad principal de tu negocio. Con base en esta decisión,
+        el proceso actual y el volumen operativo, Nexoru recomendará la mejor
+        solución inicial.
       </p>
 
       <div className="mt-10">
@@ -191,33 +178,6 @@ export default function PrimaryGoalSelector({
         </div>
       </div>
 
-      <div className="mt-10">
-        <h3 className="mb-4 text-[16px] font-semibold text-[#202430]">
-          Necesidades secundarias (opcional)
-        </h3>
-
-        <div className="flex flex-wrap gap-3">
-          {secondaryNeeds.map((need) => {
-            const active = selectedSecondaryNeedCodes.includes(need.code);
-
-            return (
-              <button
-                key={need.code}
-                type="button"
-                onClick={() => handleToggleSecondaryNeed(need.code)}
-                className={`inline-flex min-h-[42px] items-center rounded-full border px-4 text-sm font-medium transition ${
-                  active
-                    ? "border-[#4F46E5] bg-[#EEF2FF] text-[#312E81]"
-                    : "border-[#D1D5DB] bg-white text-[#374151] hover:border-[#9CA3AF]"
-                }`}
-              >
-                {need.name}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       <div className="mt-10 rounded-[24px] bg-[#F7F8FC] p-6">
         <h4 className="mb-4 text-[16px] font-semibold text-[#202430]">
           Vista preliminar
@@ -229,8 +189,12 @@ export default function PrimaryGoalSelector({
             {selectedPrimaryGoal?.name ?? "Pendiente"}
           </p>
           <p>
-            <span className="font-semibold text-[#202430]">Paquete sugerido:</span>{" "}
-            {selectedPackageName}
+            <span className="font-semibold text-[#202430]">
+              Solución preliminar:
+            </span>{" "}
+            {selectedPrimaryGoalCode
+              ? preliminarySolutionLabel
+              : "Pendiente"}
           </p>
         </div>
       </div>
@@ -244,7 +208,14 @@ export default function PrimaryGoalSelector({
       <div className="mt-10 flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
-          onClick={() => window.location.href = "/onboarding/business-profile"}
+          onClick={() => {
+            if (onBack) {
+              onBack();
+              return;
+            }
+
+            window.location.href = "/onboarding/business-profile";
+          }}
           className="inline-flex h-14 min-w-[108px] items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-6 text-[16px] font-semibold text-[#202430] transition hover:bg-[#F9FAFB]"
         >
           Atrás
@@ -255,10 +226,10 @@ export default function PrimaryGoalSelector({
           onClick={handleSubmit}
           disabled={!selectedPrimaryGoalCode || isSubmitting}
           className={`inline-flex h-14 min-w-[180px] items-center justify-center rounded-2xl px-8 text-[16px] font-semibold text-white transition ${
-              isSubmitting
-                ? "bg-[#A7AFBE] cursor-not-allowed"
-                : "bg-[#202430] hover:bg-[#111827]"
-            }`}
+            !selectedPrimaryGoalCode || isSubmitting
+              ? "cursor-not-allowed bg-[#A7AFBE]"
+              : "bg-[#202430] hover:bg-[#111827]"
+          }`}
         >
           {isSubmitting ? "Guardando..." : "Siguiente"}
         </button>

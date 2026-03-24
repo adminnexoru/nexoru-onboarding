@@ -12,11 +12,6 @@ type GoalOption = {
   description: string | null;
 };
 
-type SecondaryNeedOption = {
-  code: string;
-  name: string;
-};
-
 type SessionResponse = {
   businessProfile: {
     commercialName?: string | null;
@@ -26,9 +21,6 @@ type SessionResponse = {
     primaryGoalCode: string;
     primaryGoalLabel: string;
   } | null;
-  secondaryNeeds: Array<{
-    needCode: string;
-  }>;
   recommendedPackage: {
     name: string;
   } | null;
@@ -39,14 +31,9 @@ export default function PrimaryGoalPage() {
   const [sessionToken, setSessionToken] = useState("");
 
   const [primaryGoals, setPrimaryGoals] = useState<GoalOption[]>([]);
-  const [secondaryNeeds, setSecondaryNeeds] = useState<SecondaryNeedOption[]>(
-    []
-  );
-
   const [initialPrimaryGoalCode, setInitialPrimaryGoalCode] = useState("");
-  const [initialSecondaryNeedCodes, setInitialSecondaryNeedCodes] = useState<
-    string[]
-  >([]);
+  const [initialRecommendedPackageName, setInitialRecommendedPackageName] =
+    useState("");
 
   const [summary, setSummary] = useState({
     businessName: "Cargando...",
@@ -90,12 +77,11 @@ export default function PrimaryGoalPage() {
         const sessionData = sessionJson.data as SessionResponse;
 
         setPrimaryGoals(catalogJson.data.primaryGoals || []);
-        setSecondaryNeeds(catalogJson.data.secondaryNeeds || []);
         setInitialPrimaryGoalCode(
           sessionData.primaryGoal?.primaryGoalCode || ""
         );
-        setInitialSecondaryNeedCodes(
-          (sessionData.secondaryNeeds || []).map((item) => item.needCode)
+        setInitialRecommendedPackageName(
+          sessionData.recommendedPackage?.name || ""
         );
 
         setSummary({
@@ -139,15 +125,17 @@ export default function PrimaryGoalPage() {
       <PrimaryGoalSelector
         sessionToken={sessionToken}
         primaryGoals={primaryGoals}
-        secondaryNeeds={secondaryNeeds}
         initialPrimaryGoalCode={initialPrimaryGoalCode}
-        initialSecondaryNeedCodes={initialSecondaryNeedCodes}
+        initialRecommendedPackageName={initialRecommendedPackageName}
         onSummaryChange={(nextSummary) => {
           setSummary((prev) => ({
             ...prev,
             goal: nextSummary.goal || prev.goal,
             packageName: nextSummary.packageName || prev.packageName,
           }));
+        }}
+        onBack={() => {
+          window.location.href = "/onboarding/business-profile";
         }}
       />
     </AppShell>

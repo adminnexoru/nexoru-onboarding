@@ -13,18 +13,20 @@ type SummaryState = {
   packageName: string;
 };
 
+type OptionalAddon = {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  priceType: string;
+  priceAmount: string | null;
+};
+
 type ScopePageData = {
   packageName: string;
   includedItems: string[];
   excludedItems: string[];
-  optionalAddons: {
-    id: string;
-    code: string;
-    name: string;
-    description: string;
-    priceType: string;
-    priceAmount: string | null;
-  }[];
+  optionalAddons: OptionalAddon[];
   acceptedScope: boolean;
   selectedAddonIds: string[];
 };
@@ -34,6 +36,8 @@ export default function ScopeConfirmationPage() {
 
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const [summary, setSummary] = useState<SummaryState>({
     businessName: "Pendiente",
@@ -128,6 +132,47 @@ export default function ScopeConfirmationPage() {
     loadSession();
   }, [router]);
 
+  const handleContinue = async (payload: {
+    acceptedScope: boolean;
+    selectedAddonIds: string[];
+  }) => {
+    if (!sessionToken) return;
+
+    try {
+      setIsSubmitting(true);
+      setSubmitError("");
+
+      const response = await fetch("/api/onboarding/scope-confirmation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sessionToken,
+          acceptedScope: payload.acceptedScope,
+          selectedAddonIds: payload.selectedAddonIds,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result?.ok) {
+        throw new Error(result?.error || "Error al confirmar alcance");
+      }
+
+      router.push("/onboarding/payment");
+    } catch (error) {
+      console.error("SCOPE_CONFIRMATION_SUBMIT_ERROR:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "No fue posible confirmar el alcance."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <AppShell
       step={5}
@@ -137,15 +182,16 @@ export default function ScopeConfirmationPage() {
       isLoading={isLoading}
     >
       <ScopeConfirmationCard
-        sessionToken={sessionToken ?? ""}
         packageName={scopeData.packageName}
         includedItems={scopeData.includedItems}
         excludedItems={scopeData.excludedItems}
         optionalAddons={scopeData.optionalAddons}
-        initialAcceptedScope={scopeData.acceptedScope}
-        initialSelectedAddonIds={scopeData.selectedAddonIds}
+        acceptedScope={scopeData.acceptedScope}
+        selectedAddonIds={scopeData.selectedAddonIds}
+        isSubmitting={isSubmitting}
+        submitError={submitError}
         onBack={() => router.push("/onboarding/package-recommendation")}
-        onSuccess={() => router.push("/onboarding/payment")}
+        onContinue={handleContinue}
       />
     </AppShell>
   );

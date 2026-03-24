@@ -21,7 +21,6 @@ export const businessProfilePayloadSchema = z.object({
 export const primaryGoalPayloadSchema = z.object({
   sessionToken: z.string().min(1, "La sesión es obligatoria"),
   primaryGoalCode: z.string().min(1, "El objetivo principal es obligatorio"),
-  secondaryNeedCodes: z.array(z.string()).default([]),
 });
 
 export const currentProcessPayloadSchema = z.object({
