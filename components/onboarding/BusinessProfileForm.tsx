@@ -49,7 +49,7 @@ export default function BusinessProfileForm({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  useEffect (() =>{
+  useEffect(() => {
     setFormData({
       ...defaultValues,
       ...initialValues,
@@ -135,7 +135,7 @@ export default function BusinessProfileForm({
   };
 
   const inputClass = (field: keyof BusinessProfileFormValues) =>
-    `w-full rounded-2xl border bg-white px-5 py-4 text-[16px] text-[#202430] shadow-sm transition outline-none placeholder:text-[#9CA3AF] ${
+    `w-full rounded-2xl border bg-white px-4 py-3.5 text-[15px] text-[#202430] shadow-sm transition outline-none placeholder:text-[#9CA3AF] sm:px-5 sm:py-4 sm:text-[16px] ${
       fieldErrors[field]
         ? "border-[#DC2626] focus:border-[#DC2626]"
         : "border-[#E5E7EB] focus:border-[#4F46E5]"
@@ -150,23 +150,23 @@ export default function BusinessProfileForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      <div className="rounded-[32px] border border-[#E5E7EB] bg-white px-12 py-12 shadow-sm">
-        <span className="mb-6 inline-flex rounded-full bg-[#EEF2FF] px-5 py-3 text-sm font-medium text-[#4F46E5]">
+      <div className="rounded-[28px] border border-[#E5E7EB] bg-white px-5 py-7 shadow-sm sm:rounded-[32px] sm:px-8 sm:py-9 md:px-12 md:py-12">
+        <span className="mb-6 inline-flex rounded-full bg-[#EEF2FF] px-4 py-2 text-[13px] font-medium text-[#4F46E5] sm:px-5 sm:py-3 sm:text-sm">
           Paso 2 · Perfil del negocio
         </span>
 
-        <h1 className="mb-4 text-[64px] font-semibold leading-[1.02] tracking-[-0.03em] text-[#202430]">
+        <h1 className="mb-8 text-[32px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#202430] sm:mb-9 sm:text-[38px] md:mb-8 md:text-[60px] md:leading-[1.04]">
           Cuéntanos sobre tu negocio
         </h1>
 
-        <p className="mb-12 max-w-4xl text-[20px] leading-9 text-[#4B5563]">
+        <p className="mb-10 max-w-4xl text-[16px] leading-7 text-[#4B5563] sm:mb-12 sm:text-[17px] sm:leading-8 md:mb-12 md:text-[20px] md:leading-9">
           Necesitamos entender el contexto base de tu operación para diseñar la
           mejor implementación Nexoru.
         </p>
 
-        <div className="grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-7 sm:gap-y-8 md:grid-cols-2 mt-10">
           <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
+            <label className="mb-2 block text-[14px] font-semibold text-[#202430] sm:mb-3 sm:text-[15px]">
               Nombre legal del negocio
             </label>
             <input
@@ -291,7 +291,7 @@ export default function BusinessProfileForm({
           </div>
         ) : null}
 
-        <div className="mt-10 flex items-center justify-between gap-4">
+        <div className="mt-12 flex flex-col gap-4 sm:mt-14 sm:flex-row sm:items-center sm:justify-between">
           <button
             type="button"
             onClick={() => {
@@ -302,7 +302,7 @@ export default function BusinessProfileForm({
 
               window.history.back();
             }}
-            className="inline-flex h-14 min-w-[108px] items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-6 text-[16px] font-semibold text-[#202430] transition hover:bg-[#F9FAFB]"
+            className="inline-flex h-14 w-full items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-6 text-[16px] font-semibold text-[#202430] transition hover:bg-[#F9FAFB] sm:w-auto sm:min-w-[120px]"
           >
             Atrás
           </button>
@@ -310,9 +310,9 @@ export default function BusinessProfileForm({
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`inline-flex h-14 min-w-[180px] items-center justify-center rounded-2xl px-8 text-[16px] font-semibold text-white transition ${
+            className={`inline-flex h-14 w-full items-center justify-center rounded-2xl px-8 text-[16px] font-semibold text-white transition sm:w-auto sm:min-w-[180px] ${
               isSubmitting
-                ? "bg-[#A7AFBE] cursor-not-allowed"
+                ? "cursor-not-allowed bg-[#A7AFBE]"
                 : "bg-[#202430] hover:bg-[#111827]"
             }`}
           >
@@ -321,7 +321,7 @@ export default function BusinessProfileForm({
         </div>
 
         {!isFormValid && hasSubmitted ? (
-          <p className="mt-4 text-right text-sm font-medium text-[#B45309]">
+          <p className="mt-4 text-sm font-medium text-[#B45309] sm:text-right">
             Completa los campos obligatorios para continuar.
           </p>
         ) : null}
