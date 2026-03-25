@@ -85,10 +85,15 @@ export default function PrimaryGoalPage() {
         }
 
         if (!sessionRes.ok || !sessionJson?.ok) {
-          throw new Error(
-            sessionJson?.error || "No fue posible cargar sesión"
-          );
-        }
+  const sessionErrorMessage =
+    typeof sessionJson?.error === "string"
+      ? sessionJson.error
+      : sessionJson?.error?.message && typeof sessionJson.error.message === "string"
+      ? sessionJson.error.message
+      : "No fue posible cargar sesión";
+
+  throw new Error(sessionErrorMessage);
+}
 
         const catalogData = catalogJson.data as CatalogResponse;
         const sessionData = sessionJson.data as SessionResponse;
@@ -109,15 +114,19 @@ export default function PrimaryGoalPage() {
           packageName: sessionData.recommendedPackage?.name || "Pendiente",
         });
       } catch (error) {
-        console.error("PRIMARY_GOAL_PAGE_LOAD_ERROR:", error);
-        setPageError(
-          error instanceof Error
-            ? error.message
-            : "No fue posible cargar la sesión."
-        );
-      } finally {
-        setLoading(false);
-      }
+  console.error("PRIMARY_GOAL_PAGE_LOAD_ERROR:", error);
+
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+      ? error
+      : "No fue posible cargar la sesión.";
+
+  setPageError(message);
+} finally {
+  setLoading(false);
+}
     };
 
     loadData();
@@ -157,8 +166,10 @@ export default function PrimaryGoalPage() {
       >
         <div className="rounded-[32px] border border-[#FECACA] bg-white p-12 shadow-sm">
           <div className="rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-5 py-4 text-sm font-medium text-[#B91C1C]">
-            {pageError}
-          </div>
+  {typeof pageError === "string" && pageError.trim()
+    ? pageError
+    : "No fue posible cargar la sesión."}
+</div>
 
           <div className="mt-6 flex gap-4">
             <button
