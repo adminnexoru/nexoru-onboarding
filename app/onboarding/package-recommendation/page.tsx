@@ -73,6 +73,7 @@ export default function PackageRecommendationPage() {
 
   const [sessionToken, setSessionToken] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [pageError, setPageError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
@@ -106,6 +107,8 @@ export default function PackageRecommendationPage() {
 
     const loadData = async () => {
       try {
+        setPageError("");
+
         const [sessionRes, recommendationRes] = await Promise.all([
           fetch(`/api/onboarding/session/${token}`, {
             cache: "no-store",
@@ -122,8 +125,13 @@ export default function PackageRecommendationPage() {
           }),
         ]);
 
-        const sessionJson = await sessionRes.json();
-        const recommendationJson = await recommendationRes.json();
+        const sessionJson = await sessionRes.json().catch(() => null);
+        const recommendationJson = await recommendationRes.json().catch(() => null);
+
+        if (sessionRes.status === 404) {
+          router.push("/onboarding/start");
+          return;
+        }
 
         if (!sessionRes.ok || !sessionJson?.ok) {
           throw new Error(
@@ -187,9 +195,7 @@ export default function PackageRecommendationPage() {
         const volumeParts: string[] = [];
 
         if (monthlyConversations !== null) {
-          volumeParts.push(
-            `${monthlyConversations} conversaciones mensuales`
-          );
+          volumeParts.push(`${monthlyConversations} conversaciones mensuales`);
         }
 
         if (monthlyTickets !== null) {
@@ -245,7 +251,11 @@ export default function PackageRecommendationPage() {
             ? `Desde una perspectiva operativa, los principales puntos de fricción identificados son: ${sessionData.currentProcess.painPoints}.`
             : `No se documentaron fricciones operativas detalladas, pero el volumen y la necesidad principal ya justifican una estructura inicial clara.`,
           volumeParts.length > 0
-            ? `Sumado al volumen observado (${volumeParts.join(", ")}${averageTicketValue ? `, ticket promedio de ${averageTicketValue}` : ""}${peakDemandNotes ? `, con notas de demanda como "${peakDemandNotes}"` : ""}), existe evidencia suficiente para justificar una solución más estructurada y no únicamente una respuesta táctica.`
+            ? `Sumado al volumen observado (${volumeParts.join(", ")}${
+                averageTicketValue ? `, ticket promedio de ${averageTicketValue}` : ""
+              }${
+                peakDemandNotes ? `, con notas de demanda como "${peakDemandNotes}"` : ""
+              }), existe evidencia suficiente para justificar una solución más estructurada y no únicamente una respuesta táctica.`
             : `Aunque no hay suficiente detalle de volumen, sí hay señales suficientes para recomendar una base operativa inicial.`,
           `Con base en esos factores, la mejor recomendación inicial es ${recommendationData.recommendedPackage.name}, porque permite atacar el núcleo del problema sin sobre-dimensionar la implementación en esta etapa. La lógica del paquete se alinea con el tipo de operación actual y con el nivel de madurez reportado.`,
           `Estratégicamente, esta recomendación debe entenderse como una base operativa escalable: primero ordena el flujo central del negocio, después permite ampliar alcance con add-ons o integraciones según crecimiento, complejidad y necesidad comercial real.`,
@@ -274,7 +284,11 @@ export default function PackageRecommendationPage() {
         });
       } catch (error) {
         console.error("PACKAGE_RECOMMENDATION_PAGE_LOAD_ERROR:", error);
-        router.push("/onboarding/start");
+        setPageError(
+          error instanceof Error
+            ? error.message
+            : "No fue posible cargar la recomendación."
+        );
       } finally {
         setIsLoading(false);
       }
@@ -298,7 +312,7 @@ export default function PackageRecommendationPage() {
         }),
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => null);
 
       if (!response.ok || !result?.ok) {
         throw new Error(
@@ -339,6 +353,36 @@ export default function PackageRecommendationPage() {
           <div className="mt-8 h-16 w-[70%] animate-pulse rounded-2xl bg-[#E5E7EB]" />
           <div className="mt-6 h-8 w-[85%] animate-pulse rounded-2xl bg-[#E5E7EB]" />
           <div className="mt-10 h-[520px] animate-pulse rounded-[28px] bg-[#F3F4F6]" />
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (pageError) {
+    return (
+      <AppShell step={5} totalSteps={5} progress={90} summary={summary}>
+        <div className="rounded-[32px] border border-[#FECACA] bg-white p-12 shadow-sm">
+          <div className="rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-5 py-4 text-sm font-medium text-[#B91C1C]">
+            {pageError}
+          </div>
+
+          <div className="mt-6 flex gap-4">
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="inline-flex h-12 items-center justify-center rounded-2xl bg-[#202430] px-6 text-sm font-semibold text-white"
+            >
+              Reintentar
+            </button>
+
+            <button
+              type="button"
+              onClick={() => router.push("/onboarding/volume-operations")}
+              className="inline-flex h-12 items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-6 text-sm font-semibold text-[#202430]"
+            >
+              Volver
+            </button>
+          </div>
         </div>
       </AppShell>
     );
