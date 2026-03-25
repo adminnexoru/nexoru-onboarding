@@ -11,17 +11,13 @@ export const metadata: Metadata = {
     "Onboarding de Nexoru para definir la mejor configuración operativa de automatización para tu negocio.",
   applicationName: "Nexoru Onboarding",
   icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/logo-nexoru.png", type: "image/png", sizes: "512x512" },
-    ],
-    apple: [{ url: "/logo-nexoru.png", sizes: "180x180" }],
-    shortcut: ["/favicon.ico"],
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/logo-nexoru.png",
   },
   openGraph: {
     title: "Nexoru Onboarding",
-    description:
-      "Define la mejor configuración Nexoru para tu negocio.",
+    description: "Define la mejor configuración Nexoru para tu negocio.",
     url: "https://app.nexoru.ai",
     siteName: "Nexoru",
     images: [
@@ -38,8 +34,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Nexoru Onboarding",
-    description:
-      "Define la mejor configuración Nexoru para tu negocio.",
+    description: "Define la mejor configuración Nexoru para tu negocio.",
     images: ["/logo-nexoru.png"],
   },
 };
