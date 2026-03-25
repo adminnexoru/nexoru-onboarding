@@ -20,6 +20,12 @@ function serializeDecimal(
   return String(value);
 }
 
+function serializeRequiredDecimal(
+  value: { toString(): string } | number | string
+): string {
+  return String(value);
+}
+
 export async function GET(_: Request, context: RouteContext) {
   try {
     const rawParams = await context.params;
@@ -93,11 +99,7 @@ export async function GET(_: Request, context: RouteContext) {
     });
 
     if (!session) {
-      throw new ApiRouteError(
-        "NOT_FOUND",
-        "Session not found",
-        404
-      );
+      throw new ApiRouteError("NOT_FOUND", "Session not found", 404);
     }
 
     const serializedSession: SerializedOnboardingSession = {
@@ -192,8 +194,8 @@ export async function GET(_: Request, context: RouteContext) {
           code: item.addon.code,
           name: item.addon.name,
           description: item.addon.description ?? "",
-          setupPrice: serializeDecimal(item.addon.setupPrice),
-          monthlyPrice: serializeDecimal(item.addon.monthlyPrice),
+          setupPrice: serializeRequiredDecimal(item.addon.setupPrice),
+          monthlyPrice: serializeRequiredDecimal(item.addon.monthlyPrice),
         },
       })),
 
@@ -211,7 +213,7 @@ export async function GET(_: Request, context: RouteContext) {
         sessionId: item.sessionId,
         provider: item.provider,
         status: item.status,
-        setupAmount: serializeDecimal(item.setupAmount),
+        setupAmount: serializeRequiredDecimal(item.setupAmount),
         paymentReference: item.paymentReference ?? null,
         paymentUrl: item.paymentUrl ?? null,
         createdAt: item.createdAt,
@@ -224,8 +226,10 @@ export async function GET(_: Request, context: RouteContext) {
             code: session.recommendedPackage.code,
             name: session.recommendedPackage.name,
             description: session.recommendedPackage.description ?? null,
-            setupPrice: serializeDecimal(session.recommendedPackage.setupPrice),
-            monthlyPrice: serializeDecimal(
+            setupPrice: serializeRequiredDecimal(
+              session.recommendedPackage.setupPrice
+            ),
+            monthlyPrice: serializeRequiredDecimal(
               session.recommendedPackage.monthlyPrice
             ),
             isActive: session.recommendedPackage.isActive,
@@ -258,8 +262,8 @@ export async function GET(_: Request, context: RouteContext) {
                   code: item.addon.code,
                   name: item.addon.name,
                   description: item.addon.description ?? "",
-                  setupPrice: serializeDecimal(item.addon.setupPrice),
-                  monthlyPrice: serializeDecimal(item.addon.monthlyPrice),
+                  setupPrice: serializeRequiredDecimal(item.addon.setupPrice),
+                  monthlyPrice: serializeRequiredDecimal(item.addon.monthlyPrice),
                 },
               })
             ),

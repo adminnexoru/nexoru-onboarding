@@ -5,7 +5,11 @@ export type ApiErrorCode =
   | "FORBIDDEN"
   | "NOT_FOUND"
   | "CONFLICT"
-  | "INTERNAL_ERROR";
+  | "INTERNAL_ERROR"
+  | "INVALID_BODY"
+  | "SESSION_NOT_FOUND"
+  | "INVALID_ADDONS"
+  | "RECOMMENDED_PACKAGE_NOT_FOUND";
 
 export type ApiErrorShape = {
   code: ApiErrorCode;

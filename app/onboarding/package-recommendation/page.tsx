@@ -32,6 +32,40 @@ type SessionResponse = {
   primaryGoal: {
     primaryGoalLabel?: string | null;
   } | null;
+  currentProcess: {
+    currentProcess?: string | null;
+    manualSteps?: string | null;
+    toolsUsed?: string | null;
+    painPoints?: string | null;
+  } | null;
+  volumeOperations: {
+    monthlyConversations?: number | null;
+    monthlyTickets?: number | null;
+    monthlyBookings?: number | null;
+    averageTicketValue?: string | null;
+    teamSizeOperating?: number | null;
+    peakDemandNotes?: string | null;
+  } | null;
+};
+
+type PackageRecommendationApiResponse = {
+  recommendedPackage: {
+    id: string;
+    code: string;
+    name: string;
+    description: string | null;
+    setupPrice: string;
+    monthlyPrice: string;
+  };
+  session: {
+    id: string;
+    currentStep: string;
+    status: string;
+    recommendedPackageId: string | null;
+    setupPriceSnapshot: string | null;
+    monthlyPriceSnapshot: string | null;
+    updatedAt: string;
+  };
 };
 
 export default function PackageRecommendationPage() {
@@ -76,7 +110,14 @@ export default function PackageRecommendationPage() {
           fetch(`/api/onboarding/session/${token}`, {
             cache: "no-store",
           }),
-          fetch(`/api/onboarding/package-recommendation?sessionToken=${token}`, {
+          fetch(`/api/onboarding/package-recommendation`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              sessionToken: token,
+            }),
             cache: "no-store",
           }),
         ]);
@@ -85,25 +126,152 @@ export default function PackageRecommendationPage() {
         const recommendationJson = await recommendationRes.json();
 
         if (!sessionRes.ok || !sessionJson?.ok) {
-          throw new Error("No fue posible cargar sesión");
+          throw new Error(
+            sessionJson?.error || "No fue posible cargar sesión"
+          );
         }
 
         if (!recommendationRes.ok || !recommendationJson?.ok) {
-          throw new Error("No fue posible generar recomendación");
+          throw new Error(
+            recommendationJson?.error ||
+              "No fue posible generar recomendación"
+          );
         }
 
         const sessionData = sessionJson.data as SessionResponse;
-        const recommendationData = recommendationJson.data as RecommendationState;
+        const recommendationData =
+          recommendationJson.data as PackageRecommendationApiResponse;
+
+        const businessName =
+          sessionData.businessProfile?.commercialName || "Pendiente";
+        const industry = sessionData.businessProfile?.industry || "Pendiente";
+        const goal = sessionData.primaryGoal?.primaryGoalLabel || "Pendiente";
+
+        const monthlyConversations =
+          sessionData.volumeOperations?.monthlyConversations ?? null;
+        const monthlyTickets =
+          sessionData.volumeOperations?.monthlyTickets ?? null;
+        const monthlyBookings =
+          sessionData.volumeOperations?.monthlyBookings ?? null;
+        const averageTicketValue =
+          sessionData.volumeOperations?.averageTicketValue ?? null;
+        const teamSizeOperating =
+          sessionData.volumeOperations?.teamSizeOperating ?? null;
+        const peakDemandNotes =
+          sessionData.volumeOperations?.peakDemandNotes ?? "";
+
+        const rationale: string[] = [];
+
+        if (goal !== "Pendiente") {
+          rationale.push(`Tu objetivo principal actual es: ${goal}.`);
+        }
+
+        if (sessionData.currentProcess?.currentProcess) {
+          rationale.push(
+            `Proceso actual detectado: ${sessionData.currentProcess.currentProcess}.`
+          );
+        }
+
+        if (sessionData.currentProcess?.manualSteps) {
+          rationale.push(
+            `Hoy todavía existen pasos manuales relevantes: ${sessionData.currentProcess.manualSteps}.`
+          );
+        }
+
+        if (sessionData.currentProcess?.painPoints) {
+          rationale.push(
+            `También identificamos fricciones operativas: ${sessionData.currentProcess.painPoints}.`
+          );
+        }
+
+        const volumeParts: string[] = [];
+
+        if (monthlyConversations !== null) {
+          volumeParts.push(
+            `${monthlyConversations} conversaciones mensuales`
+          );
+        }
+
+        if (monthlyTickets !== null) {
+          volumeParts.push(`${monthlyTickets} tickets mensuales`);
+        }
+
+        if (monthlyBookings !== null) {
+          volumeParts.push(`${monthlyBookings} reservas mensuales`);
+        }
+
+        if (teamSizeOperating !== null) {
+          volumeParts.push(`${teamSizeOperating} personas operando hoy`);
+        }
+
+        if (volumeParts.length > 0) {
+          rationale.push(
+            `El volumen capturado (${volumeParts.join(
+              ", "
+            )}) confirma que ya existe una operación real que vale la pena estructurar.`
+          );
+        }
+
+        if (recommendationData.recommendedPackage.code === "base0") {
+          rationale.push(
+            "La mejor primera capa es una automatización básica de atención, porque hoy la operación todavía puede ordenarse sin sobredimensionar la solución inicial."
+          );
+        }
+
+        if (recommendationData.recommendedPackage.code === "sales_os") {
+          rationale.push(
+            "La lógica principal del negocio apunta a venta y seguimiento comercial, por lo que una arquitectura Sales OS es la mejor base inicial."
+          );
+        }
+
+        if (recommendationData.recommendedPackage.code === "loyalty_os") {
+          rationale.push(
+            "La operación está más alineada a tickets, acumulación y redención, por lo que Loyalty OS ofrece la mejor estructura base."
+          );
+        }
+
+        if (recommendationData.recommendedPackage.code === "booking_os") {
+          rationale.push(
+            "La lógica principal depende de disponibilidad, confirmación y calendarización, por lo que una arquitectura de booking es la mejor base inicial."
+          );
+        }
+
+        const strategicAnalysis = [
+          `Analizando el contexto de ${businessName} dentro de ${industry}, la prioridad declarada es "${goal}". Esto indica que la recomendación no debe limitarse a una automatización genérica, sino alinearse con la necesidad operativa central del negocio.`,
+          sessionData.currentProcess?.currentProcess
+            ? `Actualmente el proceso se describe como "${sessionData.currentProcess.currentProcess}". Además, existen pasos manuales relevantes (${sessionData.currentProcess.manualSteps || "sin detalle adicional"}) y herramientas actuales (${sessionData.currentProcess.toolsUsed || "sin herramientas declaradas"}), lo que sugiere que parte del esfuerzo operativo todavía depende de intervención humana y coordinación manual.`
+            : `Aún con información parcial del proceso, la recomendación se construye sobre el objetivo principal y el volumen operativo reportado.`,
+          sessionData.currentProcess?.painPoints
+            ? `Desde una perspectiva operativa, los principales puntos de fricción identificados son: ${sessionData.currentProcess.painPoints}.`
+            : `No se documentaron fricciones operativas detalladas, pero el volumen y la necesidad principal ya justifican una estructura inicial clara.`,
+          volumeParts.length > 0
+            ? `Sumado al volumen observado (${volumeParts.join(", ")}${averageTicketValue ? `, ticket promedio de ${averageTicketValue}` : ""}${peakDemandNotes ? `, con notas de demanda como "${peakDemandNotes}"` : ""}), existe evidencia suficiente para justificar una solución más estructurada y no únicamente una respuesta táctica.`
+            : `Aunque no hay suficiente detalle de volumen, sí hay señales suficientes para recomendar una base operativa inicial.`,
+          `Con base en esos factores, la mejor recomendación inicial es ${recommendationData.recommendedPackage.name}, porque permite atacar el núcleo del problema sin sobre-dimensionar la implementación en esta etapa. La lógica del paquete se alinea con el tipo de operación actual y con el nivel de madurez reportado.`,
+          `Estratégicamente, esta recomendación debe entenderse como una base operativa escalable: primero ordena el flujo central del negocio, después permite ampliar alcance con add-ons o integraciones según crecimiento, complejidad y necesidad comercial real.`,
+        ].join("\n\n");
+
+        const notes =
+          "Esta recomendación organiza la primera fase de implementación y puede ampliarse después con add-ons o mayor complejidad operativa.";
 
         setSummary({
-          businessName:
-            sessionData.businessProfile?.commercialName || "Pendiente",
-          industry: sessionData.businessProfile?.industry || "Pendiente",
-          goal: sessionData.primaryGoal?.primaryGoalLabel || "Pendiente",
-          packageName: recommendationData.packageName || "Pendiente",
+          businessName,
+          industry,
+          goal,
+          packageName: recommendationData.recommendedPackage.name || "Pendiente",
         });
 
-        setRecommendation(recommendationData);
+        setRecommendation({
+          packageCode: recommendationData.recommendedPackage.code,
+          packageName: recommendationData.recommendedPackage.name,
+          packageDescription:
+            recommendationData.recommendedPackage.description || "",
+          setupPrice: recommendationData.recommendedPackage.setupPrice,
+          monthlyPrice: recommendationData.recommendedPackage.monthlyPrice,
+          rationale,
+          strategicAnalysis,
+          notes,
+        });
       } catch (error) {
         console.error("PACKAGE_RECOMMENDATION_PAGE_LOAD_ERROR:", error);
         router.push("/onboarding/start");

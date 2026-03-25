@@ -1,107 +1,37 @@
-import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { ApiRouteError } from "@/lib/api/errors";
+import { apiError, apiErrorFromUnknown, apiOk } from "@/lib/api/responses";
 import {
-  packageRecommendationPayloadSchema,
-} from "@/lib/validators/onboarding";
-import { generatePackageRecommendation } from "@/lib/services/package-recommendation";
+  packageRecommendationRequestSchema,
+  type PackageRecommendationResponse,
+} from "@/lib/contracts/onboarding";
 
-export async function GET(request: NextRequest) {
-  try {
-    const sessionToken = request.nextUrl.searchParams.get("sessionToken") ?? "";
+function serializeRequiredDecimal(
+  value: { toString(): string } | number | string
+): string {
+  return String(value);
+}
 
-    if (!sessionToken) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "La sesión es obligatoria",
-        },
-        { status: 400 }
-      );
-    }
-
-    const session = await prisma.onboardingSession.findUnique({
-      where: {
-        sessionToken,
-      },
-      include: {
-        businessProfile: true,
-        primaryGoal: true,
-        currentProcess: true,
-        volumeOperations: true,
-        recommendedPackage: true,
-      },
-    });
-
-    if (!session) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Session not found",
-        },
-        { status: 404 }
-      );
-    }
-
-    const recommendation = await generatePackageRecommendation({
-      businessProfile: session.businessProfile,
-      primaryGoal: session.primaryGoal,
-      currentProcess: session.currentProcess,
-      volumeOperations: session.volumeOperations
-        ? {
-            monthlyConversations:
-              session.volumeOperations.monthlyConversations ?? null,
-            monthlyTickets: session.volumeOperations.monthlyTickets ?? null,
-            monthlyBookings: session.volumeOperations.monthlyBookings ?? null,
-            averageTicketValue: session.volumeOperations.averageTicketValue
-              ? String(session.volumeOperations.averageTicketValue)
-              : null,
-            teamSizeOperating: session.volumeOperations.teamSizeOperating ?? null,
-            peakDemandNotes: session.volumeOperations.peakDemandNotes ?? "",
-          }
-        : null,
-      recommendedPackage: session.recommendedPackage
-        ? {
-            code: session.recommendedPackage.code,
-            name: session.recommendedPackage.name,
-            description: session.recommendedPackage.description,
-            setupPrice: String(session.recommendedPackage.setupPrice),
-            monthlyPrice: String(session.recommendedPackage.monthlyPrice),
-          }
-        : null,
-    });
-
-    return NextResponse.json({
-      ok: true,
-      data: recommendation,
-    });
-  } catch (error) {
-    console.error("PACKAGE_RECOMMENDATION GET error:", error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Internal server error",
-      },
-      { status: 500 }
-    );
+function serializeDecimal(
+  value: { toString(): string } | number | string | null | undefined
+): string | null {
+  if (value === null || value === undefined) {
+    return null;
   }
+
+  return String(value);
 }
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
 
-    const parsed = packageRecommendationPayloadSchema.safeParse(body);
+    const parsed = packageRecommendationRequestSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Invalid payload",
-          details: parsed.error.flatten(),
-        },
-        { status: 400 }
-      );
+      return apiError("INVALID_BODY", "Payload inválido", 400, {
+        details: parsed.error.flatten(),
+      });
     }
 
     const { sessionToken } = parsed.data;
@@ -110,15 +40,20 @@ export async function POST(request: Request) {
       where: {
         sessionToken,
       },
+      include: {
+        recommendedPackage: true,
+      },
     });
 
     if (!session) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Session not found",
-        },
-        { status: 404 }
+      throw new ApiRouteError("SESSION_NOT_FOUND", "Session not found", 404);
+    }
+
+    if (!session.recommendedPackage) {
+      throw new ApiRouteError(
+        "RECOMMENDED_PACKAGE_NOT_FOUND",
+        "Recommended package not found",
+        404
       );
     }
 
@@ -129,26 +64,42 @@ export async function POST(request: Request) {
       data: {
         currentStep: "package-recommendation",
         status: "IN_PROGRESS",
+        recommendedPackageId: session.recommendedPackage.id,
+        setupPriceSnapshot:
+          session.setupPriceSnapshot ?? session.recommendedPackage.setupPrice,
+        monthlyPriceSnapshot:
+          session.monthlyPriceSnapshot ?? session.recommendedPackage.monthlyPrice,
       },
     });
 
-    return NextResponse.json({
-      ok: true,
-      data: {
-        sessionId: updatedSession.id,
+    const response: PackageRecommendationResponse = {
+      recommendedPackage: {
+        id: session.recommendedPackage.id,
+        code: session.recommendedPackage.code,
+        name: session.recommendedPackage.name,
+        description: session.recommendedPackage.description ?? null,
+        setupPrice: serializeRequiredDecimal(
+          session.recommendedPackage.setupPrice
+        ),
+        monthlyPrice: serializeRequiredDecimal(
+          session.recommendedPackage.monthlyPrice
+        ),
+      },
+      session: {
+        id: updatedSession.id,
         currentStep: updatedSession.currentStep,
         status: updatedSession.status,
+        recommendedPackageId: updatedSession.recommendedPackageId ?? null,
+        setupPriceSnapshot: serializeDecimal(updatedSession.setupPriceSnapshot),
+        monthlyPriceSnapshot: serializeDecimal(
+          updatedSession.monthlyPriceSnapshot
+        ),
+        updatedAt: updatedSession.updatedAt,
       },
-    });
-  } catch (error) {
-    console.error("PACKAGE_RECOMMENDATION POST error:", error);
+    };
 
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Internal server error",
-      },
-      { status: 500 }
-    );
+    return apiOk(response);
+  } catch (error) {
+    return apiErrorFromUnknown(error);
   }
 }

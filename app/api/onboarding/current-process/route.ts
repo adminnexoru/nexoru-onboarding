@@ -1,22 +1,21 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { currentProcessPayloadSchema } from "@/lib/validators/onboarding";
+import { ApiRouteError } from "@/lib/api/errors";
+import { apiError, apiErrorFromUnknown, apiOk } from "@/lib/api/responses";
+import {
+  currentProcessRequestSchema,
+  type CurrentProcessResponse,
+} from "@/lib/contracts/onboarding";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
 
-    const parsed = currentProcessPayloadSchema.safeParse(body);
+    const parsed = currentProcessRequestSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Invalid payload",
-          details: parsed.error.flatten(),
-        },
-        { status: 400 }
-      );
+      return apiError("INVALID_BODY", "Payload inválido", 400, {
+        details: parsed.error.flatten(),
+      });
     }
 
     const {
@@ -34,13 +33,7 @@ export async function POST(request: Request) {
     });
 
     if (!session) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Session not found",
-        },
-        { status: 404 }
-      );
+      throw new ApiRouteError("SESSION_NOT_FOUND", "Session not found", 404);
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -50,16 +43,16 @@ export async function POST(request: Request) {
         },
         update: {
           currentProcess,
-          manualSteps: manualSteps || "",
-          toolsUsed: toolsUsed || "",
-          painPoints: painPoints || "",
+          manualSteps,
+          toolsUsed,
+          painPoints,
         },
         create: {
           sessionId: session.id,
           currentProcess,
-          manualSteps: manualSteps || "",
-          toolsUsed: toolsUsed || "",
-          painPoints: painPoints || "",
+          manualSteps,
+          toolsUsed,
+          painPoints,
         },
       });
 
@@ -73,25 +66,30 @@ export async function POST(request: Request) {
         },
       });
 
-      return {
-        currentProcess: savedCurrentProcess,
-        session: updatedSession,
+      const response: CurrentProcessResponse = {
+        currentProcess: {
+          id: savedCurrentProcess.id,
+          sessionId: savedCurrentProcess.sessionId,
+          currentProcess: savedCurrentProcess.currentProcess,
+          manualSteps: savedCurrentProcess.manualSteps ?? "",
+          toolsUsed: savedCurrentProcess.toolsUsed ?? "",
+          painPoints: savedCurrentProcess.painPoints ?? "",
+          createdAt: savedCurrentProcess.createdAt,
+          updatedAt: savedCurrentProcess.updatedAt,
+        },
+        session: {
+          id: updatedSession.id,
+          currentStep: updatedSession.currentStep,
+          status: updatedSession.status,
+          updatedAt: updatedSession.updatedAt,
+        },
       };
+
+      return response;
     });
 
-    return NextResponse.json({
-      ok: true,
-      data: result,
-    });
+    return apiOk(result);
   } catch (error) {
-    console.error("POST /api/onboarding/current-process error:", error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error: error instanceof Error ? error.message : "Internal server error",
-      },
-      { status: 500 }
-    );
+    return apiErrorFromUnknown(error);
   }
 }

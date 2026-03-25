@@ -1,22 +1,31 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { volumeOperationsPayloadSchema } from "@/lib/validators/onboarding";
+import { ApiRouteError } from "@/lib/api/errors";
+import { apiError, apiErrorFromUnknown, apiOk } from "@/lib/api/responses";
+import {
+  volumeOperationsRequestSchema,
+  type VolumeOperationsResponse,
+} from "@/lib/contracts/onboarding";
+
+function serializeDecimal(
+  value: { toString(): string } | number | string | null | undefined
+): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  return String(value);
+}
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
 
-    const parsed = volumeOperationsPayloadSchema.safeParse(body);
+    const parsed = volumeOperationsRequestSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Invalid payload",
-          details: parsed.error.flatten(),
-        },
-        { status: 400 }
-      );
+      return apiError("INVALID_BODY", "Payload inválido", 400, {
+        details: parsed.error.flatten(),
+      });
     }
 
     const {
@@ -35,13 +44,10 @@ export async function POST(request: Request) {
       monthlyBookings !== null;
 
     if (!hasAtLeastOneVolume) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "Debes capturar al menos un volumen mensual relevante.",
-        },
-        { status: 400 }
+      return apiError(
+        "VALIDATION_ERROR",
+        "Debes capturar al menos un volumen mensual relevante.",
+        400
       );
     }
 
@@ -52,13 +58,7 @@ export async function POST(request: Request) {
     });
 
     if (!session) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Session not found",
-        },
-        { status: 404 }
-      );
+      throw new ApiRouteError("SESSION_NOT_FOUND", "Session not found", 404);
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
             monthlyBookings,
             averageTicketValue,
             teamSizeOperating,
-            peakDemandNotes: peakDemandNotes ?? "",
+            peakDemandNotes,
           },
           create: {
             sessionId: session.id,
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
             monthlyBookings,
             averageTicketValue,
             teamSizeOperating,
-            peakDemandNotes: peakDemandNotes ?? "",
+            peakDemandNotes,
           },
         });
 
@@ -96,25 +96,34 @@ export async function POST(request: Request) {
         },
       });
 
-      return {
-        volumeOperations: savedVolumeOperations,
-        session: updatedSession,
+      const response: VolumeOperationsResponse = {
+        volumeOperations: {
+          id: savedVolumeOperations.id,
+          sessionId: savedVolumeOperations.sessionId,
+          monthlyConversations: savedVolumeOperations.monthlyConversations,
+          monthlyTickets: savedVolumeOperations.monthlyTickets,
+          monthlyBookings: savedVolumeOperations.monthlyBookings,
+          averageTicketValue: serializeDecimal(
+            savedVolumeOperations.averageTicketValue
+          ),
+          teamSizeOperating: savedVolumeOperations.teamSizeOperating,
+          peakDemandNotes: savedVolumeOperations.peakDemandNotes ?? "",
+          createdAt: savedVolumeOperations.createdAt,
+          updatedAt: savedVolumeOperations.updatedAt,
+        },
+        session: {
+          id: updatedSession.id,
+          currentStep: updatedSession.currentStep,
+          status: updatedSession.status,
+          updatedAt: updatedSession.updatedAt,
+        },
       };
+
+      return response;
     });
 
-    return NextResponse.json({
-      ok: true,
-      data: result,
-    });
+    return apiOk(result);
   } catch (error) {
-    console.error("POST /api/onboarding/volume-operations error:", error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error: error instanceof Error ? error.message : "Internal server error",
-      },
-      { status: 500 }
-    );
+    return apiErrorFromUnknown(error);
   }
 }

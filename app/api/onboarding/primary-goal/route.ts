@@ -1,38 +1,43 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { primaryGoalPayloadSchema } from "@/lib/validators/onboarding";
+import { ApiRouteError } from "@/lib/api/errors";
+import { apiError, apiErrorFromUnknown, apiOk } from "@/lib/api/responses";
+import {
+  primaryGoalRequestSchema,
+  type PrimaryGoalResponse,
+} from "@/lib/contracts/onboarding";
+
+function serializeDecimal(
+  value: { toString(): string } | number | string | null | undefined
+): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  return String(value);
+}
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
 
-    const parsed = primaryGoalPayloadSchema.safeParse(body);
+    const parsed = primaryGoalRequestSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Invalid payload",
-          details: parsed.error.flatten(),
-        },
-        { status: 400 }
-      );
+      return apiError("INVALID_BODY", "Payload inválido", 400, {
+        details: parsed.error.flatten(),
+      });
     }
 
     const { sessionToken, primaryGoalCode } = parsed.data;
 
     const session = await prisma.onboardingSession.findUnique({
-      where: { sessionToken },
+      where: {
+        sessionToken,
+      },
     });
 
     if (!session) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Session not found",
-        },
-        { status: 404 }
-      );
+      throw new ApiRouteError("SESSION_NOT_FOUND", "Session not found", 404);
     }
 
     const primaryGoalOption = await prisma.goalOption.findFirst({
@@ -44,12 +49,10 @@ export async function POST(request: Request) {
     });
 
     if (!primaryGoalOption) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Primary goal option not found",
-        },
-        { status: 404 }
+      throw new ApiRouteError(
+        "NOT_FOUND",
+        "Primary goal option not found",
+        404
       );
     }
 
@@ -73,13 +76,13 @@ export async function POST(request: Request) {
         update: {
           primaryGoalCode: primaryGoalOption.code,
           primaryGoalLabel: primaryGoalOption.name,
-          primaryGoalDescription: primaryGoalOption.description,
+          primaryGoalDescription: primaryGoalOption.description ?? "",
         },
         create: {
           sessionId: session.id,
           primaryGoalCode: primaryGoalOption.code,
           primaryGoalLabel: primaryGoalOption.name,
-          primaryGoalDescription: primaryGoalOption.description,
+          primaryGoalDescription: primaryGoalOption.description ?? "",
         },
       });
 
@@ -103,34 +106,48 @@ export async function POST(request: Request) {
         },
       });
 
-      return {
-        primaryGoal: savedPrimaryGoal,
+      const response: PrimaryGoalResponse = {
+        primaryGoal: {
+          id: savedPrimaryGoal.id,
+          sessionId: savedPrimaryGoal.sessionId,
+          primaryGoalCode: savedPrimaryGoal.primaryGoalCode,
+          primaryGoalLabel: savedPrimaryGoal.primaryGoalLabel,
+          primaryGoalDescription: savedPrimaryGoal.primaryGoalDescription ?? "",
+          createdAt: savedPrimaryGoal.createdAt,
+          updatedAt: savedPrimaryGoal.updatedAt,
+        },
         recommendedPackage: recommendedPackage?.package
           ? {
               id: recommendedPackage.package.id,
               code: recommendedPackage.package.code,
               name: recommendedPackage.package.name,
-              setupPrice: recommendedPackage.package.setupPrice,
-              monthlyPrice: recommendedPackage.package.monthlyPrice,
+              description: recommendedPackage.package.description ?? null,
+              setupPrice: serializeDecimal(
+                recommendedPackage.package.setupPrice
+              ),
+              monthlyPrice: serializeDecimal(
+                recommendedPackage.package.monthlyPrice
+              ),
             }
           : null,
-        session: updatedSession,
+        session: {
+          id: updatedSession.id,
+          currentStep: updatedSession.currentStep,
+          status: updatedSession.status,
+          recommendedPackageId: updatedSession.recommendedPackageId ?? null,
+          setupPriceSnapshot: serializeDecimal(updatedSession.setupPriceSnapshot),
+          monthlyPriceSnapshot: serializeDecimal(
+            updatedSession.monthlyPriceSnapshot
+          ),
+          updatedAt: updatedSession.updatedAt,
+        },
       };
+
+      return response;
     });
 
-    return NextResponse.json({
-      ok: true,
-      data: result,
-    });
+    return apiOk(result);
   } catch (error) {
-    console.error("PRIMARY_GOAL POST error:", error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error: error instanceof Error ? error.message : "Internal server error",
-      },
-      { status: 500 }
-    );
+    return apiErrorFromUnknown(error);
   }
 }

@@ -2,15 +2,16 @@
 
 type SelectedAddonItem = {
   id: string;
+  sessionId: string;
   addonId: string;
-  createdAt?: string;
+  createdAt?: string | Date;
   addon: {
     id: string;
     code: string;
     name: string;
     description?: string | null;
-    priceType: string;
-    priceAmount?: string | null;
+    setupPrice: string | null;
+    monthlyPrice: string | null;
   };
 };
 
@@ -19,7 +20,10 @@ type PaymentCardProps = {
   setupPrice: string;
   monthlyPrice: string;
   selectedAddons: SelectedAddonItem[];
+  addonsSetupTotal: string;
+  addonsMonthlyTotal: string;
   totalInitial: string;
+  totalMonthly: string;
   isSubmitting: boolean;
   submitError: string;
   onBack: () => void;
@@ -27,11 +31,11 @@ type PaymentCardProps = {
 };
 
 function formatCurrency(value: string | null | undefined) {
-  if (!value) return "Precio personalizado";
+  if (!value) return "$0";
 
   const amount = Number(value);
 
-  if (Number.isNaN(amount)) return "Precio personalizado";
+  if (Number.isNaN(amount)) return "$0";
 
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
@@ -45,7 +49,10 @@ export default function PaymentCard({
   setupPrice,
   monthlyPrice,
   selectedAddons,
+  addonsSetupTotal,
+  addonsMonthlyTotal,
   totalInitial,
+  totalMonthly,
   isSubmitting,
   submitError,
   onBack,
@@ -118,10 +125,11 @@ export default function PaymentCard({
                   </div>
                 </div>
 
-                <div className="text-sm font-semibold text-[#202430]">
-                  {item.addon.priceType === "CUSTOM"
-                    ? "Precio personalizado"
-                    : formatCurrency(item.addon.priceAmount)}
+                <div className="text-right text-sm font-semibold text-[#202430]">
+                  <div>Setup {formatCurrency(item.addon.setupPrice)}</div>
+                  <div className="mt-1 text-[#6B7280]">
+                    Mensual {formatCurrency(item.addon.monthlyPrice)}
+                  </div>
                 </div>
               </div>
             ))}
@@ -129,17 +137,50 @@ export default function PaymentCard({
         )}
       </div>
 
-      <div className="mb-8 rounded-[24px] border border-[#D9E3F0] bg-[#F8FAFC] p-8">
-        <div className="mb-2 text-sm font-semibold text-[#4F46E5]">
-          Total inicial estimado
+      <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="rounded-[24px] border border-[#D9E3F0] bg-[#F8FAFC] p-8">
+          <div className="mb-2 text-sm font-semibold text-[#4F46E5]">
+            Setup add-ons seleccionados
+          </div>
+          <div className="text-[32px] font-semibold text-[#202430]">
+            {formatCurrency(addonsSetupTotal)}
+          </div>
         </div>
-        <div className="text-[40px] font-semibold text-[#202430]">
-          {formatCurrency(totalInitial)}
+
+        <div className="rounded-[24px] border border-[#D9E3F0] bg-[#F8FAFC] p-8">
+          <div className="mb-2 text-sm font-semibold text-[#4F46E5]">
+            Mensualidad add-ons seleccionados
+          </div>
+          <div className="text-[32px] font-semibold text-[#202430]">
+            {formatCurrency(addonsMonthlyTotal)}
+          </div>
         </div>
-        <p className="mt-3 text-sm leading-6 text-[#6B7280]">
-          Este total suma el setup base y únicamente add-ons con precio definido.
-          Los complementos con precio personalizado se cotizan por separado.
-        </p>
+      </div>
+
+      <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="rounded-[24px] border border-[#D9E3F0] bg-[#F8FAFC] p-8">
+          <div className="mb-2 text-sm font-semibold text-[#4F46E5]">
+            Total inicial estimado
+          </div>
+          <div className="text-[40px] font-semibold text-[#202430]">
+            {formatCurrency(totalInitial)}
+          </div>
+          <p className="mt-3 text-sm leading-6 text-[#6B7280]">
+            Setup del paquete más setup de add-ons seleccionados.
+          </p>
+        </div>
+
+        <div className="rounded-[24px] border border-[#D9E3F0] bg-[#F8FAFC] p-8">
+          <div className="mb-2 text-sm font-semibold text-[#4F46E5]">
+            Total mensual estimado
+          </div>
+          <div className="text-[40px] font-semibold text-[#202430]">
+            {formatCurrency(totalMonthly)}
+          </div>
+          <p className="mt-3 text-sm leading-6 text-[#6B7280]">
+            Mensualidad del paquete más mensualidad de add-ons seleccionados.
+          </p>
+        </div>
       </div>
 
       {submitError ? (

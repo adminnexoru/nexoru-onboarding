@@ -1,22 +1,21 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { businessProfilePayloadSchema } from "@/lib/validators/onboarding";
+import { ApiRouteError } from "@/lib/api/errors";
+import { apiError, apiErrorFromUnknown, apiOk } from "@/lib/api/responses";
+import {
+  businessProfileRequestSchema,
+  type BusinessProfileResponse,
+} from "@/lib/contracts/onboarding";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
 
-    const parsed = businessProfilePayloadSchema.safeParse(body);
+    const parsed = businessProfileRequestSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Invalid payload",
-          details: parsed.error.flatten(),
-        },
-        { status: 400 }
-      );
+      return apiError("INVALID_BODY", "Payload inválido", 400, {
+        details: parsed.error.flatten(),
+      });
     }
 
     const {
@@ -35,118 +34,113 @@ export async function POST(request: Request) {
       where: {
         sessionToken,
       },
+      include: {
+        organization: true,
+      },
     });
 
     if (!session) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Session not found",
-        },
-        { status: 404 }
-      );
+      throw new ApiRouteError("SESSION_NOT_FOUND", "Session not found", 404);
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      let organizationId = session.organizationId;
+      const organization = session.organizationId
+        ? await tx.organization.update({
+            where: {
+              id: session.organizationId,
+            },
+            data: {
+              legalName,
+              commercialName,
+              industry,
+              country,
+              city,
+              websiteOrInstagram,
+              whatsapp,
+              operatingHours,
+            },
+          })
+        : await tx.organization.create({
+            data: {
+              legalName,
+              commercialName,
+              industry,
+              country,
+              city,
+              websiteOrInstagram,
+              whatsapp,
+              operatingHours,
+            },
+          });
 
-      if (organizationId) {
-        await tx.organization.update({
-          where: { id: organizationId },
-          data: {
-            legalName,
-            commercialName,
-            industry,
-            country,
-            city,
-            websiteOrInstagram,
-            whatsapp,
-            operatingHours,
-          },
-        });
-      } else {
-        const organization = await tx.organization.create({
-          data: {
-            legalName,
-            commercialName,
-            industry,
-            country,
-            city,
-            websiteOrInstagram,
-            whatsapp,
-            operatingHours,
-          },
-        });
-
-        organizationId = organization.id;
-      }
-
-      const existingBusinessProfile =
-        await tx.onboardingBusinessProfile.findUnique({
-          where: {
-            sessionId: session.id,
-          },
-        });
-
-      if (existingBusinessProfile) {
-        await tx.onboardingBusinessProfile.update({
-          where: {
-            sessionId: session.id,
-          },
-          data: {
-            legalName,
-            commercialName,
-            industry,
-            country,
-            city,
-            websiteOrInstagram,
-            whatsapp,
-            operatingHours,
-          },
-        });
-      } else {
-        await tx.onboardingBusinessProfile.create({
-          data: {
-            sessionId: session.id,
-            legalName,
-            commercialName,
-            industry,
-            country,
-            city,
-            websiteOrInstagram,
-            whatsapp,
-            operatingHours,
-          },
-        });
-      }
+      const savedBusinessProfile = await tx.onboardingBusinessProfile.upsert({
+        where: {
+          sessionId: session.id,
+        },
+        update: {
+          legalName,
+          commercialName,
+          industry,
+          country,
+          city,
+          websiteOrInstagram,
+          whatsapp,
+          operatingHours,
+        },
+        create: {
+          sessionId: session.id,
+          legalName,
+          commercialName,
+          industry,
+          country,
+          city,
+          websiteOrInstagram,
+          whatsapp,
+          operatingHours,
+        },
+      });
 
       const updatedSession = await tx.onboardingSession.update({
         where: {
           id: session.id,
         },
         data: {
-          status: "IN_PROGRESS",
+          organizationId: organization.id,
           currentStep: "business-profile",
-          organizationId,
+          status: "IN_PROGRESS",
         },
       });
 
-      return updatedSession;
+      const response: BusinessProfileResponse = {
+        businessProfile: {
+          id: savedBusinessProfile.id,
+          sessionId: savedBusinessProfile.sessionId,
+          legalName: savedBusinessProfile.legalName ?? "",
+          commercialName: savedBusinessProfile.commercialName ?? "",
+          industry: savedBusinessProfile.industry ?? "",
+          country: savedBusinessProfile.country ?? "",
+          city: savedBusinessProfile.city ?? "",
+          websiteOrInstagram:
+            savedBusinessProfile.websiteOrInstagram ?? "",
+          whatsapp: savedBusinessProfile.whatsapp ?? "",
+          operatingHours: savedBusinessProfile.operatingHours ?? "",
+          createdAt: savedBusinessProfile.createdAt,
+          updatedAt: savedBusinessProfile.updatedAt,
+        },
+        session: {
+          id: updatedSession.id,
+          currentStep: updatedSession.currentStep,
+          status: updatedSession.status,
+          organizationId: updatedSession.organizationId ?? null,
+          updatedAt: updatedSession.updatedAt,
+        },
+      };
+
+      return response;
     });
 
-    return NextResponse.json({
-      ok: true,
-      data: result,
-    });
+    return apiOk(result);
   } catch (error) {
-    console.error("POST /api/onboarding/business-profile error", error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Internal server error",
-      },
-      { status: 500 }
-    );
+    return apiErrorFromUnknown(error);
   }
 }

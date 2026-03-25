@@ -2,36 +2,64 @@
 
 import Link from "next/link";
 
+type SelectedAddonItem = {
+  id: string;
+  sessionId: string;
+  addonId: string;
+  createdAt?: string | Date;
+  addon: {
+    id: string;
+    code: string;
+    name: string;
+    description?: string | null;
+    setupPrice: string | null;
+    monthlyPrice: string | null;
+  };
+};
+
 type ExecutiveSummaryCardProps = {
   businessName: string;
   industry: string;
   goal: string;
   packageName: string;
-  setupPrice: string;
-  monthlyPrice: string;
-  selectedAddons: string[];
+  packageSetupPrice: string;
+  packageMonthlyPrice: string;
+  selectedAddons: SelectedAddonItem[];
+  addonsSetupTotal: string;
+  addonsMonthlyTotal: string;
+  totalSetupPrice: string;
+  totalMonthlyPrice: string;
+  paymentReference: string;
 };
+
+function formatCurrency(value: string | null | undefined) {
+  if (!value) return "$0";
+
+  const amount = Number(value);
+
+  if (Number.isNaN(amount)) return "$0";
+
+  return new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: "MXN",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
 
 export default function ExecutiveSummaryCard({
   businessName,
   industry,
   goal,
   packageName,
-  setupPrice,
-  monthlyPrice,
+  packageSetupPrice,
+  packageMonthlyPrice,
   selectedAddons,
+  addonsSetupTotal,
+  addonsMonthlyTotal,
+  totalSetupPrice,
+  totalMonthlyPrice,
+  paymentReference,
 }: ExecutiveSummaryCardProps) {
-const handleContinue = () => {
-  sessionStorage.setItem(
-    "nexoru_executive_summary_ready",
-    JSON.stringify({
-      readyForPayment: true,
-    })
-  );
-
-  window.location.href = "/onboarding/payment";
-};
-
   return (
     <div
       style={{
@@ -160,6 +188,20 @@ const handleContinue = () => {
               <strong style={{ color: "#2B2F36" }}>Paquete recomendado:</strong>{" "}
               <span style={{ color: "#4A4F57" }}>{packageName}</span>
             </div>
+
+            {paymentReference ? (
+              <div
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "14px",
+                  padding: "14px 16px",
+                }}
+              >
+                <strong style={{ color: "#2B2F36" }}>Referencia de pago:</strong>{" "}
+                <span style={{ color: "#4A4F57" }}>{paymentReference}</span>
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -198,7 +240,7 @@ const handleContinue = () => {
                   marginBottom: "6px",
                 }}
               >
-                Setup inicial
+                Setup inicial total
               </div>
               <div
                 style={{
@@ -207,7 +249,7 @@ const handleContinue = () => {
                   color: "#2B2F36",
                 }}
               >
-                {setupPrice}
+                {formatCurrency(totalSetupPrice)}
               </div>
             </div>
 
@@ -226,7 +268,7 @@ const handleContinue = () => {
                   marginBottom: "6px",
                 }}
               >
-                Mensualidad
+                Mensualidad estimada total
               </div>
               <div
                 style={{
@@ -235,9 +277,88 @@ const handleContinue = () => {
                   color: "#2B2F36",
                 }}
               >
-                {monthlyPrice}
+                {formatCurrency(totalMonthlyPrice)}
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        style={{
+          marginBottom: "28px",
+          backgroundColor: "#FFFFFF",
+          border: "1px solid #E5E7EB",
+          borderRadius: "20px",
+          padding: "24px",
+        }}
+      >
+        <h3
+          style={{
+            fontSize: "24px",
+            fontWeight: 700,
+            color: "#2B2F36",
+            margin: "0 0 18px",
+          }}
+        >
+          Desglose económico
+        </h3>
+
+        <div style={{ display: "grid", gap: "14px" }}>
+          <div
+            style={{
+              backgroundColor: "#F8F9FC",
+              border: "1px solid #E5E7EB",
+              borderRadius: "14px",
+              padding: "14px 16px",
+            }}
+          >
+            <strong style={{ color: "#2B2F36" }}>Setup paquete:</strong>{" "}
+            <span style={{ color: "#4A4F57" }}>
+              {formatCurrency(packageSetupPrice)}
+            </span>
+          </div>
+
+          <div
+            style={{
+              backgroundColor: "#F8F9FC",
+              border: "1px solid #E5E7EB",
+              borderRadius: "14px",
+              padding: "14px 16px",
+            }}
+          >
+            <strong style={{ color: "#2B2F36" }}>Mensualidad paquete:</strong>{" "}
+            <span style={{ color: "#4A4F57" }}>
+              {formatCurrency(packageMonthlyPrice)}
+            </span>
+          </div>
+
+          <div
+            style={{
+              backgroundColor: "#F8F9FC",
+              border: "1px solid #E5E7EB",
+              borderRadius: "14px",
+              padding: "14px 16px",
+            }}
+          >
+            <strong style={{ color: "#2B2F36" }}>Setup add-ons:</strong>{" "}
+            <span style={{ color: "#4A4F57" }}>
+              {formatCurrency(addonsSetupTotal)}
+            </span>
+          </div>
+
+          <div
+            style={{
+              backgroundColor: "#F8F9FC",
+              border: "1px solid #E5E7EB",
+              borderRadius: "14px",
+              padding: "14px 16px",
+            }}
+          >
+            <strong style={{ color: "#2B2F36" }}>Mensualidad add-ons:</strong>{" "}
+            <span style={{ color: "#4A4F57" }}>
+              {formatCurrency(addonsMonthlyTotal)}
+            </span>
           </div>
         </div>
       </div>
@@ -263,27 +384,56 @@ const handleContinue = () => {
         </h3>
 
         {selectedAddons.length > 0 ? (
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "12px",
-            }}
-          >
-            {selectedAddons.map((addon) => (
+          <div style={{ display: "grid", gap: "14px" }}>
+            {selectedAddons.map((item) => (
               <div
-                key={addon}
+                key={item.id}
                 style={{
-                  border: "1px solid #3A3D91",
-                  backgroundColor: "#EEF1FF",
-                  color: "#2B2F36",
-                  borderRadius: "999px",
-                  padding: "10px 16px",
-                  fontSize: "15px",
-                  fontWeight: 500,
+                  backgroundColor: "#F8F9FC",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: "14px",
+                  padding: "14px 16px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "16px",
+                  alignItems: "flex-start",
                 }}
               >
-                {addon}
+                <div>
+                  <div
+                    style={{
+                      color: "#2B2F36",
+                      fontWeight: 700,
+                      fontSize: "16px",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    {item.addon.name}
+                  </div>
+                  <div
+                    style={{
+                      color: "#6B7280",
+                      fontSize: "14px",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {item.addon.description || "Complemento opcional"}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    textAlign: "right",
+                    minWidth: "180px",
+                    color: "#2B2F36",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  <div>Setup {formatCurrency(item.addon.setupPrice)}</div>
+                  <div>Mensual {formatCurrency(item.addon.monthlyPrice)}</div>
+                </div>
               </div>
             ))}
           </div>
@@ -329,9 +479,9 @@ const handleContinue = () => {
             color: "#4A4F57",
           }}
         >
-          En la siguiente pantalla activaremos el pago del setup inicial para
-          dar arranque formal al proyecto y disparar la creación automática de
-          activos internos del onboarding Nexoru.
+          La inversión inicial ya quedó consolidada con base en el paquete y los
+          add-ons seleccionados. Este resumen puede usarse como referencia
+          operativa y comercial del arranque.
         </p>
       </div>
 
@@ -345,7 +495,7 @@ const handleContinue = () => {
         }}
       >
         <Link
-          href="/onboarding/scope-confirmation"
+          href="/onboarding/payment"
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -363,10 +513,12 @@ const handleContinue = () => {
           Atrás
         </Link>
 
-        <button
-          type="button"
-          onClick={handleContinue}
+        <Link
+          href="/onboarding/payment"
           style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
             border: "none",
             backgroundColor: "#2B2F36",
             color: "#FFFFFF",
@@ -374,11 +526,11 @@ const handleContinue = () => {
             padding: "14px 24px",
             fontSize: "15px",
             fontWeight: 600,
-            cursor: "pointer",
+            textDecoration: "none",
           }}
         >
-          Continuar a pago
-        </button>
+          Ir a pago
+        </Link>
       </div>
     </div>
   );

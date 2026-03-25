@@ -6,6 +6,21 @@ import AppShell from "@/components/layout/AppShell";
 import PaymentCard from "@/components/onboarding/PaymentCard";
 import { getOnboardingSessionToken } from "@/lib/onboarding-storage";
 
+type SelectedAddonItem = {
+  id: string;
+  sessionId: string;
+  addonId: string;
+  createdAt?: string | Date;
+  addon: {
+    id: string;
+    code: string;
+    name: string;
+    description?: string | null;
+    setupPrice: string | null;
+    monthlyPrice: string | null;
+  };
+};
+
 type SessionResponse = {
   ok: boolean;
   data?: {
@@ -19,24 +34,18 @@ type SessionResponse = {
     recommendedPackage?: {
       id: string;
       name: string;
-      setupPrice: string;
-      monthlyPrice: string;
+      setupPrice: string | null;
+      monthlyPrice: string | null;
     } | null;
-    selectedAddons?: Array<{
-      id: string;
-      addonId: string;
-      createdAt?: string;
-      addon: {
-        id: string;
-        code: string;
-        name: string;
-        description?: string | null;
-        priceType: string;
-        priceAmount?: string | null;
-      };
-    }>;
+    selectedAddons?: SelectedAddonItem[];
   };
 };
+
+function toNumber(value: string | null | undefined) {
+  if (!value) return 0;
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -59,21 +68,7 @@ export default function PaymentPage() {
     monthlyPrice: "0",
   });
 
-  const [selectedAddons, setSelectedAddons] = useState<
-    Array<{
-      id: string;
-      addonId: string;
-      createdAt?: string;
-      addon: {
-        id: string;
-        code: string;
-        name: string;
-        description?: string | null;
-        priceType: string;
-        priceAmount?: string | null;
-      };
-    }>
-  >([]);
+  const [selectedAddons, setSelectedAddons] = useState<SelectedAddonItem[]>([]);
 
   useEffect(() => {
     const token = getOnboardingSessionToken();
@@ -85,7 +80,9 @@ export default function PaymentPage() {
 
     setSessionToken(token);
 
-    fetch(`/api/onboarding/session/${token}`)
+    fetch(`/api/onboarding/session/${token}`, {
+      cache: "no-store",
+    })
       .then((res) => res.json())
       .then((res: SessionResponse) => {
         if (!res?.ok || !res.data) {
@@ -126,16 +123,27 @@ export default function PaymentPage() {
       });
   }, [router]);
 
-  const totalInitial = useMemo(() => {
-    const baseSetup = Number(packageData.setupPrice || 0);
-
-    const addonsTotal = selectedAddons.reduce((acc, item) => {
-      if (!item.addon?.priceAmount) return acc;
-      return acc + Number(item.addon.priceAmount);
+  const addonsSetupTotal = useMemo(() => {
+    return selectedAddons.reduce((acc, item) => {
+      return acc + toNumber(item.addon?.setupPrice);
     }, 0);
+  }, [selectedAddons]);
 
-    return String(baseSetup + addonsTotal);
-  }, [packageData.setupPrice, selectedAddons]);
+  const addonsMonthlyTotal = useMemo(() => {
+    return selectedAddons.reduce((acc, item) => {
+      return acc + toNumber(item.addon?.monthlyPrice);
+    }, 0);
+  }, [selectedAddons]);
+
+  const totalInitial = useMemo(() => {
+    const baseSetup = toNumber(packageData.setupPrice);
+    return String(baseSetup + addonsSetupTotal);
+  }, [packageData.setupPrice, addonsSetupTotal]);
+
+  const totalMonthly = useMemo(() => {
+    const baseMonthly = toNumber(packageData.monthlyPrice);
+    return String(baseMonthly + addonsMonthlyTotal);
+  }, [packageData.monthlyPrice, addonsMonthlyTotal]);
 
   const handleContinue = async () => {
     if (!sessionToken) return;
@@ -193,7 +201,10 @@ export default function PaymentPage() {
         setupPrice={packageData.setupPrice}
         monthlyPrice={packageData.monthlyPrice}
         selectedAddons={selectedAddons}
+        addonsSetupTotal={String(addonsSetupTotal)}
+        addonsMonthlyTotal={String(addonsMonthlyTotal)}
         totalInitial={totalInitial}
+        totalMonthly={totalMonthly}
         isSubmitting={isSubmitting}
         submitError={submitError}
         onBack={() => router.push("/onboarding/scope-confirmation")}

@@ -1,60 +1,24 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-type ScopeConfirmationPayload = {
-  sessionToken: string;
-  acceptedScope: boolean;
-  selectedAddonIds?: string[];
-};
-
-function serializeDecimal(value: unknown) {
-  if (value === null || value === undefined) return null;
-  return String(value);
-}
+import { apiError, apiErrorFromUnknown, apiOk } from "@/lib/api/responses";
+import { ApiRouteError } from "@/lib/api/errors";
+import {
+  scopeConfirmationRequestSchema,
+  type ScopeConfirmationResponse,
+} from "@/lib/contracts/onboarding";
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json().catch(() => null)) as ScopeConfirmationPayload | null;
+    const body = await request.json().catch(() => null);
 
-    if (!body) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Invalid JSON body",
-        },
-        { status: 400 }
-      );
+    const parsed = scopeConfirmationRequestSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return apiError("INVALID_BODY", "Payload inválido", 400, {
+        details: parsed.error.flatten(),
+      });
     }
 
-    const sessionToken =
-      typeof body.sessionToken === "string" ? body.sessionToken.trim() : "";
-
-    const acceptedScope = body.acceptedScope === true;
-    const selectedAddonIds = Array.isArray(body.selectedAddonIds)
-      ? body.selectedAddonIds.filter(
-          (item): item is string => typeof item === "string" && item.trim().length > 0
-        )
-      : [];
-
-    if (!sessionToken) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "sessionToken is required",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!acceptedScope) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Debes confirmar que entiendes el alcance para continuar.",
-        },
-        { status: 400 }
-      );
-    }
+    const { sessionToken, acceptedScope, selectedAddonIds } = parsed.data;
 
     const session = await prisma.onboardingSession.findUnique({
       where: {
@@ -74,45 +38,48 @@ export async function POST(request: Request) {
     });
 
     if (!session) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Session not found",
-        },
-        { status: 404 }
-      );
+      throw new ApiRouteError("SESSION_NOT_FOUND", "Session not found", 404);
     }
 
     if (!session.recommendedPackage) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Recommended package not found",
-        },
-        { status: 400 }
+      throw new ApiRouteError(
+        "RECOMMENDED_PACKAGE_NOT_FOUND",
+        "Recommended package not found",
+        404
       );
     }
 
-    const allowedAddonIds = new Set(
+    const enabledAddonIds = new Set(
       session.recommendedPackage.packageAddons.map((item) => item.addonId)
     );
 
-    const validSelectedAddonIds = selectedAddonIds.filter((addonId) =>
-      allowedAddonIds.has(addonId)
+    const invalidAddonIds = selectedAddonIds.filter(
+      (addonId) => !enabledAddonIds.has(addonId)
     );
 
+    if (invalidAddonIds.length > 0) {
+      return apiError(
+        "INVALID_ADDONS",
+        "Uno o más add-ons no pertenecen al paquete recomendado",
+        400,
+        {
+          invalidAddonIds,
+        }
+      );
+    }
+
     const result = await prisma.$transaction(async (tx) => {
-      const scopeConfirmation = await tx.scopeConfirmation.upsert({
+      const savedScopeConfirmation = await tx.scopeConfirmation.upsert({
         where: {
           sessionId: session.id,
         },
         update: {
-          acceptedScope: true,
+          acceptedScope,
           confirmedAt: new Date(),
         },
         create: {
           sessionId: session.id,
-          acceptedScope: true,
+          acceptedScope,
         },
       });
 
@@ -122,9 +89,9 @@ export async function POST(request: Request) {
         },
       });
 
-      if (validSelectedAddonIds.length > 0) {
+      if (selectedAddonIds.length > 0) {
         await tx.onboardingSelectedAddon.createMany({
-          data: validSelectedAddonIds.map((addonId) => ({
+          data: selectedAddonIds.map((addonId) => ({
             sessionId: session.id,
             addonId,
           })),
@@ -142,28 +109,26 @@ export async function POST(request: Request) {
         },
       });
 
-      const selectedAddons = validSelectedAddonIds.length
-        ? await tx.onboardingSelectedAddon.findMany({
-            where: {
-              sessionId: session.id,
-            },
-            include: {
-              addon: true,
-            },
-            orderBy: {
-              createdAt: "asc",
-            },
-          })
-        : [];
-
-      return {
-        scopeConfirmation: {
-          id: scopeConfirmation.id,
-          sessionId: scopeConfirmation.sessionId,
-          acceptedScope: scopeConfirmation.acceptedScope,
-          confirmedAt: scopeConfirmation.confirmedAt,
+      const savedSelectedAddons = await tx.onboardingSelectedAddon.findMany({
+        where: {
+          sessionId: session.id,
         },
-        selectedAddons: selectedAddons.map((item) => ({
+        include: {
+          addon: true,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      });
+
+      const response: ScopeConfirmationResponse = {
+        scopeConfirmation: {
+          id: savedScopeConfirmation.id,
+          sessionId: savedScopeConfirmation.sessionId,
+          acceptedScope: savedScopeConfirmation.acceptedScope,
+          confirmedAt: savedScopeConfirmation.confirmedAt,
+        },
+        selectedAddons: savedSelectedAddons.map((item) => ({
           id: item.id,
           sessionId: item.sessionId,
           addonId: item.addonId,
@@ -173,31 +138,23 @@ export async function POST(request: Request) {
             code: item.addon.code,
             name: item.addon.name,
             description: item.addon.description ?? "",
-            setupPrice: serializeDecimal(item.addon.setupPrice),
-            monthlyPrice: serializeDecimal(item.addon.monthlyPrice),
+            setupPrice: String(item.addon.setupPrice),
+            monthlyPrice: String(item.addon.monthlyPrice),
           },
         })),
         session: {
           id: updatedSession.id,
-          currentStep: updatedSession.currentStep,
           status: updatedSession.status,
+          currentStep: updatedSession.currentStep,
+          updatedAt: updatedSession.updatedAt,
         },
       };
+
+      return response;
     });
 
-    return NextResponse.json({
-      ok: true,
-      data: result,
-    });
+    return apiOk(result);
   } catch (error) {
-    console.error("SCOPE_CONFIRMATION POST error:", error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Internal server error",
-      },
-      { status: 500 }
-    );
+    return apiErrorFromUnknown(error);
   }
 }

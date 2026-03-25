@@ -1,5 +1,10 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { ApiRouteError } from "@/lib/api/errors";
+import { apiError, apiErrorFromUnknown, apiOk } from "@/lib/api/responses";
+import {
+  paymentRequestSchema,
+  type PaymentResponse,
+} from "@/lib/contracts/onboarding";
 
 function buildPaymentReference(sessionId: string) {
   return `NXR-${sessionId}-${Date.now()}`;
@@ -11,20 +16,24 @@ function decimalToNumber(value: unknown) {
   return Number.isNaN(parsed) ? 0 : parsed;
 }
 
+function serializeMoney(value: number | string | null | undefined) {
+  if (value === null || value === undefined) return "0";
+  return String(value);
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
-    const sessionToken = body?.sessionToken;
 
-    if (!sessionToken || typeof sessionToken !== "string") {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "sessionToken is required",
-        },
-        { status: 400 }
-      );
+    const parsed = paymentRequestSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return apiError("INVALID_BODY", "Payload inválido", 400, {
+        details: parsed.error.flatten(),
+      });
     }
+
+    const { sessionToken } = parsed.data;
 
     const session = await prisma.onboardingSession.findUnique({
       where: {
@@ -38,38 +47,31 @@ export async function POST(request: Request) {
           include: {
             addon: true,
           },
+          orderBy: {
+            createdAt: "asc",
+          },
         },
         scopeConfirmation: true,
       },
     });
 
     if (!session) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Session not found",
-        },
-        { status: 404 }
-      );
+      throw new ApiRouteError("SESSION_NOT_FOUND", "Session not found", 404);
     }
 
     if (!session.scopeConfirmation?.acceptedScope) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Scope must be confirmed before payment",
-        },
-        { status: 400 }
+      throw new ApiRouteError(
+        "BAD_REQUEST",
+        "Scope must be confirmed before payment",
+        400
       );
     }
 
     if (!session.recommendedPackage) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Recommended package not found",
-        },
-        { status: 400 }
+      throw new ApiRouteError(
+        "RECOMMENDED_PACKAGE_NOT_FOUND",
+        "Recommended package not found",
+        404
       );
     }
 
@@ -81,10 +83,14 @@ export async function POST(request: Request) {
       addonId: item.addon.id,
       code: item.addon.code,
       name: item.addon.name,
-      setupPrice: item.addon.setupPrice ? String(item.addon.setupPrice) : null,
-      monthlyPrice: item.addon.monthlyPrice
-        ? String(item.addon.monthlyPrice)
-        : null,
+      setupPrice:
+        item.addon.setupPrice === null || item.addon.setupPrice === undefined
+          ? null
+          : String(item.addon.setupPrice),
+      monthlyPrice:
+        item.addon.monthlyPrice === null || item.addon.monthlyPrice === undefined
+          ? null
+          : String(item.addon.monthlyPrice),
     }));
 
     const addonsSetupTotal = selectedAddons.reduce((sum, addon) => {
@@ -118,7 +124,7 @@ export async function POST(request: Request) {
         },
       });
 
-      return {
+      const response: PaymentResponse = {
         paymentAttempt: {
           id: paymentAttempt.id,
           provider: paymentAttempt.provider,
@@ -134,27 +140,18 @@ export async function POST(request: Request) {
           status: updatedSession.status,
         },
         pricing: {
-          packageSetup: String(packageSetup),
-          addonsSetupTotal: String(addonsSetupTotal),
-          totalSetupAmount: String(totalSetupAmount),
+          packageSetup: serializeMoney(packageSetup),
+          addonsSetupTotal: serializeMoney(addonsSetupTotal),
+          totalSetupAmount: serializeMoney(totalSetupAmount),
         },
         selectedAddons,
       };
+
+      return response;
     });
 
-    return NextResponse.json({
-      ok: true,
-      data: result,
-    });
+    return apiOk(result);
   } catch (error) {
-    console.error("PAYMENT POST error:", error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Internal server error",
-      },
-      { status: 500 }
-    );
+    return apiErrorFromUnknown(error);
   }
 }
