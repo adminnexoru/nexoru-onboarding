@@ -1,12 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AppShell from "@/components/layout/AppShell";
+import StartPageSkeleton from "@/components/onboarding/StartPageSkeleton";
 import { setOnboardingSessionToken } from "@/lib/onboarding-storage";
 
 export default function StartPage() {
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState("");
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  useEffect(() => {
+  const timer = window.setTimeout(() => {
+    setIsPageLoading(false);
+  }, 120);
+
+  return () => window.clearTimeout(timer);
+}, []);
 
   const handleStart = async () => {
     try {
@@ -40,6 +50,24 @@ export default function StartPage() {
     }
   };
 
+  if (isPageLoading) {
+  return (
+    <AppShell
+      step={1}
+      totalSteps={5}
+      progress={10}
+      summary={{
+        businessName: "",
+        industry: "",
+        goal: "",
+        packageName: "",
+      }}
+      isLoading
+    >
+      <StartPageSkeleton />
+    </AppShell>
+  );
+}
   return (
     <AppShell
       step={1}
@@ -71,7 +99,16 @@ export default function StartPage() {
             disabled={isStarting}
             className="start-button"
           >
-            {isStarting ? "Iniciando..." : "Comenzar"}
+            <span className="start-button-content">
+              {isStarting ? (
+                <span className="start-button-loading">
+                  <span className="start-button-spinner" />
+                  Iniciando...
+                </span>
+              ) : (
+                "Comenzar"
+              )}
+            </span>
           </button>
         </div>
 
@@ -182,6 +219,32 @@ export default function StartPage() {
 
             .start-description {
               font-size: 19px;
+            }
+          }
+            .start-button-content {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .start-button-loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+          }
+
+          .start-button-spinner {
+            width: 16px;
+            height: 16px;
+            border-radius: 999px;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            border-top-color: #ffffff;
+            animation: start-spin 0.8s linear infinite;
+          }
+
+          @keyframes start-spin {
+            to {
+              transform: rotate(360deg);
             }
           }
 

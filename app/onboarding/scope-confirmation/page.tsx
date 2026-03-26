@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import ScopeConfirmationCard from "@/components/onboarding/ScopeConfirmationCard";
 import { getOnboardingSessionToken } from "@/lib/onboarding-storage";
+import ScopeConfirmationPageSkeleton from "@/components/onboarding/ScopeConfirmationPageSkeleton";
 
 type SummaryState = {
   businessName: string;
@@ -179,26 +180,44 @@ export default function ScopeConfirmationPage() {
     }
   };
 
+if (isLoading) {
   return (
     <AppShell
       step={5}
       totalSteps={5}
       progress={95}
-      summary={summary}
-      isLoading={isLoading}
+      summary={{
+        businessName: "",
+        industry: "",
+        goal: "",
+        packageName: "",
+      }}
+      isLoading
     >
-      <ScopeConfirmationCard
-        packageName={scopeData.packageName}
-        includedItems={scopeData.includedItems}
-        excludedItems={scopeData.excludedItems}
-        optionalAddons={scopeData.optionalAddons}
-        acceptedScope={scopeData.acceptedScope}
-        selectedAddonIds={scopeData.selectedAddonIds}
-        isSubmitting={isSubmitting}
-        submitError={submitError}
-        onBack={() => router.push("/onboarding/package-recommendation")}
-        onContinue={handleContinue}
-      />
+      <ScopeConfirmationPageSkeleton />
     </AppShell>
   );
+}
+
+return (
+  <AppShell
+    step={5}
+    totalSteps={5}
+    progress={95}
+    summary={summary}
+  >
+    <ScopeConfirmationCard
+      packageName={scopeData.packageName}
+      includedItems={scopeData.includedItems}
+      excludedItems={scopeData.excludedItems}
+      optionalAddons={scopeData.optionalAddons}
+      acceptedScope={scopeData.acceptedScope}
+      selectedAddonIds={scopeData.selectedAddonIds}
+      isSubmitting={isSubmitting}
+      submitError={submitError}
+      onBack={() => router.push("/onboarding/package-recommendation")}
+      onContinue={handleContinue}
+    />
+  </AppShell>
+);
 }

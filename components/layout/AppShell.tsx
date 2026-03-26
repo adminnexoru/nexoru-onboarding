@@ -11,17 +11,12 @@ type SummaryData = {
 };
 
 type Props = {
-  children: React.ReactNode;
+  children: ReactNode;
   step: number;
   totalSteps: number;
   progress: number;
-  summary: {
-    businessName: string;
-    industry: string;
-    goal: string;
-    packageName: string;
-  };
-  isLoading?: boolean; // ✅ FIX
+  summary: SummaryData;
+  isLoading?: boolean;
 };
 
 export default function AppShell({
@@ -30,88 +25,109 @@ export default function AppShell({
   progress,
   summary,
   children,
-  isLoading= false,
+  isLoading = false,
 }: Props) {
   return (
     <div className="shell">
       <header className="shell-header">
         <div className="shell-header-inner">
-          <div className="shell-brand">
-            <Image
-              src="/logo-nexoru.png"
-              alt="Nexoru"
-              width={56}
-              height={56}
-              className="shell-logo"
-              priority
-            />
-
-            <div className="shell-brand-copy">
-              <div className="shell-brand-title">NEXORU</div>
-              <div className="shell-brand-subtitle">Onboarding</div>
+          {isLoading ? (
+            <div className="shell-brand-skeleton" aria-hidden="true">
+              <div className="shell-brand-skeleton-logo" />
+              <div className="shell-brand-skeleton-copy">
+                <div className="shell-brand-skeleton-title" />
+                <div className="shell-brand-skeleton-subtitle" />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="shell-brand">
+              <Image
+                src="/logo-nexoru.png"
+                alt="Nexoru"
+                width={56}
+                height={56}
+                className="shell-logo"
+                priority
+              />
+
+              <div className="shell-brand-copy">
+                <div className="shell-brand-title">NEXORU</div>
+                <div className="shell-brand-subtitle">Onboarding</div>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
       <main className="shell-main">
         <div className="shell-container">
           <section className="shell-progress-block">
-            <div className="shell-progress-top">
-              <span className="shell-step-label">
-                Paso {step} de {totalSteps}
-              </span>
-              <span className="shell-progress-value">{progress}%</span>
-            </div>
+            {isLoading ? (
+              <div className="shell-progress-skeleton" aria-hidden="true">
+                <div className="shell-progress-skeleton-top">
+                  <div className="shell-progress-skeleton-label" />
+                  <div className="shell-progress-skeleton-value" />
+                </div>
 
-            <div className="shell-progress-track">
-              <div
-                className="shell-progress-bar"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+                <div className="shell-progress-skeleton-track">
+                  <div className="shell-progress-skeleton-bar" />
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="shell-progress-top">
+                  <span className="shell-step-label">
+                    Paso {step} de {totalSteps}
+                  </span>
+                  <span className="shell-progress-value">{progress}%</span>
+                </div>
+
+                <div className="shell-progress-track">
+                  <div
+                    className="shell-progress-bar"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </>
+            )}
           </section>
 
           <section className="shell-grid">
-            <div className="shell-content">
-              {isLoading ? (
-                <div className="animate-pulse">Cargando...</div>
-              ) : (
-                children
-              )}
-            </div>
+            <div className="shell-content">{children}</div>
 
-            <aside className="shell-summary">
-              <h3 className="shell-summary-title">Resumen del proyecto</h3>
+            {!isLoading ? (
+              <aside className="shell-summary">
+                <h3 className="shell-summary-title">Resumen del proyecto</h3>
 
-              <div className="shell-summary-list">
-                <div className="shell-summary-item">
-                  <span className="shell-summary-label">Negocio:</span>
-                  <span className="shell-summary-value">
-                    {summary.businessName}
-                  </span>
+                <div className="shell-summary-list">
+                  <div className="shell-summary-item">
+                    <span className="shell-summary-label">Negocio:</span>
+                    <span className="shell-summary-value">
+                      {summary.businessName}
+                    </span>
+                  </div>
+
+                  <div className="shell-summary-item">
+                    <span className="shell-summary-label">Industria:</span>
+                    <span className="shell-summary-value">
+                      {summary.industry}
+                    </span>
+                  </div>
+
+                  <div className="shell-summary-item">
+                    <span className="shell-summary-label">Objetivo:</span>
+                    <span className="shell-summary-value">{summary.goal}</span>
+                  </div>
+
+                  <div className="shell-summary-item">
+                    <span className="shell-summary-label">Paquete:</span>
+                    <span className="shell-summary-value">
+                      {summary.packageName}
+                    </span>
+                  </div>
                 </div>
-
-                <div className="shell-summary-item">
-                  <span className="shell-summary-label">Industria:</span>
-                  <span className="shell-summary-value">
-                    {summary.industry}
-                  </span>
-                </div>
-
-                <div className="shell-summary-item">
-                  <span className="shell-summary-label">Objetivo:</span>
-                  <span className="shell-summary-value">{summary.goal}</span>
-                </div>
-
-                <div className="shell-summary-item">
-                  <span className="shell-summary-label">Paquete:</span>
-                  <span className="shell-summary-value">
-                    {summary.packageName}
-                  </span>
-                </div>
-              </div>
-            </aside>
+              </aside>
+            ) : null}
           </section>
         </div>
       </main>
@@ -264,6 +280,91 @@ export default function AppShell({
 
         .shell-summary-value {
           color: #4b5563;
+        }
+          .shell-brand-skeleton {
+          display: flex;
+          align-items: center;
+          gap: 18px;
+        }
+
+        .shell-brand-skeleton-logo {
+          width: 56px;
+          height: 56px;
+          border-radius: 14px;
+          background: #e5e7eb;
+          animation: pulse 1.4s ease-in-out infinite;
+        }
+
+        .shell-brand-skeleton-copy {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .shell-brand-skeleton-title {
+          width: 160px;
+          height: 24px;
+          border-radius: 10px;
+          background: #e5e7eb;
+          animation: pulse 1.4s ease-in-out infinite;
+        }
+
+        .shell-brand-skeleton-subtitle {
+          width: 92px;
+          height: 16px;
+          border-radius: 8px;
+          background: #e5e7eb;
+          animation: pulse 1.4s ease-in-out infinite;
+        }
+
+        .shell-progress-skeleton-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 14px;
+        }
+
+        .shell-progress-skeleton-label {
+          width: 110px;
+          height: 18px;
+          border-radius: 8px;
+          background: #e5e7eb;
+          animation: pulse 1.4s ease-in-out infinite;
+        }
+
+        .shell-progress-skeleton-value {
+          width: 44px;
+          height: 18px;
+          border-radius: 8px;
+          background: #e5e7eb;
+          animation: pulse 1.4s ease-in-out infinite;
+        }
+
+        .shell-progress-skeleton-track {
+          width: 100%;
+          height: 8px;
+          border-radius: 999px;
+          overflow: hidden;
+          background: #e5e7eb;
+        }
+
+        .shell-progress-skeleton-bar {
+          width: 38%;
+          height: 100%;
+          border-radius: 999px;
+          background: #d1d5db;
+          animation: pulse 1.4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.45;
+          }
         }
 
         @media (max-width: 1100px) {

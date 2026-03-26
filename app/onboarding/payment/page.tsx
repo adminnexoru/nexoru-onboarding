@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import PaymentCard from "@/components/onboarding/PaymentCard";
 import { getOnboardingSessionToken } from "@/lib/onboarding-storage";
+import PaymentPageSkeleton from "@/components/onboarding/PaymentPageSkeleton";
 
 type SelectedAddonItem = {
   id: string;
@@ -187,16 +188,32 @@ export default function PaymentPage() {
       setIsSubmitting(false);
     }
   };
-
-  return (
+    if (isLoading) {
+    return (
+        <AppShell
+        step={5}
+        totalSteps={5}
+        progress={100}
+        summary={{
+            businessName: "",
+            industry: "",
+            goal: "",
+            packageName: "",
+        }}
+        isLoading
+        >
+        <PaymentPageSkeleton />
+        </AppShell>
+    );
+    }
+    return (
     <AppShell
-      step={5}
-      totalSteps={5}
-      progress={100}
-      summary={summary}
-      isLoading={isLoading}
+        step={5}
+        totalSteps={5}
+        progress={100}
+        summary={summary}
     >
-      <PaymentCard
+        <PaymentCard
         packageName={packageData.packageName}
         setupPrice={packageData.setupPrice}
         monthlyPrice={packageData.monthlyPrice}
@@ -209,7 +226,7 @@ export default function PaymentPage() {
         submitError={submitError}
         onBack={() => router.push("/onboarding/scope-confirmation")}
         onContinue={handleContinue}
-      />
+        />
     </AppShell>
-  );
+    );
 }

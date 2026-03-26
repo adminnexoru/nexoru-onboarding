@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import ExecutiveSummaryCard from "@/components/onboarding/ExecutiveSummaryCard";
 import { getOnboardingSessionToken } from "@/lib/onboarding-storage";
+import ExecutiveSummaryPageSkeleton from "@/components/onboarding/ExecutiveSummaryPageSkeleton";
 
 type SelectedAddonItem = {
   id: string;
@@ -142,20 +143,37 @@ export default function ExecutiveSummaryPage() {
     );
   }, [summary.packageMonthlyPrice, addonsMonthlyTotal]);
 
-  return (
+    if (isLoading) {
+    return (
+        <AppShell
+        step={5}
+        totalSteps={5}
+        progress={98}
+        summary={{
+            businessName: "",
+            industry: "",
+            goal: "",
+            packageName: "",
+        }}
+        isLoading
+        >
+        <ExecutiveSummaryPageSkeleton />
+        </AppShell>
+    );
+    }
+    return (
     <AppShell
-      step={5}
-      totalSteps={5}
-      progress={98}
-      summary={{
+        step={5}
+        totalSteps={5}
+        progress={98}
+        summary={{
         businessName: summary.businessName,
         industry: summary.industry,
         goal: summary.goal,
         packageName: summary.packageName,
-      }}
-      isLoading={isLoading}
+        }}
     >
-      <ExecutiveSummaryCard
+        <ExecutiveSummaryCard
         businessName={summary.businessName}
         industry={summary.industry}
         goal={summary.goal}
@@ -168,7 +186,7 @@ export default function ExecutiveSummaryPage() {
         totalSetupPrice={summary.paymentAttemptSetupAmount}
         totalMonthlyPrice={totalMonthly}
         paymentReference={summary.paymentReference}
-      />
+        />
     </AppShell>
-  );
+    );
 }

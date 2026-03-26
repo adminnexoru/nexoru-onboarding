@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import VolumeOperationsForm from "@/components/onboarding/VolumeOperationsForm";
 import { getOnboardingSessionToken } from "@/lib/onboarding-storage";
+import VolumeOperationsPageSkeleton from "@/components/onboarding/VolumeOperationsPageSkeleton";
 
 type VolumeOperationsValues = {
   monthlyConversations: number | null;
@@ -154,45 +155,24 @@ export default function VolumeOperationsPage() {
     }
   };
 
-  if (isHydrating) {
+    if (isHydrating) {
     return (
-      <AppShell
+        <AppShell
         step={5}
         totalSteps={5}
         progress={80}
         summary={{
-          businessName: "Cargando...",
-          industry: "Cargando...",
-          goal: "Cargando...",
-          packageName: "Cargando...",
+            businessName: "",
+            industry: "",
+            goal: "",
+            packageName: "",
         }}
-      >
-        <div className="rounded-[32px] border border-[#E5E7EB] bg-white px-12 py-12 shadow-sm">
-          <div className="animate-pulse">
-            <div className="mb-6 h-10 w-56 rounded-full bg-[#EEF2FF]" />
-            <div className="mb-4 h-16 w-[70%] rounded-2xl bg-[#E5E7EB]" />
-            <div className="mb-3 h-6 w-[80%] rounded-xl bg-[#E5E7EB]" />
-            <div className="mb-10 h-6 w-[65%] rounded-xl bg-[#E5E7EB]" />
-
-            <div className="grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-2">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <div key={index}>
-                  <div className="mb-3 h-5 w-44 rounded bg-[#E5E7EB]" />
-                  <div className="mb-3 h-5 w-full rounded bg-[#F3F4F6]" />
-                  <div className="h-14 w-full rounded-2xl bg-[#F3F4F6]" />
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-10 flex items-center justify-between">
-              <div className="h-14 w-28 rounded-2xl bg-[#F3F4F6]" />
-              <div className="h-14 w-44 rounded-2xl bg-[#E5E7EB]" />
-            </div>
-          </div>
-        </div>
-      </AppShell>
+        isLoading
+        >
+        <VolumeOperationsPageSkeleton />
+        </AppShell>
     );
-  }
+    }
 
   return (
     <AppShell

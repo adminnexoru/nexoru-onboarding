@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import PackageRecommendationCard from "@/components/onboarding/PackageRecommendationCard";
 import { getOnboardingSessionToken } from "@/lib/onboarding-storage";
+import PackageRecommendationPageSkeleton from "@/components/onboarding/PackageRecommendationPageSkeleton";
 
 type SummaryState = {
   businessName: string;
@@ -334,29 +335,24 @@ export default function PackageRecommendationPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <AppShell
-        step={5}
-        totalSteps={5}
-        progress={90}
-        summary={{
-          businessName: "Cargando...",
-          industry: "Cargando...",
-          goal: "Cargando...",
-          packageName: "Cargando...",
-        }}
-        isLoading
-      >
-        <div className="rounded-[32px] border border-[#E5E7EB] bg-white p-12 shadow-sm">
-          <div className="h-8 w-56 animate-pulse rounded-full bg-[#E5E7EB]" />
-          <div className="mt-8 h-16 w-[70%] animate-pulse rounded-2xl bg-[#E5E7EB]" />
-          <div className="mt-6 h-8 w-[85%] animate-pulse rounded-2xl bg-[#E5E7EB]" />
-          <div className="mt-10 h-[520px] animate-pulse rounded-[28px] bg-[#F3F4F6]" />
-        </div>
-      </AppShell>
-    );
-  }
+if (isLoading) {
+  return (
+    <AppShell
+      step={5}
+      totalSteps={5}
+      progress={90}
+      summary={{
+        businessName: "",
+        industry: "",
+        goal: "",
+        packageName: "",
+      }}
+      isLoading
+    >
+      <PackageRecommendationPageSkeleton />
+    </AppShell>
+  );
+}
 
   if (pageError) {
     return (

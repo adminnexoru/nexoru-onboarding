@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import BusinessProfileForm from "@/components/onboarding/BusinessProfileForm";
 import { getOnboardingSessionToken } from "@/lib/onboarding-storage";
+import BusinessProfilePageSkeleton from "@/components/onboarding/BusinessProfilePageSkeleton";
 
 type BusinessProfileValues = {
   legalName: string;
@@ -31,6 +32,7 @@ const emptyBusinessProfile: BusinessProfileValues = {
 export default function BusinessProfilePage() {
   const router = useRouter();
 
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [initialValues, setInitialValues] =
@@ -53,10 +55,15 @@ export default function BusinessProfilePage() {
 
     setSessionToken(token);
 
-    fetch(`/api/onboarding/session/${token}`)
+    fetch(`/api/onboarding/session/${token}`, {
+      cache: "no-store",
+    })
       .then((res) => res.json())
       .then((res) => {
-        if (!res?.ok) return;
+        if (!res?.ok || !res?.data) {
+          router.push("/onboarding/start");
+          return;
+        }
 
         const session = res.data;
         const businessProfile = session.businessProfile;
@@ -85,7 +92,12 @@ export default function BusinessProfilePage() {
           operatingHours: businessProfile?.operatingHours ?? "",
         });
       })
-      .catch(() => {});
+      .catch(() => {
+        router.push("/onboarding/start");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [router]);
 
   const handleSubmit = async (values: BusinessProfileValues) => {
@@ -127,6 +139,25 @@ export default function BusinessProfilePage() {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <AppShell
+        step={2}
+        totalSteps={5}
+        progress={20}
+        summary={{
+          businessName: "",
+          industry: "",
+          goal: "",
+          packageName: "",
+        }}
+        isLoading
+      >
+        <BusinessProfilePageSkeleton />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell step={2} totalSteps={5} progress={20} summary={summary}>

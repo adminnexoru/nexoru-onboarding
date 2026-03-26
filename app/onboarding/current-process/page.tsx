@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import CurrentProcessForm from "@/components/onboarding/CurrentProcessForm";
 import { getOnboardingSessionToken } from "@/lib/onboarding-storage";
+import CurrentProcessPageSkeleton from "@/components/onboarding/CurrentProcessPageSkeleton";
+
 
 type CurrentProcessValues = {
   currentProcess: string;
@@ -118,33 +120,24 @@ export default function CurrentProcessPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <AppShell
-        step={4}
-        totalSteps={5}
-        progress={60}
-        summary={{
-          businessName: "Cargando...",
-          industry: "Cargando...",
-          goal: "Cargando...",
-          packageName: "Cargando...",
-        }}
-      >
-        <div className="rounded-[32px] border border-[#E5E7EB] bg-white px-12 py-12 shadow-sm">
-          <div className="animate-pulse space-y-6">
-            <div className="h-10 w-48 rounded-full bg-[#EEF2FF]" />
-            <div className="h-16 w-2/3 rounded-2xl bg-[#E5E7EB]" />
-            <div className="h-8 w-4/5 rounded-xl bg-[#E5E7EB]" />
-            <div className="h-40 w-full rounded-2xl bg-[#E5E7EB]" />
-            <div className="h-40 w-full rounded-2xl bg-[#E5E7EB]" />
-            <div className="h-40 w-full rounded-2xl bg-[#E5E7EB]" />
-            <div className="h-40 w-full rounded-2xl bg-[#E5E7EB]" />
-          </div>
-        </div>
-      </AppShell>
-    );
-  }
+if (isLoading) {
+  return (
+    <AppShell
+      step={4}
+      totalSteps={5}
+      progress={60}
+      summary={{
+        businessName: "",
+        industry: "",
+        goal: "",
+        packageName: "",
+      }}
+      isLoading
+    >
+      <CurrentProcessPageSkeleton />
+    </AppShell>
+  );
+}
 
   return (
     <AppShell
