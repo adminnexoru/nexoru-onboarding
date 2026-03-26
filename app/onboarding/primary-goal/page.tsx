@@ -136,8 +136,8 @@ export default function PrimaryGoalPage() {
     return (
       <AppShell
         step={3}
-        totalSteps={5}
-        progress={40}
+        totalSteps={10}
+        progress={20}
         summary={{
           businessName: "Cargando...",
           industry: "Cargando...",
@@ -155,8 +155,8 @@ export default function PrimaryGoalPage() {
     return (
       <AppShell
         step={3}
-        totalSteps={5}
-        progress={40}
+        totalSteps={10}
+        progress={20}
         summary={{
           businessName: summary.businessName,
           industry: summary.industry,
@@ -196,7 +196,7 @@ export default function PrimaryGoalPage() {
   }
 
   return (
-    <AppShell step={3} totalSteps={5} progress={40} summary={summary}>
+    <AppShell step={3} totalSteps={10} progress={20} summary={summary}>
       <PrimaryGoalSelector
         sessionToken={sessionToken}
         primaryGoals={primaryGoals}

@@ -166,7 +166,7 @@ export default function PaymentPage() {
       const result = await response.json();
 
       if (!response.ok || !result?.ok) {
-        throw new Error(result?.error || "No fue posible generar el pago.");
+        throw new Error(result?.error || "No fue posible generar el resumen ejecutivo.");
       }
 
       const paymentUrl = result?.data?.paymentAttempt?.paymentUrl;
@@ -182,7 +182,7 @@ export default function PaymentPage() {
       setSubmitError(
         error instanceof Error
           ? error.message
-          : "No fue posible generar el pago."
+          : "No fue posible generar el resumen ejecutivo."
       );
     } finally {
       setIsSubmitting(false);
@@ -191,9 +191,9 @@ export default function PaymentPage() {
     if (isLoading) {
     return (
         <AppShell
-        step={5}
-        totalSteps={5}
-        progress={100}
+        step={8}
+        totalSteps={10}
+        progress={70}
         summary={{
             businessName: "",
             industry: "",
@@ -208,9 +208,9 @@ export default function PaymentPage() {
     }
     return (
     <AppShell
-        step={5}
-        totalSteps={5}
-        progress={100}
+        step={8}
+        totalSteps={10}
+        progress={70}
         summary={summary}
     >
         <PaymentCard

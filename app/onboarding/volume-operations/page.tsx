@@ -159,8 +159,8 @@ export default function VolumeOperationsPage() {
     return (
         <AppShell
         step={5}
-        totalSteps={5}
-        progress={80}
+        totalSteps={10}
+        progress={40}
         summary={{
             businessName: "",
             industry: "",
@@ -177,8 +177,8 @@ export default function VolumeOperationsPage() {
   return (
     <AppShell
       step={5}
-      totalSteps={5}
-      progress={80}
+      totalSteps={10}
+      progress={40}
       summary={summary}
     >
       <VolumeOperationsForm

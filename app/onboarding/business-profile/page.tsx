@@ -144,8 +144,8 @@ export default function BusinessProfilePage() {
     return (
       <AppShell
         step={2}
-        totalSteps={5}
-        progress={20}
+        totalSteps={10}
+        progress={10}
         summary={{
           businessName: "",
           industry: "",
@@ -160,7 +160,7 @@ export default function BusinessProfilePage() {
   }
 
   return (
-    <AppShell step={2} totalSteps={5} progress={20} summary={summary}>
+    <AppShell step={2} totalSteps={10} progress={10} summary={summary}>
       <BusinessProfileForm
         initialValues={initialValues}
         isSubmitting={isSubmitting}

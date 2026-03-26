@@ -215,9 +215,9 @@ export default function PackageRecommendationPage() {
 if (isLoading) {
   return (
     <AppShell
-      step={5}
-      totalSteps={5}
-      progress={90}
+      step={6}
+      totalSteps={10}
+      progress={50}
       summary={{
         businessName: "",
         industry: "",
@@ -233,7 +233,7 @@ if (isLoading) {
 
   if (pageError) {
     return (
-      <AppShell step={5} totalSteps={5} progress={90} summary={summary}>
+      <AppShell step={6} totalSteps={10} progress={50} summary={summary}>
         <div className="rounded-[32px] border border-[#FECACA] bg-white p-12 shadow-sm">
           <div className="rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-5 py-4 text-sm font-medium text-[#B91C1C]">
             {pageError}
@@ -262,7 +262,7 @@ if (isLoading) {
   }
 
   return (
-    <AppShell step={5} totalSteps={5} progress={90} summary={summary}>
+    <AppShell step={6} totalSteps={10} progress={50} summary={summary}>
       <PackageRecommendationCard
         recommendation={recommendation}
         isSubmitting={isSubmitting}

@@ -54,8 +54,8 @@ export default function StartPage() {
   return (
     <AppShell
       step={1}
-      totalSteps={5}
-      progress={10}
+      totalSteps={10}
+      progress={0}
       summary={{
         businessName: "",
         industry: "",
@@ -63,6 +63,7 @@ export default function StartPage() {
         packageName: "",
       }}
       isLoading
+      hideSummary
     >
       <StartPageSkeleton />
     </AppShell>
@@ -71,14 +72,15 @@ export default function StartPage() {
   return (
     <AppShell
       step={1}
-      totalSteps={5}
-      progress={10}
+      totalSteps={10}
+      progress={0}
       summary={{
         businessName: "Pendiente",
         industry: "Pendiente",
         goal: "Pendiente",
         packageName: "Pendiente",
       }}
+      hideSummary
     >
       <section className="start-card">
         <div className="start-pill">Onboarding Nexoru</div>

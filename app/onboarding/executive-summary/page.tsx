@@ -146,9 +146,9 @@ export default function ExecutiveSummaryPage() {
     if (isLoading) {
     return (
         <AppShell
-        step={5}
-        totalSteps={5}
-        progress={98}
+        step={9}
+        totalSteps={10}
+        progress={80}
         summary={{
             businessName: "",
             industry: "",
@@ -163,15 +163,17 @@ export default function ExecutiveSummaryPage() {
     }
     return (
     <AppShell
-        step={5}
-        totalSteps={5}
-        progress={98}
+        step={9}
+        totalSteps={10}
+        progress={80}
         summary={{
         businessName: summary.businessName,
         industry: summary.industry,
         goal: summary.goal,
         packageName: summary.packageName,
         }}
+        isLoading={isLoading}
+        hideSummary
     >
         <ExecutiveSummaryCard
         businessName={summary.businessName}

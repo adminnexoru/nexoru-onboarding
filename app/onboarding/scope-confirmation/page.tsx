@@ -183,9 +183,9 @@ export default function ScopeConfirmationPage() {
 if (isLoading) {
   return (
     <AppShell
-      step={5}
-      totalSteps={5}
-      progress={95}
+      step={7}
+      totalSteps={10}
+      progress={60}
       summary={{
         businessName: "",
         industry: "",
@@ -201,9 +201,9 @@ if (isLoading) {
 
 return (
   <AppShell
-    step={5}
-    totalSteps={5}
-    progress={95}
+    step={7}
+    totalSteps={10}
+    progress={60}
     summary={summary}
   >
     <ScopeConfirmationCard

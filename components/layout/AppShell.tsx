@@ -17,6 +17,7 @@ type Props = {
   progress: number;
   summary: SummaryData;
   isLoading?: boolean;
+  hideSummary?: boolean;
 };
 
 export default function AppShell({
@@ -26,6 +27,7 @@ export default function AppShell({
   summary,
   children,
   isLoading = false,
+  hideSummary = false,
 }: Props) {
   return (
     <div className="shell">
@@ -92,43 +94,42 @@ export default function AppShell({
             )}
           </section>
 
-          <section className="shell-grid">
-            <div className="shell-content">{children}</div>
+          <section className={`shell-grid ${hideSummary ? "shell-grid--full" : ""}`}>
+        <div className="shell-content">{children}</div>
+          {!isLoading && !hideSummary ? (
+            <aside className="shell-summary">
+              <h3 className="shell-summary-title">Resumen del proyecto</h3>
 
-            {!isLoading ? (
-              <aside className="shell-summary">
-                <h3 className="shell-summary-title">Resumen del proyecto</h3>
-
-                <div className="shell-summary-list">
-                  <div className="shell-summary-item">
-                    <span className="shell-summary-label">Negocio:</span>
-                    <span className="shell-summary-value">
-                      {summary.businessName}
-                    </span>
-                  </div>
-
-                  <div className="shell-summary-item">
-                    <span className="shell-summary-label">Industria:</span>
-                    <span className="shell-summary-value">
-                      {summary.industry}
-                    </span>
-                  </div>
-
-                  <div className="shell-summary-item">
-                    <span className="shell-summary-label">Objetivo:</span>
-                    <span className="shell-summary-value">{summary.goal}</span>
-                  </div>
-
-                  <div className="shell-summary-item">
-                    <span className="shell-summary-label">Paquete:</span>
-                    <span className="shell-summary-value">
-                      {summary.packageName}
-                    </span>
-                  </div>
+              <div className="shell-summary-list">
+                <div className="shell-summary-item">
+                  <span className="shell-summary-label">Negocio:</span>
+                  <span className="shell-summary-value">
+                    {summary.businessName}
+                  </span>
                 </div>
-              </aside>
-            ) : null}
-          </section>
+
+                <div className="shell-summary-item">
+                  <span className="shell-summary-label">Industria:</span>
+                  <span className="shell-summary-value">
+                    {summary.industry}
+                  </span>
+                </div>
+
+                <div className="shell-summary-item">
+                  <span className="shell-summary-label">Objetivo:</span>
+                  <span className="shell-summary-value">{summary.goal}</span>
+                </div>
+
+                <div className="shell-summary-item">
+                  <span className="shell-summary-label">Paquete:</span>
+                  <span className="shell-summary-value">
+                    {summary.packageName}
+                  </span>
+                </div>
+              </div>
+            </aside>
+          ) : null}
+        </section>
         </div>
       </main>
 
@@ -142,6 +143,10 @@ export default function AppShell({
         .shell-header {
           background: #ffffff;
           border-bottom: 1px solid #e8ebf2;
+        }
+          
+        .shell-grid--full {
+          grid-template-columns: minmax(0, 1fr);
         }
 
         .shell-header-inner {

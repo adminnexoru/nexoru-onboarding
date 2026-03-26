@@ -124,8 +124,8 @@ if (isLoading) {
   return (
     <AppShell
       step={4}
-      totalSteps={5}
-      progress={60}
+      totalSteps={10}
+      progress={30}
       summary={{
         businessName: "",
         industry: "",
@@ -142,8 +142,8 @@ if (isLoading) {
   return (
     <AppShell
       step={4}
-      totalSteps={5}
-      progress={60}
+      totalSteps={10}
+      progress={30}
       summary={summary}
     >
       <CurrentProcessForm
