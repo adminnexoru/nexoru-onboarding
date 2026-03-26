@@ -40,6 +40,7 @@ export type PackageRecommendationData = {
   rationale: string[];
   strategicAnalysis: string;
   notes: string;
+  recommendationSource: "openai" | "fallback";
 };
 
 function clean(value?: string | null) {
@@ -188,6 +189,7 @@ async function tryEnhanceWithAI(
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
+    console.log("OPENAI_RECOMMENDATION_FALLBACK: missing OPENAI_API_KEY");
     return fallback;
   }
 
@@ -234,6 +236,12 @@ ${JSON.stringify(session, null, 2)}
     });
 
     if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      console.log("OPENAI_RECOMMENDATION_FALLBACK: non-ok response", {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText,
+      });
       return fallback;
     }
 
@@ -242,6 +250,7 @@ ${JSON.stringify(session, null, 2)}
       typeof result?.output_text === "string" ? result.output_text : "";
 
     if (!outputText) {
+      console.log("OPENAI_RECOMMENDATION_FALLBACK: empty output_text", result);
       return fallback;
     }
 
@@ -250,6 +259,8 @@ ${JSON.stringify(session, null, 2)}
       rationale?: string[];
       notes?: string;
     };
+
+    console.log("OPENAI_RECOMMENDATION_SUCCESS");
 
     return {
       ...fallback,
@@ -260,12 +271,13 @@ ${JSON.stringify(session, null, 2)}
           ? parsed.rationale
           : fallback.rationale,
       notes: parsed.notes?.trim() || fallback.notes,
+      recommendationSource: "openai",
     };
-  } catch {
+  } catch (error) {
+    console.log("OPENAI_RECOMMENDATION_FALLBACK: exception", error);
     return fallback;
   }
 }
-
 export async function generatePackageRecommendation(
   session: SessionInput
 ): Promise<PackageRecommendationData> {
@@ -294,6 +306,7 @@ export async function generatePackageRecommendation(
       session.primaryGoal?.primaryGoalCode === "other"
         ? "Este caso requiere discovery adicional antes de confirmar paquete, alcance y pricing final."
         : "Esta recomendación organiza la primera fase de implementación y puede ampliarse después con add-ons o mayor complejidad operativa.",
+        recommendationSource: "fallback",
   };
 
   return tryEnhanceWithAI(session, fallback);

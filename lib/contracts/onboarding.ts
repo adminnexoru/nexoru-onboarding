@@ -209,23 +209,15 @@ export const packageRecommendationRequestSchema = z.object({
 });
 
 export const packageRecommendationResponseSchema = z.object({
-  recommendedPackage: z.object({
-    id: z.string(),
-    code: z.string(),
-    name: z.string(),
-    description: z.string().nullable(),
-    setupPrice: z.string(),
-    monthlyPrice: z.string(),
-  }),
-  session: z.object({
-    id: z.string(),
-    currentStep: z.string(),
-    status: z.string(),
-    recommendedPackageId: z.string().nullable(),
-    setupPriceSnapshot: z.string().nullable(),
-    monthlyPriceSnapshot: z.string().nullable(),
-    updatedAt: z.union([z.string(), z.date()]),
-  }),
+  packageCode: z.string().nullable(),
+  packageName: z.string(),
+  packageDescription: z.string(),
+  setupPrice: z.string().nullable(),
+  monthlyPrice: z.string().nullable(),
+  rationale: z.array(z.string()),
+  strategicAnalysis: z.string(),
+  notes: z.string(),
+  recommendationSource: z.enum(["openai", "fallback"]),
 });
 
 export const businessProfileRequestSchema = z.object({

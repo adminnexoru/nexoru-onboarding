@@ -11,6 +11,7 @@ type Recommendation = {
   rationale: string[];
   strategicAnalysis: string;
   notes: string;
+  recommendationSource: "openai" | "fallback";
 };
 
 type Props = {
@@ -91,7 +92,9 @@ export default function PackageRecommendationCard({
 
       <div className="mb-8 rounded-[24px] border border-[#FDE68A] bg-[#FFF8E7] p-5 sm:rounded-[28px] sm:p-8">
         <div className="mb-3 text-[15px] font-semibold text-[#B45309]">
-          Análisis estratégico asistido por IA
+        {recommendation.recommendationSource === "openai"
+            ? "Análisis estratégico asistido por OpenAI"
+            : "Análisis estratégico Nexoru"}
         </div>
 
         <div className="whitespace-pre-line break-words text-[16px] leading-7 text-[#78350F] sm:text-[17px] sm:leading-8">
