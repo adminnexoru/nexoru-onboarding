@@ -62,16 +62,16 @@ export default function PaymentCard({
     <div className="rounded-[28px] border border-[#E5E7EB] bg-white px-5 py-7 shadow-sm sm:rounded-[32px] sm:px-8 sm:py-9 md:px-12 md:py-12">
 
     <span className="mb-6 inline-flex rounded-full bg-[#EEF2FF] px-4 py-2 text-[13px] font-medium text-[#4F46E5] sm:px-5 sm:py-3 sm:text-sm">
-        Paso final · Pago
+        Confirmación · Alcance
       </span>
 
        <h1 className="mb-8 text-[32px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#202430] sm:mb-9 sm:text-[38px] md:mb-8 md:text-[60px] md:leading-[1.04]">
-        Confirmemos tu inversión inicial
+        Confirmemos tu alcance inicial
       </h1>
 
        <p className="mb-10 max-w-4xl text-[16px] leading-7 text-[#4B5563] sm:mb-12 sm:text-[17px] sm:leading-8 md:mb-12 md:text-[20px] md:leading-9">
         Revisa el paquete seleccionado, los complementos elegidos y el monto
-        estimado para avanzar con tu implementación Nexoru.
+        estimado para avanzar con tu resumen ejecutivo y reservación de sesión comercial Nexoru.
       </p>
 
       <div className="mb-8 rounded-[24px] border border-[#E5E7EB] bg-[#F8FAFC] p-5 sm:p-8">

@@ -61,222 +61,81 @@ export default function ExecutiveSummaryCard({
   paymentReference,
 }: ExecutiveSummaryCardProps) {
   return (
-    <div
-      style={{
-        backgroundColor: "#FFFFFF",
-        border: "1px solid #E5E7EB",
-        borderRadius: "24px",
-        padding: "40px",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-      }}
-    >
-      <div style={{ marginBottom: "32px" }}>
-        <div
-          style={{
-            display: "inline-block",
-            backgroundColor: "#E8EBF8",
-            color: "#3A3D91",
-            fontSize: "14px",
-            fontWeight: 500,
-            padding: "8px 14px",
-            borderRadius: "999px",
-            marginBottom: "18px",
-          }}
-        >
+    <div className="rounded-[28px] border border-[#E5E7EB] bg-white px-5 py-7 shadow-sm sm:rounded-[32px] sm:px-8 sm:py-9 md:px-12 md:py-12">
+      <div className="mb-8 sm:mb-10">
+        <div className="mb-5 inline-flex rounded-full bg-[#E8EBF8] px-4 py-2 text-[13px] font-medium text-[#3A3D91] sm:text-sm">
           Resumen ejecutivo
         </div>
 
-        <h2
-          style={{
-            fontSize: "42px",
-            lineHeight: 1.1,
-            fontWeight: 700,
-            color: "#2B2F36",
-            margin: "0 0 16px",
-          }}
-        >
+        <h1 className="mb-5 text-[32px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#2B2F36] sm:text-[38px] md:text-[56px] md:leading-[1.04]">
           Tu configuración Nexoru está lista
-        </h2>
+        </h1>
 
-        <p
-          style={{
-            fontSize: "19px",
-            lineHeight: 1.6,
-            color: "#4A4F57",
-            maxWidth: "920px",
-            margin: 0,
-          }}
-        >
+        <p className="max-w-4xl text-[16px] leading-7 text-[#4A4F57] sm:text-[17px] sm:leading-8 md:text-[20px] md:leading-9">
           Este es el resumen consolidado de tu onboarding. Aquí puedes revisar
           el contexto del negocio, la solución recomendada y la inversión
           estimada antes de agendar tu sesión de entendimiento.
         </p>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1.1fr 0.9fr",
-          gap: "24px",
-          marginBottom: "28px",
-        }}
-      >
-        <div
-          style={{
-            backgroundColor: "#F8F9FC",
-            border: "1px solid #E5E7EB",
-            borderRadius: "20px",
-            padding: "24px",
-          }}
-        >
-          <h3
-            style={{
-              fontSize: "24px",
-              fontWeight: 700,
-              color: "#2B2F36",
-              margin: "0 0 18px",
-            }}
-          >
+      <div className="mb-7 grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="rounded-[20px] border border-[#E5E7EB] bg-[#F8F9FC] p-5 sm:p-6">
+          <h3 className="mb-5 text-[24px] font-semibold text-[#2B2F36]">
             Resumen del caso
           </h3>
 
-          <div style={{ display: "grid", gap: "14px" }}>
-            <div
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: "1px solid #E5E7EB",
-                borderRadius: "14px",
-                padding: "14px 16px",
-              }}
-            >
-              <strong style={{ color: "#2B2F36" }}>Negocio:</strong>{" "}
-              <span style={{ color: "#4A4F57" }}>{businessName}</span>
+          <div className="grid gap-4">
+            <div className="rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-4">
+              <strong className="text-[#2B2F36]">Negocio:</strong>{" "}
+              <span className="break-words text-[#4A4F57]">{businessName}</span>
             </div>
 
-            <div
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: "1px solid #E5E7EB",
-                borderRadius: "14px",
-                padding: "14px 16px",
-              }}
-            >
-              <strong style={{ color: "#2B2F36" }}>Industria:</strong>{" "}
-              <span style={{ color: "#4A4F57" }}>{industry}</span>
+            <div className="rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-4">
+              <strong className="text-[#2B2F36]">Industria:</strong>{" "}
+              <span className="break-words text-[#4A4F57]">{industry}</span>
             </div>
 
-            <div
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: "1px solid #E5E7EB",
-                borderRadius: "14px",
-                padding: "14px 16px",
-              }}
-            >
-              <strong style={{ color: "#2B2F36" }}>Objetivo principal:</strong>{" "}
-              <span style={{ color: "#4A4F57" }}>{goal}</span>
+            <div className="rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-4">
+              <strong className="text-[#2B2F36]">Objetivo principal:</strong>{" "}
+              <span className="break-words text-[#4A4F57]">{goal}</span>
             </div>
 
-            <div
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: "1px solid #E5E7EB",
-                borderRadius: "14px",
-                padding: "14px 16px",
-              }}
-            >
-              <strong style={{ color: "#2B2F36" }}>Paquete recomendado:</strong>{" "}
-              <span style={{ color: "#4A4F57" }}>{packageName}</span>
+            <div className="rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-4">
+              <strong className="text-[#2B2F36]">Paquete recomendado:</strong>{" "}
+              <span className="break-words text-[#4A4F57]">{packageName}</span>
             </div>
 
             {paymentReference ? (
-              <div
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: "1px solid #E5E7EB",
-                  borderRadius: "14px",
-                  padding: "14px 16px",
-                }}
-              >
-                <strong style={{ color: "#2B2F36" }}>Referencia de pago:</strong>{" "}
-                <span style={{ color: "#4A4F57" }}>{paymentReference}</span>
+              <div className="rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-4">
+                <strong className="text-[#2B2F36]">Referencia de pago:</strong>{" "}
+                <span className="break-all text-[#4A4F57]">
+                  {paymentReference}
+                </span>
               </div>
             ) : null}
           </div>
         </div>
 
-        <div
-          style={{
-            backgroundColor: "#FFFFFF",
-            border: "1px solid #E5E7EB",
-            borderRadius: "20px",
-            padding: "24px",
-          }}
-        >
-          <h3
-            style={{
-              fontSize: "24px",
-              fontWeight: 700,
-              color: "#2B2F36",
-              margin: "0 0 18px",
-            }}
-          >
+        <div className="rounded-[20px] border border-[#E5E7EB] bg-white p-5 sm:p-6">
+          <h3 className="mb-5 text-[24px] font-semibold text-[#2B2F36]">
             Inversión estimada
           </h3>
 
-          <div style={{ display: "grid", gap: "16px" }}>
-            <div
-              style={{
-                backgroundColor: "#F8F9FC",
-                border: "1px solid #E5E7EB",
-                borderRadius: "16px",
-                padding: "18px",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "14px",
-                  color: "#6B7280",
-                  marginBottom: "6px",
-                }}
-              >
+          <div className="grid gap-4">
+            <div className="rounded-[16px] border border-[#E5E7EB] bg-[#F8F9FC] p-5">
+              <div className="mb-2 text-[14px] text-[#6B7280]">
                 Setup inicial total
               </div>
-              <div
-                style={{
-                  fontSize: "30px",
-                  fontWeight: 700,
-                  color: "#2B2F36",
-                }}
-              >
+              <div className="break-words text-[28px] font-semibold text-[#2B2F36] sm:text-[30px]">
                 {formatCurrency(totalSetupPrice)}
               </div>
             </div>
 
-            <div
-              style={{
-                backgroundColor: "#F8F9FC",
-                border: "1px solid #E5E7EB",
-                borderRadius: "16px",
-                padding: "18px",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "14px",
-                  color: "#6B7280",
-                  marginBottom: "6px",
-                }}
-              >
+            <div className="rounded-[16px] border border-[#E5E7EB] bg-[#F8F9FC] p-5">
+              <div className="mb-2 text-[14px] text-[#6B7280]">
                 Mensualidad estimada total
               </div>
-              <div
-                style={{
-                  fontSize: "30px",
-                  fontWeight: 700,
-                  color: "#2B2F36",
-                }}
-              >
+              <div className="break-words text-[28px] font-semibold text-[#2B2F36] sm:text-[30px]">
                 {formatCurrency(totalMonthlyPrice)}
               </div>
             </div>
@@ -284,156 +143,64 @@ export default function ExecutiveSummaryCard({
         </div>
       </div>
 
-      <div
-        style={{
-          marginBottom: "28px",
-          backgroundColor: "#FFFFFF",
-          border: "1px solid #E5E7EB",
-          borderRadius: "20px",
-          padding: "24px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "24px",
-            fontWeight: 700,
-            color: "#2B2F36",
-            margin: "0 0 18px",
-          }}
-        >
+      <div className="mb-7 rounded-[20px] border border-[#E5E7EB] bg-white p-5 sm:p-6">
+        <h3 className="mb-5 text-[24px] font-semibold text-[#2B2F36]">
           Desglose económico
         </h3>
 
-        <div style={{ display: "grid", gap: "14px" }}>
-          <div
-            style={{
-              backgroundColor: "#F8F9FC",
-              border: "1px solid #E5E7EB",
-              borderRadius: "14px",
-              padding: "14px 16px",
-            }}
-          >
-            <strong style={{ color: "#2B2F36" }}>Setup paquete:</strong>{" "}
-            <span style={{ color: "#4A4F57" }}>
+        <div className="grid gap-4">
+          <div className="rounded-[14px] border border-[#E5E7EB] bg-[#F8F9FC] px-4 py-4">
+            <strong className="text-[#2B2F36]">Setup paquete:</strong>{" "}
+            <span className="text-[#4A4F57]">
               {formatCurrency(packageSetupPrice)}
             </span>
           </div>
 
-          <div
-            style={{
-              backgroundColor: "#F8F9FC",
-              border: "1px solid #E5E7EB",
-              borderRadius: "14px",
-              padding: "14px 16px",
-            }}
-          >
-            <strong style={{ color: "#2B2F36" }}>Mensualidad paquete:</strong>{" "}
-            <span style={{ color: "#4A4F57" }}>
+          <div className="rounded-[14px] border border-[#E5E7EB] bg-[#F8F9FC] px-4 py-4">
+            <strong className="text-[#2B2F36]">Mensualidad paquete:</strong>{" "}
+            <span className="text-[#4A4F57]">
               {formatCurrency(packageMonthlyPrice)}
             </span>
           </div>
 
-          <div
-            style={{
-              backgroundColor: "#F8F9FC",
-              border: "1px solid #E5E7EB",
-              borderRadius: "14px",
-              padding: "14px 16px",
-            }}
-          >
-            <strong style={{ color: "#2B2F36" }}>Setup add-ons:</strong>{" "}
-            <span style={{ color: "#4A4F57" }}>
+          <div className="rounded-[14px] border border-[#E5E7EB] bg-[#F8F9FC] px-4 py-4">
+            <strong className="text-[#2B2F36]">Setup add-ons:</strong>{" "}
+            <span className="text-[#4A4F57]">
               {formatCurrency(addonsSetupTotal)}
             </span>
           </div>
 
-          <div
-            style={{
-              backgroundColor: "#F8F9FC",
-              border: "1px solid #E5E7EB",
-              borderRadius: "14px",
-              padding: "14px 16px",
-            }}
-          >
-            <strong style={{ color: "#2B2F36" }}>Mensualidad add-ons:</strong>{" "}
-            <span style={{ color: "#4A4F57" }}>
+          <div className="rounded-[14px] border border-[#E5E7EB] bg-[#F8F9FC] px-4 py-4">
+            <strong className="text-[#2B2F36]">Mensualidad add-ons:</strong>{" "}
+            <span className="text-[#4A4F57]">
               {formatCurrency(addonsMonthlyTotal)}
             </span>
           </div>
         </div>
       </div>
 
-      <div
-        style={{
-          marginBottom: "28px",
-          backgroundColor: "#FFFFFF",
-          border: "1px solid #E5E7EB",
-          borderRadius: "20px",
-          padding: "24px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "24px",
-            fontWeight: 700,
-            color: "#2B2F36",
-            margin: "0 0 18px",
-          }}
-        >
+      <div className="mb-7 rounded-[20px] border border-[#E5E7EB] bg-white p-5 sm:p-6">
+        <h3 className="mb-5 text-[24px] font-semibold text-[#2B2F36]">
           Add-ons seleccionados
         </h3>
 
         {selectedAddons.length > 0 ? (
-          <div style={{ display: "grid", gap: "14px" }}>
+          <div className="grid gap-4">
             {selectedAddons.map((item) => (
               <div
                 key={item.id}
-                style={{
-                  backgroundColor: "#F8F9FC",
-                  border: "1px solid #E5E7EB",
-                  borderRadius: "14px",
-                  padding: "14px 16px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: "16px",
-                  alignItems: "flex-start",
-                  flexWrap: "wrap",
-                }}
+                className="flex flex-col gap-4 rounded-[14px] border border-[#E5E7EB] bg-[#F8F9FC] px-4 py-4 sm:flex-row sm:items-start sm:justify-between"
               >
-                <div style={{flex: "1 1 260px", minWidth:0}}>
-                  <div
-                    style={{
-                      color: "#2B2F36",
-                      fontWeight: 700,
-                      fontSize: "16px",
-                      marginBottom: "6px",
-                    }}
-                  >
+                <div className="min-w-0 flex-1">
+                  <div className="mb-2 text-[16px] font-bold text-[#2B2F36]">
                     {item.addon.name}
                   </div>
-                  <div
-                    style={{
-                      color: "#6B7280",
-                      fontSize: "14px",
-                      lineHeight: 1.5,
-                    }}
-                  >
+                  <div className="text-[14px] leading-6 text-[#6B7280]">
                     {item.addon.description || "Complemento opcional"}
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    textAlign: "right",
-                    minWidth: "180px",
-                    color: "#2B2F36",
-                    fontSize: "14px",
-                    fontWeight: 600,
-                    lineHeight: 1.6,
-                    wordBreak: "break-word",
-                    marginLeft: "auto",
-                  }}
-                >
+                <div className="text-left text-[14px] font-semibold leading-6 text-[#2B2F36] sm:min-w-[180px] sm:text-right">
                   <div>Setup {formatCurrency(item.addon.setupPrice)}</div>
                   <div>Mensual {formatCurrency(item.addon.monthlyPrice)}</div>
                 </div>
@@ -441,61 +208,24 @@ export default function ExecutiveSummaryCard({
             ))}
           </div>
         ) : (
-          <p
-            style={{
-              margin: 0,
-              fontSize: "16px",
-              color: "#6B7280",
-              lineHeight: 1.6,
-            }}
-          >
+          <p className="text-[16px] leading-7 text-[#6B7280]">
             No seleccionaste add-ons opcionales en esta etapa.
           </p>
         )}
       </div>
 
-      <div
-        style={{
-          marginBottom: "28px",
-          backgroundColor: "#F8F9FC",
-          border: "1px solid #E5E7EB",
-          borderRadius: "18px",
-          padding: "20px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "20px",
-            fontWeight: 700,
-            color: "#2B2F36",
-            margin: "0 0 12px",
-          }}
-        >
+      <div className="mb-7 rounded-[18px] border border-[#E5E7EB] bg-[#F8F9FC] p-5">
+        <h3 className="mb-3 text-[20px] font-semibold text-[#2B2F36]">
           Siguiente paso
         </h3>
 
-        <p
-          style={{
-            margin: 0,
-            fontSize: "16px",
-            lineHeight: 1.6,
-            color: "#4A4F57",
-          }}
-        >
+        <p className="text-[16px] leading-7 text-[#4A4F57]">
           Agenda una sesión de entendimiento con Nexoru para revisar tu caso,
           validar alcance y continuar el proceso comercial.
         </p>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "16px",
-          marginTop: "8px",
-        }}
-      >
+      <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <Link
           href="/onboarding/payment"
           style={{
@@ -510,29 +240,47 @@ export default function ExecutiveSummaryCard({
             fontSize: "15px",
             fontWeight: 600,
             textDecoration: "none",
+            WebkitTextFillColor: "#2B2F36",
           }}
         >
-          Atrás
+          <span
+            style={{
+              color: "#2B2F36",
+              WebkitTextFillColor: "#2B2F36",
+              fontWeight: 600,
+            }}
+          >
+            Atrás
+          </span>
         </Link>
 
-        <Link
-          href="/onboarding/schedule-session"
+      <Link
+        href="/onboarding/schedule-session"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: "none",
+          backgroundColor: "#2B2F36",
+          color: "#FFFFFF",
+          borderRadius: "14px",
+          padding: "14px 24px",
+          fontSize: "15px",
+          fontWeight: 600,
+          textDecoration: "none",
+          WebkitTextFillColor: "#FFFFFF",
+        }}
+      >
+        <span
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            border: "none",
-            backgroundColor: "#2B2F36",
             color: "#FFFFFF",
-            borderRadius: "14px",
-            padding: "14px 24px",
-            fontSize: "15px",
-            fontWeight: 600,
-            textDecoration: "none",
+            WebkitTextFillColor: "#FFFFFF",
+            fontWeight: 700,
           }}
         >
           Agendar sesión
-        </Link>
+        </span>
+      </Link>
       </div>
     </div>
   );

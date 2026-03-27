@@ -48,6 +48,7 @@ export default function AppShell({
                 alt="Nexoru"
                 width={56}
                 height={56}
+                style={{height:"auto", width:"auto"}}
                 className="shell-logo"
                 priority
               />
@@ -144,8 +145,8 @@ export default function AppShell({
           background: #ffffff;
           border-bottom: 1px solid #e8ebf2;
         }
-          
-        .shell-grid--full {
+
+        .shell-grid.shell-grid--full {
           grid-template-columns: minmax(0, 1fr);
         }
 
