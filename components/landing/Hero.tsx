@@ -16,7 +16,7 @@ export default function Hero() {
 
           <div className="mt-10 flex flex-col gap-4 sm:flex-row">
             <Link
-              href="/onboarding/start"
+              href="https://app.nexoru.ai/onboarding/start"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex h-14 items-center justify-center rounded-full bg-[#7C3AED] px-7 text-base font-semibold text-white shadow-[0_0_30px_rgba(124,58,237,0.35)] transition hover:bg-[#6D28D9]"

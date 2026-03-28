@@ -15,7 +15,7 @@ export default function FinalCTA() {
 
           <div className="mt-10">
             <Link
-              href="/onboarding/start"
+              href="https://app.nexoru.ai/onboarding/start"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex h-14 items-center justify-center rounded-full bg-[#7C3AED] px-8 text-base font-semibold text-white shadow-[0_0_30px_rgba(124,58,237,0.35)] transition hover:bg-[#6D28D9]"

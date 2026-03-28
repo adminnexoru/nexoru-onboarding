@@ -24,7 +24,7 @@ export default function Footer() {
         </div>
 
         <div className="grid gap-3 text-[15px] text-white/60">
-          <a href="/onboarding/start" target="_blank" className="transition hover:text-white">
+          <a href="https://app.nexoru.ai/onboarding/start" target="_blank" className="transition hover:text-white">
             Iniciar onboarding
           </a>
           <span>admin@nexoru.ai</span>
