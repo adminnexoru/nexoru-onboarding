@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import "./globals.css";
-import "./onboarding-ui.css";
+import "../globals.css";
+import "../onboarding-ui.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://app.nexoru.ai"),
