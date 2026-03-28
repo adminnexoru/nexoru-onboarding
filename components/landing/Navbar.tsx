@@ -11,10 +11,10 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#06070A]/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-20 w-full max-w-[1280px] items-center justify-between px-4 sm:px-6 md:px-8 xl:px-10">
+      <div className="mx-auto flex h-30 w-full max-w-[1280px] items-center justify-between px-4 sm:px-6 md:px-8 xl:px-10">
         <Link
           href="/"
-          className="flex min-w-0 items-center gap-3"
+          className="flex min-w-0 items-center gap-2.5 sm:gap-3"
           onClick={closeMenu}
         >
           <Image
@@ -23,10 +23,10 @@ export default function Navbar() {
             width={120}
             height={48}
             priority
-            className="block h-10 w-auto shrink-0 opacity-95 drop-shadow-[0_0_18px_rgba(124,58,237,0.35)] sm:h-11 md:h-12"
+            className="h-11 w-auto shrink-0 opacity-95 drop-shadow-[0_0_18px_rgba(124,58,237,0.35)] sm:h-11 md:h-12"
           />
 
-          <span className="truncate text-base font-semibold tracking-[0.14em] text-white sm:text-lg md:text-[22px] xl:text-[24px]">
+          <span className="truncate text-[24px] font-semibold tracking-[0.14em] text-white sm:text-[28px] md:text-[32px] xl:text-[34px]">
             NEXORU
           </span>
         </Link>
@@ -61,6 +61,8 @@ export default function Navbar() {
         <div className="hidden items-center gap-3 lg:flex">
           <Link
             href="/onboarding/start"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex h-11 items-center justify-center rounded-full border border-[#7C3AED]/30 bg-[#7C3AED] px-5 text-sm font-semibold text-white shadow-[0_0_24px_rgba(124,58,237,0.35)] transition hover:bg-[#6D28D9]"
           >
             Diseñar mi sistema
@@ -128,6 +130,8 @@ export default function Navbar() {
 
             <Link
               href="/onboarding/start"
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={closeMenu}
               className="mt-2 inline-flex h-12 items-center justify-center rounded-full border border-[#7C3AED]/30 bg-[#7C3AED] px-5 text-sm font-semibold text-white shadow-[0_0_24px_rgba(124,58,237,0.35)] transition hover:bg-[#6D28D9]"
             >
