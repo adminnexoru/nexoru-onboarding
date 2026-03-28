@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 type SummaryData = {
   businessName: string;
@@ -29,6 +31,15 @@ export default function AppShell({
   isLoading = false,
   hideSummary = false,
 }: Props) {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "auto",
+    });
+  }, [pathname]);
   return (
     <div className="shell">
       <div className="shell-bg-orb shell-bg-orb--violet" />
