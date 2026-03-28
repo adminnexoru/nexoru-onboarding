@@ -31,31 +31,40 @@ export default function AppShell({
 }: Props) {
   return (
     <div className="shell">
+      <div className="shell-bg-orb shell-bg-orb--violet" />
+      <div className="shell-bg-orb shell-bg-orb--blue" />
+      <div className="shell-bg-grid" />
+
       <header className="shell-header">
         <div className="shell-header-inner">
           {isLoading ? (
             <div className="shell-brand-skeleton" aria-hidden="true">
-              <div className="shell-brand-skeleton-logo" />
-              <div className="shell-brand-skeleton-copy">
-                <div className="shell-brand-skeleton-title" />
-                <div className="shell-brand-skeleton-subtitle" />
+              <div className="shell-brand-skeleton-row">
+                <div className="shell-brand-skeleton-logo" />
+                <div className="shell-brand-skeleton-copy">
+                  <div className="shell-brand-skeleton-title" />
+                  <div className="shell-brand-skeleton-subtitle" />
+                </div>
               </div>
             </div>
           ) : (
-            <div className="shell-brand">
-              <Image
-                src="/logo-nexoru.png"
-                alt="Nexoru"
-                width={56}
-                height={56}
-                style={{height:"auto", width:"auto"}}
-                className="shell-logo"
-                priority
-              />
+            <div className="shell-brand-wrap">
+              <div className="shell-brand">
+                <div className="shell-logo-box">
+                  <Image
+                    src="/logo-nexoru.png"
+                    alt="Nexoru"
+                    fill
+                    sizes="56px"
+                    className="shell-logo"
+                    priority
+                  />
+                </div>
 
-              <div className="shell-brand-copy">
-                <div className="shell-brand-title">NEXORU</div>
-                <div className="shell-brand-subtitle">Onboarding</div>
+                <div className="shell-brand-copy">
+                  <div className="shell-brand-title">NEXORU</div>
+                  <div className="shell-brand-subtitle">Onboarding</div>
+                </div>
               </div>
             </div>
           )}
@@ -95,71 +104,131 @@ export default function AppShell({
             )}
           </section>
 
-          <section className={`shell-grid ${hideSummary ? "shell-grid--full" : ""}`}>
-        <div className="shell-content">{children}</div>
-          {!isLoading && !hideSummary ? (
-            <aside className="shell-summary">
-              <h3 className="shell-summary-title">Resumen del proyecto</h3>
+          <section
+            className={`shell-grid ${hideSummary ? "shell-grid--full" : ""}`}
+          >
+            <div className="shell-content">{children}</div>
 
-              <div className="shell-summary-list">
-                <div className="shell-summary-item">
-                  <span className="shell-summary-label">Negocio:</span>
-                  <span className="shell-summary-value">
-                    {summary.businessName}
-                  </span>
-                </div>
+            {!isLoading && !hideSummary ? (
+              <aside className="shell-summary">
+                <div className="shell-summary-glow" />
+                <h3 className="shell-summary-title">Resumen del proyecto</h3>
 
-                <div className="shell-summary-item">
-                  <span className="shell-summary-label">Industria:</span>
-                  <span className="shell-summary-value">
-                    {summary.industry}
-                  </span>
-                </div>
+                <div className="shell-summary-list">
+                  <div className="shell-summary-item">
+                    <span className="shell-summary-label">Negocio</span>
+                    <span className="shell-summary-value">
+                      {summary.businessName}
+                    </span>
+                  </div>
 
-                <div className="shell-summary-item">
-                  <span className="shell-summary-label">Objetivo:</span>
-                  <span className="shell-summary-value">{summary.goal}</span>
-                </div>
+                  <div className="shell-summary-item">
+                    <span className="shell-summary-label">Industria</span>
+                    <span className="shell-summary-value">
+                      {summary.industry}
+                    </span>
+                  </div>
 
-                <div className="shell-summary-item">
-                  <span className="shell-summary-label">Paquete:</span>
-                  <span className="shell-summary-value">
-                    {summary.packageName}
-                  </span>
+                  <div className="shell-summary-item">
+                    <span className="shell-summary-label">Objetivo</span>
+                    <span className="shell-summary-value">{summary.goal}</span>
+                  </div>
+
+                  <div className="shell-summary-item">
+                    <span className="shell-summary-label">Paquete</span>
+                    <span className="shell-summary-value">
+                      {summary.packageName}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </aside>
-          ) : null}
-        </section>
+              </aside>
+            ) : null}
+          </section>
         </div>
       </main>
 
       <style jsx>{`
         .shell {
+          position: relative;
           min-height: 100vh;
-          background: #f5f7fb;
-          color: #202430;
+          overflow: hidden;
+          background:
+            radial-gradient(circle at top, rgba(76, 29, 149, 0.22), transparent 32%),
+            radial-gradient(circle at 78% 24%, rgba(0, 153, 255, 0.12), transparent 24%),
+            linear-gradient(180deg, #05060a 0%, #070a12 48%, #05060a 100%);
+          color: #ffffff;
+        }
+
+        .shell-bg-orb {
+          position: absolute;
+          border-radius: 999px;
+          filter: blur(90px);
+          pointer-events: none;
+          opacity: 0.6;
+        }
+
+        .shell-bg-orb--violet {
+          top: -120px;
+          left: 18%;
+          width: 420px;
+          height: 420px;
+          background: rgba(124, 58, 237, 0.22);
+        }
+
+        .shell-bg-orb--blue {
+          top: 180px;
+          right: -80px;
+          width: 340px;
+          height: 340px;
+          background: rgba(14, 165, 233, 0.16);
+        }
+
+        .shell-bg-grid {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          opacity: 0.12;
+          background-image:
+            linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+          background-size: 120px 120px;
+          mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 85%);
         }
 
         .shell-header {
-          background: #ffffff;
-          border-bottom: 1px solid #e8ebf2;
-        }
-
-        .shell-grid.shell-grid--full {
-          grid-template-columns: minmax(0, 1fr);
+          position: sticky;
+          top: 0;
+          z-index: 40;
+          background: rgba(6, 7, 10, 0.78);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
         }
 
         .shell-header-inner {
+          position: relative;
           max-width: 1440px;
           margin: 0 auto;
-          padding: 28px 40px 24px;
+          padding: 22px 40px 18px;
+        }
+
+        .shell-brand-wrap {
+          display: flex;
+          align-items: center;
         }
 
         .shell-brand {
           display: flex;
           align-items: center;
-          gap: 18px;
+          gap: 16px;
+        }
+
+        .shell-logo-box {
+          position: relative;
+          width: 56px;
+          height: 56px;
+          flex: 0 0 56px;
+          filter: drop-shadow(0 0 16px rgba(124, 58, 237, 0.22));
         }
 
         .shell-logo {
@@ -176,19 +245,21 @@ export default function AppShell({
           line-height: 1;
           font-weight: 800;
           letter-spacing: 0.16em;
-          color: #111827;
+          color: #ffffff;
         }
 
         .shell-brand-subtitle {
           margin-top: 6px;
           font-size: 15px;
           line-height: 1.2;
-          color: #6b7280;
+          color: rgba(255, 255, 255, 0.62);
           font-weight: 500;
         }
 
         .shell-main {
-          padding: 34px 0 64px;
+          position: relative;
+          z-index: 1;
+          padding: 34px 0 72px;
         }
 
         .shell-container {
@@ -210,29 +281,35 @@ export default function AppShell({
         }
 
         .shell-step-label {
-          font-size: 16px;
-          font-weight: 500;
-          color: #4b5563;
+          font-size: 15px;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.82);
         }
 
         .shell-progress-value {
-          font-size: 16px;
-          font-weight: 500;
-          color: #6b7280;
+          font-size: 15px;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.64);
         }
 
         .shell-progress-track {
           width: 100%;
-          height: 8px;
-          background: #e5e7eb;
+          height: 10px;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.05);
           border-radius: 999px;
           overflow: hidden;
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
         }
 
         .shell-progress-bar {
           height: 100%;
-          background: #4f46e5;
           border-radius: 999px;
+          background:
+            linear-gradient(90deg, #7c3aed 0%, #8b5cf6 42%, #38bdf8 100%);
+          box-shadow:
+            0 0 22px rgba(124, 58, 237, 0.34),
+            0 0 30px rgba(56, 189, 248, 0.16);
           transition: width 0.25s ease;
         }
 
@@ -243,29 +320,52 @@ export default function AppShell({
           align-items: start;
         }
 
+        .shell-grid.shell-grid--full {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
         .shell-content {
           min-width: 0;
         }
 
         .shell-summary {
-          background: #ffffff;
-          border: 1px solid #e5e7eb;
+          position: sticky;
+          top: 112px;
+          overflow: hidden;
+          background:
+            linear-gradient(180deg, rgba(13, 16, 26, 0.88) 0%, rgba(10, 12, 20, 0.88) 100%);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 24px;
           padding: 28px 24px;
-          box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-          position: sticky;
-          top: 24px;
+          box-shadow:
+            0 1px 2px rgba(0, 0, 0, 0.28),
+            0 12px 40px rgba(0, 0, 0, 0.34);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+        }
+
+        .shell-summary-glow {
+          position: absolute;
+          inset: auto auto 0 -30px;
+          width: 180px;
+          height: 180px;
+          border-radius: 999px;
+          background: rgba(124, 58, 237, 0.12);
+          filter: blur(48px);
+          pointer-events: none;
         }
 
         .shell-summary-title {
+          position: relative;
           margin: 0 0 18px;
           font-size: 18px;
           line-height: 1.2;
           font-weight: 700;
-          color: #202430;
+          color: #ffffff;
         }
 
         .shell-summary-list {
+          position: relative;
           display: flex;
           flex-direction: column;
           gap: 14px;
@@ -273,31 +373,45 @@ export default function AppShell({
 
         .shell-summary-item {
           display: flex;
-          flex-wrap: wrap;
+          flex-direction: column;
           gap: 6px;
-          font-size: 15px;
-          line-height: 1.5;
+          padding: 14px 14px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 16px;
         }
 
         .shell-summary-label {
+          font-size: 12px;
           font-weight: 700;
-          color: #202430;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #8b5cf6;
         }
 
         .shell-summary-value {
-          color: #4b5563;
+          font-size: 15px;
+          line-height: 1.5;
+          color: rgba(255, 255, 255, 0.88);
+          word-break: break-word;
         }
-          .shell-brand-skeleton {
+
+        .shell-brand-skeleton {
           display: flex;
           align-items: center;
-          gap: 18px;
+        }
+
+        .shell-brand-skeleton-row {
+          display: flex;
+          align-items: center;
+          gap: 16px;
         }
 
         .shell-brand-skeleton-logo {
           width: 56px;
           height: 56px;
-          border-radius: 14px;
-          background: #e5e7eb;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.08);
           animation: pulse 1.4s ease-in-out infinite;
         }
 
@@ -311,7 +425,7 @@ export default function AppShell({
           width: 160px;
           height: 24px;
           border-radius: 10px;
-          background: #e5e7eb;
+          background: rgba(255, 255, 255, 0.08);
           animation: pulse 1.4s ease-in-out infinite;
         }
 
@@ -319,7 +433,7 @@ export default function AppShell({
           width: 92px;
           height: 16px;
           border-radius: 8px;
-          background: #e5e7eb;
+          background: rgba(255, 255, 255, 0.08);
           animation: pulse 1.4s ease-in-out infinite;
         }
 
@@ -335,7 +449,7 @@ export default function AppShell({
           width: 110px;
           height: 18px;
           border-radius: 8px;
-          background: #e5e7eb;
+          background: rgba(255, 255, 255, 0.08);
           animation: pulse 1.4s ease-in-out infinite;
         }
 
@@ -343,23 +457,23 @@ export default function AppShell({
           width: 44px;
           height: 18px;
           border-radius: 8px;
-          background: #e5e7eb;
+          background: rgba(255, 255, 255, 0.08);
           animation: pulse 1.4s ease-in-out infinite;
         }
 
         .shell-progress-skeleton-track {
           width: 100%;
-          height: 8px;
+          height: 10px;
           border-radius: 999px;
           overflow: hidden;
-          background: #e5e7eb;
+          background: rgba(255, 255, 255, 0.08);
         }
 
         .shell-progress-skeleton-bar {
           width: 38%;
           height: 100%;
           border-radius: 999px;
-          background: #d1d5db;
+          background: rgba(139, 92, 246, 0.4);
           animation: pulse 1.4s ease-in-out infinite;
         }
 
@@ -380,12 +494,13 @@ export default function AppShell({
 
           .shell-summary {
             position: static;
+            top: auto;
           }
         }
 
         @media (max-width: 768px) {
           .shell-header-inner {
-            padding: 22px 20px 18px;
+            padding: 18px 20px 16px;
           }
 
           .shell-container {
@@ -401,15 +516,22 @@ export default function AppShell({
           }
 
           .shell-brand {
-            gap: 14px;
+            gap: 12px;
+          }
+
+          .shell-logo-box {
+            width: 46px;
+            height: 46px;
+            flex-basis: 46px;
           }
 
           .shell-brand-title {
-            font-size: 24px;
+            font-size: 22px;
+            letter-spacing: 0.14em;
           }
 
           .shell-brand-subtitle {
-            font-size: 14px;
+            font-size: 13px;
           }
 
           .shell-summary {

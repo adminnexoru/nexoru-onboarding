@@ -74,95 +74,255 @@ export default function ScheduleConfirmationCard({
   }, [whatsappLink, isMobile]);
 
   return (
-    <div className="rounded-[28px] border border-[#E5E7EB] bg-white px-5 py-7 shadow-sm sm:rounded-[32px] sm:px-8 sm:py-9 md:px-12 md:py-12">
-      <span className="mb-6 inline-flex rounded-full bg-[#EEF2FF] px-4 py-2 text-[13px] font-medium text-[#4F46E5] sm:px-5 sm:py-3 sm:text-sm">
-        Confirmación final
-      </span>
+    <div className="nx-page-card">
+      <span className="nx-pill">Confirmación final</span>
 
-      <h1 className="mb-8 text-[32px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#202430] sm:mb-9 sm:text-[38px] md:mb-8 md:text-[60px] md:leading-[1.04]">
-        Tu sesión quedó agendada
-      </h1>
+      <div className="nx-section" style={{ marginTop: 24 }}>
+        <h1 className="nx-title">Tu sesión quedó agendada</h1>
 
-      <p className="mb-10 max-w-4xl text-[16px] leading-7 text-[#4B5563] sm:mb-12 sm:text-[17px] sm:leading-8 md:mb-12 md:text-[20px] md:leading-9">
-        Ya registramos tu sesión de entendimiento con Nexoru. Usa la referencia
-        del caso para cualquier seguimiento comercial o por WhatsApp.
-      </p>
-
-      <div className="mb-8 rounded-[24px] border border-[#E5E7EB] bg-[#F8FAFC] p-5 sm:rounded-[28px] sm:p-8">
-        <div className="mb-3 text-[15px] font-semibold text-[#4F46E5]">
-          Referencia del caso
-        </div>
-
-        <div className="break-words text-[24px] font-semibold text-[#202430] sm:text-[30px]">
-          {meetingReference}
-        </div>
-      </div>
-
-      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5 sm:p-6">
-          <div className="mb-2 text-[15px] text-[#6B7280]">Fecha</div>
-          <div className="text-[18px] font-semibold capitalize text-[#202430]">
-            {formatted.date}
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5 sm:p-6">
-          <div className="mb-2 text-[15px] text-[#6B7280]">Horario</div>
-          <div className="text-[18px] font-semibold text-[#202430]">
-            {formatted.timeRange}
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-[24px] border border-[#E5E7EB] bg-[#F8FAFC] p-5 sm:rounded-[28px] sm:p-8">
-        <h3 className="mb-3 text-[22px] font-semibold text-[#202430]">
-          Para finalizar y dejar todo listo
-        </h3>
-
-        <p className="mb-6 text-[16px] leading-7 text-[#4B5563] sm:text-[17px] sm:leading-8">
-          {isMobile
-            ? "Da clic en el botón de WhatsApp para continuar con Nexoru usando tu referencia."
-            : "Escanea el QR con tu celular o abre WhatsApp para continuar con Nexoru usando tu referencia."}
+        <p className="nx-subtitle">
+          Ya registramos tu sesión de entendimiento con Nexoru. Usa la
+          referencia del caso para cualquier seguimiento comercial o por
+          WhatsApp.
         </p>
+      </div>
 
-        {isMobile ? (
-          whatsappLink ? (
-            <a
-              href={whatsappLink}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-[56px] w-full items-center justify-center rounded-2xl bg-[#25D366] px-6 text-[16px] font-semibold text-white transition hover:opacity-90"
-            >
-              Abrir WhatsApp con referencia
-            </a>
-          ) : null
-        ) : (
-          <div className="flex flex-col items-center rounded-[24px] border border-[#D1D5DB] bg-white px-5 py-6">
-            {qrCodeUrl ? (
-              <img
-                src={qrCodeUrl}
-                alt="QR para abrir WhatsApp"
-                className="h-[220px] w-[220px] rounded-2xl"
-              />
-            ) : null}
+      <div className="nx-section">
+        <div className="nx-reference-panel">
+          <div className="nx-panel-eyebrow">Referencia del caso</div>
 
-            <div className="mt-4 text-center text-[14px] leading-6 text-[#6B7280]">
-              Escanea este código para abrir WhatsApp con tu referencia
-            </div>
+          <div className="nx-reference-value">{meetingReference}</div>
+        </div>
+      </div>
 
-            {whatsappLink ? (
+      <div className="nx-section nx-datetime-grid">
+        <div className="nx-datetime-card">
+          <div className="nx-datetime-label">Fecha</div>
+          <div className="nx-datetime-value nx-capitalize">{formatted.date}</div>
+        </div>
+
+        <div className="nx-datetime-card">
+          <div className="nx-datetime-label">Horario</div>
+          <div className="nx-datetime-value">{formatted.timeRange}</div>
+        </div>
+      </div>
+
+      <div className="nx-section">
+        <div className="nx-whatsapp-panel">
+          <h3 className="nx-whatsapp-title">Para finalizar y dejar todo listo</h3>
+
+          <p className="nx-whatsapp-copy">
+            {isMobile
+              ? "Da clic en el botón de WhatsApp para continuar con Nexoru usando tu referencia."
+              : "Escanea el QR con tu celular o abre WhatsApp para continuar con Nexoru usando tu referencia."}
+          </p>
+
+          {isMobile ? (
+            whatsappLink ? (
               <a
                 href={whatsappLink}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-5 inline-flex min-h-[52px] items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-6 text-[15px] font-semibold text-[#202430] transition hover:bg-[#F9FAFB]"
+                className="nx-whatsapp-button"
               >
-                Abrir enlace manualmente
+                Abrir WhatsApp con referencia
               </a>
-            ) : null}
-          </div>
-        )}
+            ) : null
+          ) : (
+            <div className="nx-qr-card">
+              {qrCodeUrl ? (
+                <img
+                  src={qrCodeUrl}
+                  alt="QR para abrir WhatsApp"
+                  className="nx-qr-image"
+                />
+              ) : null}
+
+              <div className="nx-qr-copy">
+                Escanea este código para abrir WhatsApp con tu referencia
+              </div>
+
+              {whatsappLink ? (
+                <a
+                  href={whatsappLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="nx-btn nx-btn-secondary nx-link-btn"
+                  style={{ minWidth: 220 }}
+                >
+                  Abrir enlace manualmente
+                </a>
+              ) : null}
+            </div>
+          )}
+        </div>
       </div>
+
+      <style jsx>{`
+        .nx-panel-eyebrow {
+          margin-bottom: 10px;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          color: #a78bfa;
+        }
+
+        .nx-reference-panel,
+        .nx-whatsapp-panel,
+        .nx-datetime-card,
+        .nx-qr-card {
+          border-radius: 24px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.03),
+            0 18px 50px rgba(0, 0, 0, 0.18);
+        }
+
+        .nx-reference-panel,
+        .nx-whatsapp-panel {
+          background:
+            linear-gradient(
+              180deg,
+              rgba(17, 21, 34, 0.92) 0%,
+              rgba(10, 13, 23, 0.92) 100%
+            );
+          padding: 22px;
+        }
+
+        .nx-reference-value {
+          word-break: break-word;
+          font-size: 28px;
+          line-height: 1.15;
+          font-weight: 700;
+          color: #ffffff;
+        }
+
+        .nx-datetime-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+
+        .nx-datetime-card {
+          background: rgba(255, 255, 255, 0.03);
+          padding: 18px;
+        }
+
+        .nx-datetime-label {
+          margin-bottom: 8px;
+          font-size: 14px;
+          line-height: 1.4;
+          color: rgba(255, 255, 255, 0.62);
+        }
+
+        .nx-datetime-value {
+          font-size: 18px;
+          line-height: 1.5;
+          font-weight: 700;
+          color: #ffffff;
+          word-break: break-word;
+        }
+
+        .nx-capitalize {
+          text-transform: capitalize;
+        }
+
+        .nx-whatsapp-title {
+          margin: 0 0 10px;
+          font-size: 22px;
+          line-height: 1.2;
+          font-weight: 700;
+          color: #ffffff;
+        }
+
+        .nx-whatsapp-copy {
+          margin: 0 0 22px;
+          font-size: 15px;
+          line-height: 1.8;
+          color: rgba(255, 255, 255, 0.76);
+        }
+
+        .nx-whatsapp-button {
+          display: inline-flex;
+          min-height: 56px;
+          width: 100%;
+          align-items: center;
+          justify-content: center;
+          border-radius: 18px;
+          background: #25d366;
+          padding: 0 24px;
+          font-size: 16px;
+          font-weight: 700;
+          color: #ffffff;
+          text-decoration: none;
+          transition:
+            transform 0.18s ease,
+            opacity 0.18s ease,
+            box-shadow 0.18s ease;
+          box-shadow: 0 0 24px rgba(37, 211, 102, 0.24);
+        }
+
+        .nx-whatsapp-button:hover {
+          transform: translateY(-1px);
+          opacity: 0.92;
+        }
+
+        .nx-qr-card {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          background: rgba(255, 255, 255, 0.03);
+          padding: 22px;
+        }
+
+        .nx-qr-image {
+          width: 220px;
+          height: 220px;
+          border-radius: 20px;
+          background: #ffffff;
+          object-fit: cover;
+        }
+
+        .nx-qr-copy {
+          margin: 16px 0 18px;
+          text-align: center;
+          font-size: 14px;
+          line-height: 1.7;
+          color: rgba(255, 255, 255, 0.62);
+        }
+
+        .nx-link-btn {
+          text-decoration: none;
+        }
+
+        @media (min-width: 768px) {
+          .nx-reference-panel,
+          .nx-whatsapp-panel {
+            padding: 30px;
+          }
+
+          .nx-reference-value {
+            font-size: 32px;
+          }
+
+          .nx-datetime-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+          }
+
+          .nx-datetime-card {
+            padding: 22px;
+          }
+
+          .nx-whatsapp-title {
+            font-size: 24px;
+          }
+
+          .nx-whatsapp-copy {
+            font-size: 16px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -105,43 +105,34 @@ export default function CurrentProcessForm({
   };
 
   const textareaClass = (field: keyof CurrentProcessValues) =>
-    `w-full min-h-[120px] rounded-2xl border bg-white px-5 py-4 text-[16px] leading-7 text-[#202430] shadow-sm transition outline-none placeholder:text-[#9CA3AF] resize-none sm:min-h-[140px] ${
-      fieldErrors[field]
-        ? "border-[#DC2626] focus:border-[#DC2626]"
-        : "border-[#E5E7EB] focus:border-[#4F46E5]"
-    }`;
+    `nx-textarea ${fieldErrors[field] ? "nx-input-error" : ""}`;
 
   const renderError = (field: keyof CurrentProcessValues) =>
     fieldErrors[field] ? (
-      <p className="mt-2 text-sm font-medium text-[#DC2626]">
-        {fieldErrors[field]}
-      </p>
+      <p className="nx-field-error">{fieldErrors[field]}</p>
     ) : null;
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      <div className="rounded-[28px] border border-[#E5E7EB] bg-white px-5 py-7 shadow-sm sm:rounded-[32px] sm:px-8 sm:py-9 md:px-12 md:py-12">
+      <div className="nx-page-card">
+        <span className="nx-pill">Paso 4 · Proceso actual</span>
 
-  <span className="mb-6 inline-flex rounded-full bg-[#EEF2FF] px-4 py-2 text-[13px] font-medium text-[#4F46E5] sm:px-5 sm:py-3 sm:text-sm">
-          Paso 4 · Proceso actual
-        </span>
+        <div className="nx-section" style={{ marginTop: 24 }}>
+          <h1 className="nx-title">Cuéntanos cómo operas hoy</h1>
 
-        <h1 className="mb-8 text-[32px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#202430] sm:mb-9 sm:text-[38px] md:mb-8 md:text-[60px] md:leading-[1.04]">
-          Cuéntanos cómo operas hoy
-        </h1>
+          <p className="nx-subtitle">
+            Queremos entender tu proceso actual para identificar pasos
+            manuales, herramientas utilizadas y puntos de fricción antes de
+            diseñar la solución Nexoru.
+          </p>
+        </div>
 
-        <p className="mb-10 max-w-4xl text-[16px] leading-7 text-[#4B5563] sm:mb-12 sm:text-[17px] sm:leading-8 md:mb-12 md:text-[20px] md:leading-9">
-          Queremos entender tu proceso actual para identificar pasos manuales,
-          herramientas utilizadas y puntos de fricción antes de diseñar la
-          solución Nexoru.
-        </p>
-
-        <div className="grid grid-cols-1 gap-y-7 sm:gap-y-8">
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
+        <div className="nx-section" style={{ display: "grid", gap: 28 }}>
+          <div className="nx-field">
+            <label className="nx-label">
               Describe brevemente cómo funciona hoy tu proceso *
             </label>
-            <p className="mb-3 text-[15px] leading-7 text-[#6B7280]">
+            <p className="nx-field-help">
               Explica qué ocurre actualmente desde que inicia la interacción
               hasta que termina el proceso principal.
             </p>
@@ -155,11 +146,11 @@ export default function CurrentProcessForm({
             {renderError("currentProcess")}
           </div>
 
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
+          <div className="nx-field">
+            <label className="nx-label">
               ¿Qué pasos haces manualmente hoy?
             </label>
-            <p className="mb-3 text-[15px] leading-7 text-[#6B7280]">
+            <p className="nx-field-help">
               Describe tareas que hoy dependen de una persona o se hacen sin
               automatización.
             </p>
@@ -172,11 +163,11 @@ export default function CurrentProcessForm({
             />
           </div>
 
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
+          <div className="nx-field">
+            <label className="nx-label">
               ¿Qué herramientas usas actualmente?
             </label>
-            <p className="mb-3 text-[15px] leading-7 text-[#6B7280]">
+            <p className="nx-field-help">
               Menciona apps, hojas de cálculo, WhatsApp, CRM u otras
               herramientas que hoy forman parte del proceso.
             </p>
@@ -189,11 +180,11 @@ export default function CurrentProcessForm({
             />
           </div>
 
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
+          <div className="nx-field">
+            <label className="nx-label">
               ¿Dónde están hoy los principales problemas o fricciones?
             </label>
-            <p className="mb-3 text-[15px] leading-7 text-[#6B7280]">
+            <p className="nx-field-help">
               Explica retrasos, errores, retrabajos o cuellos de botella del
               proceso actual.
             </p>
@@ -208,12 +199,12 @@ export default function CurrentProcessForm({
         </div>
 
         {submitError ? (
-          <div className="mt-8 rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm font-medium text-[#B91C1C]">
-            {submitError}
+          <div className="nx-section">
+            <div className="nx-alert nx-alert--error">{submitError}</div>
           </div>
         ) : null}
 
-        <div className="mt-12 flex flex-col gap-4 sm:mt-14 sm:flex-row sm:items-center sm:justify-between">
+        <div className="nx-actions">
           <button
             type="button"
             onClick={() => {
@@ -224,7 +215,8 @@ export default function CurrentProcessForm({
 
               window.history.back();
             }}
-            className="inline-flex h-14 w-full items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-6 text-[16px] font-semibold text-[#202430] transition hover:bg-[#F9FAFB] sm:w-auto sm:min-w-[120px]"
+            className="nx-btn nx-btn-secondary"
+            style={{ minWidth: 130 }}
           >
             Atrás
           </button>
@@ -232,22 +224,91 @@ export default function CurrentProcessForm({
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`inline-flex h-14 w-full items-center justify-center rounded-2xl px-8 text-[16px] font-semibold text-white transition sm:w-auto sm:min-w-[180px] ${
-              isSubmitting
-                ? "cursor-not-allowed bg-[#A7AFBE]"
-                : "bg-[#202430] hover:bg-[#111827]"
+            className={`nx-btn ${
+              isSubmitting ? "nx-btn-muted" : "nx-btn-primary"
             }`}
+            style={{ minWidth: 180 }}
           >
-            {isSubmitting ? "Guardando..." : "Siguiente"}
+            {isSubmitting ? (
+              <span className="nx-inline-loading">
+                <span className="nx-spinner" />
+                Guardando...
+              </span>
+            ) : (
+              "Siguiente"
+            )}
           </button>
         </div>
 
         {!isFormValid && hasSubmitted ? (
-          <p className="mt-4 text-sm font-medium text-[#B45309] sm:text-right">
-            Completa el campo obligatorio para continuar.
-          </p>
+          <div className="nx-section" style={{ marginTop: 16 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 14,
+                fontWeight: 600,
+                color: "var(--nx-warning-text)",
+              }}
+            >
+              Completa el campo obligatorio para continuar.
+            </p>
+          </div>
         ) : null}
       </div>
+
+      <style jsx>{`
+        .nx-textarea {
+          width: 100%;
+          min-height: 132px;
+          resize: vertical;
+          border-radius: 18px;
+          border: 1px solid var(--nx-border);
+          background: rgba(10, 14, 35, 0.72);
+          padding: 16px 18px;
+          font-size: 15px;
+          line-height: 1.75;
+          color: var(--nx-text-primary);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+          outline: none;
+          transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease,
+            background 0.2s ease;
+        }
+
+        .nx-textarea::placeholder {
+          color: var(--nx-text-muted);
+        }
+
+        .nx-textarea:focus {
+          border-color: rgba(124, 58, 237, 0.55);
+          box-shadow:
+            0 0 0 3px rgba(124, 58, 237, 0.14),
+            0 0 24px rgba(37, 99, 235, 0.08);
+          background: rgba(10, 14, 35, 0.82);
+        }
+
+        .nx-field-help {
+          margin: 0 0 12px;
+          font-size: 14px;
+          line-height: 1.7;
+          color: var(--nx-text-secondary);
+        }
+
+        @media (max-width: 768px) {
+          .nx-textarea {
+            min-height: 120px;
+            padding: 15px 16px;
+            font-size: 14px;
+            line-height: 1.7;
+          }
+
+          .nx-field-help {
+            font-size: 13px;
+            line-height: 1.65;
+          }
+        }
+      `}</style>
     </form>
   );
 }

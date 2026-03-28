@@ -135,40 +135,30 @@ export default function BusinessProfileForm({
   };
 
   const inputClass = (field: keyof BusinessProfileFormValues) =>
-    `w-full rounded-2xl border bg-white px-4 py-3.5 text-[15px] text-[#202430] shadow-sm transition outline-none placeholder:text-[#9CA3AF] sm:px-5 sm:py-4 sm:text-[16px] ${
-      fieldErrors[field]
-        ? "border-[#DC2626] focus:border-[#DC2626]"
-        : "border-[#E5E7EB] focus:border-[#4F46E5]"
-    }`;
+    `nx-input ${fieldErrors[field] ? "nx-input-error" : ""}`;
 
   const renderError = (field: keyof BusinessProfileFormValues) =>
     fieldErrors[field] ? (
-      <p className="mt-2 text-sm font-medium text-[#DC2626]">
-        {fieldErrors[field]}
-      </p>
+      <p className="nx-field-error">{fieldErrors[field]}</p>
     ) : null;
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      <div className="rounded-[28px] border border-[#E5E7EB] bg-white px-5 py-7 shadow-sm sm:rounded-[32px] sm:px-8 sm:py-9 md:px-12 md:py-12">
-        <span className="mb-6 inline-flex rounded-full bg-[#EEF2FF] px-4 py-2 text-[13px] font-medium text-[#4F46E5] sm:px-5 sm:py-3 sm:text-sm">
-          Paso 2 · Perfil del negocio
-        </span>
+      <div className="nx-page-card">
+        <span className="nx-pill">Paso 2 · Perfil del negocio</span>
 
-        <h1 className="mb-8 text-[32px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#202430] sm:mb-9 sm:text-[38px] md:mb-8 md:text-[60px] md:leading-[1.04]">
-          Cuéntanos sobre tu negocio
-        </h1>
+        <div className="nx-section" style={{ marginTop: 24 }}>
+          <h1 className="nx-title">Cuéntanos sobre tu negocio</h1>
 
-        <p className="mb-10 max-w-4xl text-[16px] leading-7 text-[#4B5563] sm:mb-12 sm:text-[17px] sm:leading-8 md:mb-12 md:text-[20px] md:leading-9">
-          Necesitamos entender el contexto base de tu operación para diseñar la
-          mejor implementación Nexoru.
-        </p>
+          <p className="nx-subtitle">
+            Necesitamos entender el contexto base de tu operación para diseñar
+            la mejor implementación Nexoru.
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 gap-x-6 gap-y-7 sm:gap-y-8 md:grid-cols-2 mt-10">
-          <div>
-            <label className="mb-2 block text-[14px] font-semibold text-[#202430] sm:mb-3 sm:text-[15px]">
-              Nombre legal del negocio
-            </label>
+        <div className="nx-section nx-form-grid">
+          <div className="nx-field">
+            <label className="nx-label">Nombre legal del negocio</label>
             <input
               type="text"
               value={formData.legalName}
@@ -179,10 +169,8 @@ export default function BusinessProfileForm({
             />
           </div>
 
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
-              Nombre comercial *
-            </label>
+          <div className="nx-field">
+            <label className="nx-label">Nombre comercial *</label>
             <input
               type="text"
               value={formData.commercialName}
@@ -194,10 +182,8 @@ export default function BusinessProfileForm({
             {renderError("commercialName")}
           </div>
 
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
-              Industria / giro *
-            </label>
+          <div className="nx-field">
+            <label className="nx-label">Industria / giro *</label>
             <input
               type="text"
               value={formData.industry}
@@ -209,10 +195,8 @@ export default function BusinessProfileForm({
             {renderError("industry")}
           </div>
 
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
-              País *
-            </label>
+          <div className="nx-field">
+            <label className="nx-label">País *</label>
             <input
               type="text"
               value={formData.country}
@@ -224,10 +208,8 @@ export default function BusinessProfileForm({
             {renderError("country")}
           </div>
 
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
-              Ciudad *
-            </label>
+          <div className="nx-field">
+            <label className="nx-label">Ciudad *</label>
             <input
               type="text"
               value={formData.city}
@@ -239,10 +221,8 @@ export default function BusinessProfileForm({
             {renderError("city")}
           </div>
 
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
-              Sitio web o Instagram
-            </label>
+          <div className="nx-field">
+            <label className="nx-label">Sitio web o Instagram</label>
             <input
               type="text"
               value={formData.websiteOrInstagram}
@@ -255,10 +235,8 @@ export default function BusinessProfileForm({
             />
           </div>
 
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
-              WhatsApp principal *
-            </label>
+          <div className="nx-field">
+            <label className="nx-label">WhatsApp principal *</label>
             <input
               type="text"
               value={formData.whatsapp}
@@ -270,10 +248,8 @@ export default function BusinessProfileForm({
             {renderError("whatsapp")}
           </div>
 
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
-              Horario de operación
-            </label>
+          <div className="nx-field">
+            <label className="nx-label">Horario de operación</label>
             <input
               type="text"
               value={formData.operatingHours}
@@ -286,12 +262,12 @@ export default function BusinessProfileForm({
         </div>
 
         {submitError ? (
-          <div className="mt-8 rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm font-medium text-[#B91C1C]">
-            {submitError}
+          <div className="nx-section">
+            <div className="nx-alert nx-alert--error">{submitError}</div>
           </div>
         ) : null}
 
-        <div className="mt-12 flex flex-col gap-4 sm:mt-14 sm:flex-row sm:items-center sm:justify-between">
+        <div className="nx-actions">
           <button
             type="button"
             onClick={() => {
@@ -302,7 +278,8 @@ export default function BusinessProfileForm({
 
               window.history.back();
             }}
-            className="inline-flex h-14 w-full items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-6 text-[16px] font-semibold text-[#202430] transition hover:bg-[#F9FAFB] sm:w-auto sm:min-w-[120px]"
+            className="nx-btn nx-btn-secondary"
+            style={{ minWidth: 130 }}
           >
             Atrás
           </button>
@@ -310,20 +287,35 @@ export default function BusinessProfileForm({
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`inline-flex h-14 w-full items-center justify-center rounded-2xl px-8 text-[16px] font-semibold text-white transition sm:w-auto sm:min-w-[180px] ${
-              isSubmitting
-                ? "cursor-not-allowed bg-[#A7AFBE]"
-                : "bg-[#202430] hover:bg-[#111827]"
+            className={`nx-btn ${
+              isSubmitting ? "nx-btn-muted" : "nx-btn-primary"
             }`}
+            style={{ minWidth: 180 }}
           >
-            {isSubmitting ? "Guardando..." : "Siguiente"}
+            {isSubmitting ? (
+              <span className="nx-inline-loading">
+                <span className="nx-spinner" />
+                Guardando...
+              </span>
+            ) : (
+              "Siguiente"
+            )}
           </button>
         </div>
 
         {!isFormValid && hasSubmitted ? (
-          <p className="mt-4 text-sm font-medium text-[#B45309] sm:text-right">
-            Completa los campos obligatorios para continuar.
-          </p>
+          <div className="nx-section" style={{ marginTop: 16 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 14,
+                fontWeight: 600,
+                color: "var(--nx-warning-text)",
+              }}
+            >
+              Completa los campos obligatorios para continuar.
+            </p>
+          </div>
         ) : null}
       </div>
     </form>

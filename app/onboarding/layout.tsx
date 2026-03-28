@@ -4,31 +4,30 @@ import "./globals.css";
 import "./onboarding-ui.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://nexoru.ai"),
+  metadataBase: new URL("https://app.nexoru.ai"),
   title: {
-    default: "Nexoru",
+    default: "Nexoru Onboarding",
     template: "%s | Nexoru",
   },
   description:
-    "Sistemas inteligentes que automatizan la relación entre tu negocio y tus clientes.",
-  applicationName: "Nexoru",
+    "Onboarding de Nexoru para definir la mejor configuración operativa de automatización para tu negocio.",
+  applicationName: "Nexoru Onboarding",
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
     apple: "/logo-nexoru.png",
   },
   openGraph: {
-    title: "Nexoru",
-    description:
-      "Sistemas inteligentes que automatizan la relación entre tu negocio y tus clientes.",
-    url: "https://nexoru.ai",
+    title: "Nexoru Onboarding",
+    description: "Define la mejor configuración Nexoru para tu negocio.",
+    url: "https://app.nexoru.ai",
     siteName: "Nexoru",
     images: [
       {
         url: "/logo-nexoru.png",
         width: 1200,
         height: 630,
-        alt: "Nexoru",
+        alt: "Nexoru Onboarding",
       },
     ],
     locale: "es_MX",
@@ -36,9 +35,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Nexoru",
-    description:
-      "Sistemas inteligentes que automatizan la relación entre tu negocio y tus clientes.",
+    title: "Nexoru Onboarding",
+    description: "Define la mejor configuración Nexoru para tu negocio.",
     images: ["/logo-nexoru.png"],
   },
 };

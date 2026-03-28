@@ -133,83 +133,113 @@ export default function PrimaryGoalSelector({
   };
 
   return (
-    <div className="rounded-[28px] border border-[#E5E7EB] bg-white px-5 py-7 shadow-sm sm:rounded-[32px] sm:px-8 sm:py-9 md:px-12 md:py-12">
-       <span className="mb-6 inline-flex rounded-full bg-[#EEF2FF] px-4 py-2 text-[13px] font-medium text-[#4F46E5] sm:px-5 sm:py-3 sm:text-sm">
-        Paso 3 · Objetivo principal
-      </span>
+    <div className="nx-page-card">
+      <span className="nx-pill">Paso 3 · Objetivo principal</span>
 
-       <h1 className="mb-8 text-[32px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#202430] sm:mb-9 sm:text-[38px] md:mb-8 md:text-[60px] md:leading-[1.04]">
-        ¿Qué quieres automatizar primero?
-      </h1>
+      <div className="nx-section" style={{ marginTop: 24 }}>
+        <h1 className="nx-title">¿Qué quieres automatizar primero?</h1>
 
-      <p className="mb-10 max-w-4xl text-[16px] leading-7 text-[#4B5563] sm:mb-12 sm:text-[17px] sm:leading-8 md:mb-12 md:text-[20px] md:leading-9">
-        Elige la necesidad principal de tu negocio. Con base en esta decisión,
-        el proceso actual y el volumen operativo, Nexoru recomendará la mejor
-        solución inicial.
-      </p>
+        <p className="nx-subtitle">
+          Elige la necesidad principal de tu negocio. Con base en esta decisión,
+          el proceso actual y el volumen operativo, Nexoru recomendará la mejor
+          solución inicial.
+        </p>
+      </div>
 
-      <div className="mt-10">
-        <h3 className="mb-4 text-[16px] font-semibold text-[#202430]">
-          <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
-          Objetivo principal *</label>
-        </h3>
+      <div className="nx-section">
+        <div className="nx-field">
+          <label className="nx-label">Objetivo principal *</label>
 
-        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
-          {primaryGoals.map((goal) => {
-            const isSelected = selectedPrimaryGoalCode === goal.code;
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(1, minmax(0, 1fr))",
+              gap: "16px",
+            }}
+          >
+            {primaryGoals.map((goal) => {
+              const isSelected = selectedPrimaryGoalCode === goal.code;
 
-            return (
-              <button
-                key={goal.code}
-                type="button"
-                onClick={() => handleSelectPrimaryGoal(goal.code)}
-                className={`w-full rounded-[22px] border p-5 text-left transition sm:p-6 ${
-                  isSelected
-                    ? "border-[#4F46E5] bg-[#EEF2FF] shadow-[0_0_0_4px_rgba(79,70,229,0.08)]"
-                    : "border-[#E5E7EB] bg-white hover:border-[#C7D2FE]"
-                }`}
-              >
-                <div className="mb-2 text-[17px] font-semibold leading-6 text-[#202430] sm:text-[18px] sm:leading-7">
-                  {goal.name}
-                </div>
+              return (
+                <button
+                  key={goal.code}
+                  type="button"
+                  onClick={() => handleSelectPrimaryGoal(goal.code)}
+                  className={`nx-select-card ${
+                    isSelected ? "nx-select-card-active" : ""
+                  }`}
+                >
+                  <div className="nx-select-card-title">{goal.name}</div>
 
-                <div className="text-[15px] leading-7 text-[#4B5563] sm:text-[16px] sm:leading-8">
-                  {goal.description}
-                </div>
-              </button>
-            );
-          })}
+                  <div className="nx-select-card-description">
+                    {goal.description}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      <div className="mt-10 rounded-[24px] bg-[#F7F8FC] p-5 sm:p-6">
-        <h4 className="mb-4 text-[16px] font-semibold text-[#202430]">
-          Vista preliminar
-        </h4>
+      <div className="nx-section">
+        <div className="nx-info-card">
+          <h4
+            style={{
+              margin: 0,
+              marginBottom: 14,
+              fontSize: 16,
+              fontWeight: 700,
+              color: "var(--nx-text-primary)",
+            }}
+          >
+            Vista preliminar
+          </h4>
 
-        <div className="space-y-2 text-[15px] leading-7 text-[#4B5563] sm:text-[16px] sm:leading-8">
-          <p>
-            <span className="font-semibold text-[#202430]">Objetivo:</span>{" "}
-            {selectedPrimaryGoal?.name ?? "Pendiente"}
-          </p>
-          <p>
-            <span className="font-semibold text-[#202430]">
-              Solución preliminar:
-            </span>{" "}
-            {selectedPrimaryGoalCode
-              ? preliminarySolutionLabel
-              : "Pendiente"}
-          </p>
+          <div
+            style={{
+              display: "grid",
+              gap: "10px",
+              color: "var(--nx-text-secondary)",
+              fontSize: 15,
+              lineHeight: 1.7,
+            }}
+          >
+            <p style={{ margin: 0 }}>
+              <span
+                style={{
+                  fontWeight: 700,
+                  color: "var(--nx-text-primary)",
+                }}
+              >
+                Objetivo:
+              </span>{" "}
+              {selectedPrimaryGoal?.name ?? "Pendiente"}
+            </p>
+
+            <p style={{ margin: 0 }}>
+              <span
+                style={{
+                  fontWeight: 700,
+                  color: "var(--nx-text-primary)",
+                }}
+              >
+                Solución preliminar:
+              </span>{" "}
+              {selectedPrimaryGoalCode
+                ? preliminarySolutionLabel
+                : "Pendiente"}
+            </p>
+          </div>
         </div>
       </div>
 
       {error ? (
-        <div className="mt-6 rounded-2xl border border-[#FCA5A5] bg-[#FEF2F2] px-5 py-4 text-sm font-medium text-[#B91C1C]">
-          {error}
+        <div className="nx-section">
+          <div className="nx-alert nx-alert--error">{error}</div>
         </div>
       ) : null}
 
-      <div className="mt-12 flex flex-col gap-4 sm:mt-14 sm:flex-row sm:items-center sm:justify-between">
+      <div className="nx-actions">
         <button
           type="button"
           onClick={() => {
@@ -220,7 +250,8 @@ export default function PrimaryGoalSelector({
 
             window.location.href = "/onboarding/business-profile";
           }}
-          className="inline-flex h-14 w-full items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-6 text-[16px] font-semibold text-[#202430] transition hover:bg-[#F9FAFB] sm:w-auto sm:min-w-[120px]"
+          className="nx-btn nx-btn-secondary"
+          style={{ minWidth: 130 }}
         >
           Atrás
         </button>
@@ -229,15 +260,92 @@ export default function PrimaryGoalSelector({
           type="button"
           onClick={handleSubmit}
           disabled={!selectedPrimaryGoalCode || isSubmitting}
-          className={`inline-flex h-14 w-full items-center justify-center rounded-2xl px-8 text-[16px] font-semibold text-white transition sm:w-auto sm:min-w-[180px] ${
+          className={`nx-btn ${
             !selectedPrimaryGoalCode || isSubmitting
-              ? "cursor-not-allowed bg-[#A7AFBE]"
-              : "bg-[#202430] hover:bg-[#111827]"
+              ? "nx-btn-muted"
+              : "nx-btn-primary"
           }`}
+          style={{ minWidth: 180 }}
         >
-          {isSubmitting ? "Guardando..." : "Siguiente"}
+          {isSubmitting ? (
+            <span className="nx-inline-loading">
+              <span className="nx-spinner" />
+              Guardando...
+            </span>
+          ) : (
+            "Siguiente"
+          )}
         </button>
       </div>
+
+      <style jsx>{`
+        .nx-select-card {
+          width: 100%;
+          border-radius: 22px;
+          border: 1px solid var(--nx-border);
+          background: var(--nx-surface-elevated);
+          padding: 20px;
+          text-align: left;
+          transition:
+            border-color 0.2s ease,
+            background 0.2s ease,
+            box-shadow 0.2s ease,
+            transform 0.2s ease;
+          cursor: pointer;
+        }
+
+        .nx-select-card:hover {
+          border-color: rgba(124, 58, 237, 0.4);
+          transform: translateY(-1px);
+        }
+
+        .nx-select-card-active {
+          border-color: rgba(124, 58, 237, 0.65);
+          background:
+            linear-gradient(
+              180deg,
+              rgba(124, 58, 237, 0.16) 0%,
+              rgba(37, 99, 235, 0.08) 100%
+            ),
+            var(--nx-surface-elevated);
+          box-shadow:
+            0 0 0 1px rgba(124, 58, 237, 0.24),
+            0 18px 50px rgba(76, 29, 149, 0.18);
+        }
+
+        .nx-select-card-title {
+          margin-bottom: 8px;
+          font-size: 18px;
+          line-height: 1.4;
+          font-weight: 700;
+          color: var(--nx-text-primary);
+        }
+
+        .nx-select-card-description {
+          font-size: 15px;
+          line-height: 1.7;
+          color: var(--nx-text-secondary);
+        }
+
+        @media (min-width: 768px) {
+          .nx-field > div {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 18px !important;
+          }
+
+          .nx-select-card {
+            padding: 24px;
+          }
+
+          .nx-select-card-title {
+            font-size: 19px;
+          }
+
+          .nx-select-card-description {
+            font-size: 16px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

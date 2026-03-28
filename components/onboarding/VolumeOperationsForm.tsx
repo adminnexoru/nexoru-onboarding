@@ -110,24 +110,14 @@ export default function VolumeOperationsForm({
   };
 
   const inputClass = (field: keyof VolumeOperationsFormData) =>
-    `w-full rounded-2xl border bg-white px-5 py-4 text-[16px] text-[#202430] shadow-sm transition outline-none placeholder:text-[#9CA3AF] ${
-      errors[field]
-        ? "border-[#DC2626] focus:border-[#DC2626]"
-        : "border-[#E5E7EB] focus:border-[#4F46E5]"
-    }`;
+    `nx-input ${errors[field] ? "nx-input-error" : ""}`;
 
   const textareaClass = (field: keyof VolumeOperationsFormData) =>
-    `w-full min-h-[120px] rounded-2xl border bg-white px-5 py-4 text-[16px] leading-7 text-[#202430] shadow-sm transition outline-none placeholder:text-[#9CA3AF] resize-y sm:min-h-[140px] ${
-      errors[field]
-        ? "border-[#DC2626] focus:border-[#DC2626]"
-        : "border-[#E5E7EB] focus:border-[#4F46E5]"
-    }`;
+    `nx-textarea ${errors[field] ? "nx-input-error" : ""}`;
 
   const renderError = (field: keyof VolumeOperationsFormData) =>
     errors[field] ? (
-      <p className="mt-2 text-sm font-medium text-[#DC2626]">
-        {errors[field]}
-      </p>
+      <p className="nx-field-error">{errors[field]}</p>
     ) : null;
 
   const parseOptionalInt = (value: string): number | null => {
@@ -176,26 +166,22 @@ export default function VolumeOperationsForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      <div className="rounded-[28px] border border-[#E5E7EB] bg-white px-5 py-7 shadow-sm sm:rounded-[32px] sm:px-8 sm:py-9 md:px-12 md:py-12">
-         <span className="mb-6 inline-flex rounded-full bg-[#EEF2FF] px-4 py-2 text-[13px] font-medium text-[#4F46E5] sm:px-5 sm:py-3 sm:text-sm">
-          Paso 5 · Volumen y operación
-        </span>
+      <div className="nx-page-card">
+        <span className="nx-pill">Paso 5 · Volumen y operación</span>
 
-        <h1 className="mb-8 text-[32px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#202430] sm:mb-9 sm:text-[38px] md:mb-8 md:text-[60px] md:leading-[1.04]">
-          Dimensionemos tu operación
-        </h1>
+        <div className="nx-section" style={{ marginTop: 24 }}>
+          <h1 className="nx-title">Dimensionemos tu operación</h1>
 
-         <p className="mb-10 max-w-4xl text-[16px] leading-7 text-[#4B5563] sm:mb-12 sm:text-[17px] sm:leading-8 md:mb-12 md:text-[20px] md:leading-9">
-          Necesitamos entender el volumen mensual y el tamaño de la operación
-          para estimar la complejidad de la solución Nexoru.
-        </p>
+          <p className="nx-subtitle">
+            Necesitamos entender el volumen mensual y el tamaño de la operación
+            para estimar la complejidad de la solución Nexoru.
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 gap-x-6 gap-y-7 sm:gap-y-8 md:grid-cols-2">
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
-              Conversaciones por mes *
-            </label>
-            <p className="mb-3 text-[15px] leading-7 text-[#6B7280]">
+        <div className="nx-section nx-form-grid">
+          <div className="nx-field">
+            <label className="nx-label">Conversaciones por mes *</label>
+            <p className="nx-field-help">
               Estimado mensual de conversaciones por WhatsApp u otro canal
               similar. Captura al menos uno de los volúmenes de esta sección.
             </p>
@@ -213,11 +199,9 @@ export default function VolumeOperationsForm({
             {renderError("monthlyConversations")}
           </div>
 
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
-              Tickets registrados por mes
-            </label>
-            <p className="mb-3 text-[15px] leading-7 text-[#6B7280]">
+          <div className="nx-field">
+            <label className="nx-label">Tickets registrados por mes</label>
+            <p className="nx-field-help">
               Úsalo si tu caso está relacionado con loyalty o registro de
               compras.
             </p>
@@ -232,11 +216,9 @@ export default function VolumeOperationsForm({
             />
           </div>
 
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
-              Reservas / cursos por mes
-            </label>
-            <p className="mb-3 text-[15px] leading-7 text-[#6B7280]">
+          <div className="nx-field">
+            <label className="nx-label">Reservas / cursos por mes</label>
+            <p className="nx-field-help">
               Úsalo si tu operación está relacionada con booking o agenda.
             </p>
             <input
@@ -250,11 +232,9 @@ export default function VolumeOperationsForm({
             />
           </div>
 
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
-              Ticket promedio
-            </label>
-            <p className="mb-3 text-[15px] leading-7 text-[#6B7280]">
+          <div className="nx-field">
+            <label className="nx-label">Ticket promedio</label>
+            <p className="nx-field-help">
               Monto promedio por venta, reserva o transacción principal.
             </p>
             <input
@@ -270,11 +250,9 @@ export default function VolumeOperationsForm({
             />
           </div>
 
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
-              Personas operando hoy *
-            </label>
-            <p className="mb-3 text-[15px] leading-7 text-[#6B7280]">
+          <div className="nx-field">
+            <label className="nx-label">Personas operando hoy *</label>
+            <p className="nx-field-help">
               Número de personas que actualmente atienden, validan o ejecutan el
               proceso principal.
             </p>
@@ -290,11 +268,9 @@ export default function VolumeOperationsForm({
             {renderError("teamSizeOperating")}
           </div>
 
-          <div>
-            <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
-              Picos de demanda / notas
-            </label>
-            <p className="mb-3 text-[15px] leading-7 text-[#6B7280]">
+          <div className="nx-field">
+            <label className="nx-label">Picos de demanda / notas</label>
+            <p className="nx-field-help">
               Describe si tienes días, temporadas o momentos donde aumenta el
               volumen.
             </p>
@@ -309,12 +285,12 @@ export default function VolumeOperationsForm({
         </div>
 
         {submitError ? (
-          <div className="mt-8 rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm font-medium text-[#B91C1C]">
-            {submitError}
+          <div className="nx-section">
+            <div className="nx-alert nx-alert--error">{submitError}</div>
           </div>
         ) : null}
 
-        <div className="mt-12 flex flex-col gap-4 sm:mt-14 sm:flex-row sm:items-center sm:justify-between">
+        <div className="nx-actions">
           <button
             type="button"
             onClick={() => {
@@ -325,7 +301,8 @@ export default function VolumeOperationsForm({
 
               window.history.back();
             }}
-            className="inline-flex h-14 w-full items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-6 text-[16px] font-semibold text-[#202430] transition hover:bg-[#F9FAFB] sm:w-auto sm:min-w-[120px]"
+            className="nx-btn nx-btn-secondary"
+            style={{ minWidth: 130 }}
           >
             Atrás
           </button>
@@ -333,22 +310,91 @@ export default function VolumeOperationsForm({
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`inline-flex h-14 w-full items-center justify-center rounded-2xl px-8 text-[16px] font-semibold text-white transition sm:w-auto sm:min-w-[180px] ${
-              isSubmitting
-                ? "cursor-not-allowed bg-[#A7AFBE]"
-                : "bg-[#202430] hover:bg-[#111827]"
+            className={`nx-btn ${
+              isSubmitting ? "nx-btn-muted" : "nx-btn-primary"
             }`}
+            style={{ minWidth: 180 }}
           >
-            {isSubmitting ? "Guardando..." : "Siguiente"}
+            {isSubmitting ? (
+              <span className="nx-inline-loading">
+                <span className="nx-spinner" />
+                Guardando...
+              </span>
+            ) : (
+              "Siguiente"
+            )}
           </button>
         </div>
 
         {!isFormValid && hasSubmitted ? (
-          <p className="mt-4 text-sm font-medium text-[#B45309] sm:text-right">
-            Completa los campos obligatorios para continuar.
-          </p>
+          <div className="nx-section" style={{ marginTop: 16 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 14,
+                fontWeight: 600,
+                color: "var(--nx-warning-text)",
+              }}
+            >
+              Completa los campos obligatorios para continuar.
+            </p>
+          </div>
         ) : null}
       </div>
+
+      <style jsx>{`
+        .nx-textarea {
+          width: 100%;
+          min-height: 132px;
+          resize: vertical;
+          border-radius: 18px;
+          border: 1px solid var(--nx-border);
+          background: rgba(10, 14, 35, 0.72);
+          padding: 16px 18px;
+          font-size: 15px;
+          line-height: 1.75;
+          color: var(--nx-text-primary);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+          outline: none;
+          transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease,
+            background 0.2s ease;
+        }
+
+        .nx-textarea::placeholder {
+          color: var(--nx-text-muted);
+        }
+
+        .nx-textarea:focus {
+          border-color: rgba(124, 58, 237, 0.55);
+          box-shadow:
+            0 0 0 3px rgba(124, 58, 237, 0.14),
+            0 0 24px rgba(37, 99, 235, 0.08);
+          background: rgba(10, 14, 35, 0.82);
+        }
+
+        .nx-field-help {
+          margin: 0 0 12px;
+          font-size: 14px;
+          line-height: 1.7;
+          color: var(--nx-text-secondary);
+        }
+
+        @media (max-width: 768px) {
+          .nx-textarea {
+            min-height: 120px;
+            padding: 15px 16px;
+            font-size: 14px;
+            line-height: 1.7;
+          }
+
+          .nx-field-help {
+            font-size: 13px;
+            line-height: 1.65;
+          }
+        }
+      `}</style>
     </form>
   );
 }

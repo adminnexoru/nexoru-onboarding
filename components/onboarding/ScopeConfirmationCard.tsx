@@ -56,7 +56,9 @@ function formatAddonPricing(
     return `Setup ${formatMoney(setupPrice)}`;
   }
 
-  return `Setup ${formatMoney(setupPrice)} · Mensual ${formatMoney(monthlyPrice)}`;
+  return `Setup ${formatMoney(setupPrice)} · Mensual ${formatMoney(
+    monthlyPrice
+  )}`;
 }
 
 export default function ScopeConfirmationCard({
@@ -100,51 +102,38 @@ export default function ScopeConfirmationCard({
   };
 
   return (
-    <div className="rounded-[28px] border border-[#E5E7EB] bg-white px-5 py-7 shadow-sm sm:rounded-[32px] sm:px-8 sm:py-9 md:px-12 md:py-12">
+    <div className="nx-page-card">
+      <span className="nx-pill">Confirmación de alcance</span>
 
-  <span className="mb-6 inline-flex rounded-full bg-[#EEF2FF] px-4 py-2 text-[13px] font-medium text-[#4F46E5] sm:px-5 sm:py-3 sm:text-sm">
-        Confirmación de alcance
-      </span>
+      <div className="nx-section" style={{ marginTop: 24 }}>
+        <h1 className="nx-title">Esto incluye tu paquete recomendado</h1>
 
-      <h1 className="mb-8 text-[32px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#202430] sm:mb-9 sm:text-[38px] md:mb-8 md:text-[60px] md:leading-[1.04]">
-        Esto incluye tu paquete recomendado
-      </h1>
+        <p className="nx-subtitle">
+          Antes de continuar, revisa claramente lo que sí incluye el paquete{" "}
+          <strong>{packageName}</strong>, lo que queda fuera del alcance base y
+          los complementos opcionales que podrían añadirse después.
+        </p>
+      </div>
 
-      <p className="mb-10 max-w-4xl text-[16px] leading-7 text-[#4B5563] sm:mb-12 sm:text-[17px] sm:leading-8 md:mb-12 md:text-[20px] md:leading-9">
-        Antes de continuar, revisa claramente lo que sí incluye el paquete{" "}
-        <strong>{packageName}</strong>, lo que queda fuera del alcance base y
-        los complementos opcionales que podrían añadirse después.
-      </p>
+      <div className="nx-section nx-scope-grid">
+        <div className="nx-scope-panel">
+          <h3 className="nx-scope-title">Incluye</h3>
 
-      <div className="mb-8 grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
-        <div className="rounded-[24px] border border-[#E5E7EB] bg-[#F8FAFC] p-5 sm:p-6">
-          <h3 className="mb-5 text-[20px] font-semibold text-[#202430] sm:text-[22px]">
-            Incluye
-          </h3>
-
-          <div className="grid gap-3">
+          <div className="nx-scope-items">
             {includedItems.map((item, index) => (
-              <div
-                key={index}
-                className="rounded-2xl border border-[#E5E7EB] bg-white px-4 py-4 text-[15px] leading-7 break-words text-[#202430] sm:px-5 sm:text-[16px]"
-              >
+              <div key={index} className="nx-scope-item">
                 {item}
               </div>
             ))}
           </div>
         </div>
 
-        <div className="rounded-[24px] border border-[#F3D4C2] bg-[#FFF8F5] p-5 sm:p-6">
-          <h3 className="mb-5 text-[20px] font-semibold text-[#202430] sm:text-[22px]">
-            No incluye
-          </h3>
+        <div className="nx-scope-panel nx-scope-panel-excluded">
+          <h3 className="nx-scope-title">No incluye</h3>
 
-          <div className="grid gap-3">
+          <div className="nx-scope-items">
             {excludedItems.map((item, index) => (
-              <div
-                key={index}
-                className="rounded-2xl border border-[#F3D4C2] bg-white px-4 py-4 text-[15px] leading-7 break-words text-[#7C2D12] sm:px-5 sm:text-[16px]"
-              >
+              <div key={index} className="nx-scope-item nx-scope-item-excluded">
                 {item}
               </div>
             ))}
@@ -152,82 +141,85 @@ export default function ScopeConfirmationCard({
         </div>
       </div>
 
-      <div className="mb-8 rounded-[24px] border border-[#E5E7EB] bg-white p-5 sm:p-6">
-        <h3 className="mb-5 text-[20px] font-semibold text-[#202430] sm:text-[22px]">
-          Add-ons opcionales
-        </h3>
+      <div className="nx-section">
+        <div className="nx-addons-panel">
+          <h3 className="nx-scope-title">Add-ons opcionales</h3>
 
-        {optionalAddons.length === 0 ? (
-          <div className="text-[15px] leading-7 text-[#6B7280]">
-            Este paquete no tiene add-ons opcionales configurados por ahora.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {optionalAddons.map((addon) => {
-              const active = selected.includes(addon.id);
+          {optionalAddons.length === 0 ? (
+            <div className="nx-empty-copy">
+              Este paquete no tiene add-ons opcionales configurados por ahora.
+            </div>
+          ) : (
+            <div className="nx-addons-grid">
+              {optionalAddons.map((addon) => {
+                const active = selected.includes(addon.id);
 
-              return (
-                <button
-                  key={addon.id}
-                  type="button"
-                  onClick={() => toggleAddon(addon.id)}
-                  className={`w-full rounded-[20px] border px-4 py-4 text-left transition ${
-                    active
-                      ? "border-[#6366F1] bg-[#EEF2FF]"
-                      : "border-[#D1D5DB] bg-white"
-                  }`}
-                >
-                  <div className="break-words text-[16px] font-semibold leading-6 text-[#202430]">
-                    {addon.name}
-                  </div>
+                return (
+                  <button
+                    key={addon.id}
+                    type="button"
+                    onClick={() => toggleAddon(addon.id)}
+                    className={`nx-addon-card ${
+                      active ? "nx-addon-card-active" : ""
+                    }`}
+                  >
+                    <div className="nx-addon-name">{addon.name}</div>
 
-                  <div className="mt-2 text-sm leading-6 break-words text-[#6B7280]">
-                    {formatAddonPricing(addon.setupPrice, addon.monthlyPrice)}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
+                    {addon.description ? (
+                      <div className="nx-addon-description">
+                        {addon.description}
+                      </div>
+                    ) : null}
+
+                    <div className="nx-addon-price">
+                      {formatAddonPricing(addon.setupPrice, addon.monthlyPrice)}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
-        <div className="mb-8 rounded-[24px] border border-[#E5E7EB] bg-[#F8FAFC] p-5 sm:p-6">
-        <label className="grid w-full grid-cols-[18px,minmax(0,1fr)] items-start gap-3">
+      <div className="nx-section">
+        <div className="nx-confirm-panel">
+          <label className="nx-confirm-label">
             <input
-            type="checkbox"
-            checked={accepted}
-            onChange={(e) => {
+              type="checkbox"
+              checked={accepted}
+              onChange={(e) => {
                 setAccepted(e.target.checked);
                 if (e.target.checked) {
-                setError("");
+                  setError("");
                 }
-            }}
-            className="mt-1 h-[18px] w-[18px] min-w-[18px] max-w-[18px]"
+              }}
+              className="nx-confirm-checkbox"
             />
 
-            <span className="min-w-0 break-words text-[15px] leading-7 text-[#202430] sm:text-[16px] sm:leading-8">
-            Confirmo que entiendo lo que incluye este paquete, lo que queda
-            fuera del alcance base y que cualquier requerimiento adicional puede
-            implicar una ampliación de alcance o un add-on.
+            <span className="nx-confirm-copy">
+              Confirmo que entiendo lo que incluye este paquete, lo que queda
+              fuera del alcance base y que cualquier requerimiento adicional
+              puede implicar una ampliación de alcance o un add-on.
             </span>
-        </label>
+          </label>
 
-        {error ? (
-            <p className="mt-4 text-sm font-medium text-[#DC2626]">{error}</p>
-        ) : null}
+          {error ? <p className="nx-field-error">{error}</p> : null}
         </div>
+      </div>
 
       {submitError ? (
-        <div className="mb-8 rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm font-medium text-[#B91C1C]">
-          {submitError}
+        <div className="nx-section">
+          <div className="nx-alert nx-alert--error">{submitError}</div>
         </div>
       ) : null}
 
-      <div className="mt-12 flex flex-col gap-4 sm:mt-14 sm:flex-row sm:items-center sm:justify-between">
+      <div className="nx-actions">
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex h-14 w-full items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-6 text-[16px] font-semibold text-[#202430] transition hover:bg-[#F9FAFB] sm:w-auto sm:min-w-[120px]"
+          className="nx-btn nx-btn-secondary"
+          style={{ minWidth: 130 }}
         >
           Atrás
         </button>
@@ -236,15 +228,208 @@ export default function ScopeConfirmationCard({
           type="button"
           onClick={handleContinue}
           disabled={isSubmitting || !canContinue}
-          className={`inline-flex h-14 w-full items-center justify-center rounded-2xl px-8 text-[16px] font-semibold text-white transition sm:w-auto sm:min-w-[180px] ${
-            isSubmitting || !canContinue
-              ? "cursor-not-allowed bg-[#A7AFBE]"
-              : "bg-[#202430] hover:bg-[#111827]"
+          className={`nx-btn ${
+            isSubmitting || !canContinue ? "nx-btn-muted" : "nx-btn-primary"
           }`}
+          style={{ minWidth: 180 }}
         >
-          {isSubmitting ? "Guardando..." : "Continuar"}
+          {isSubmitting ? (
+            <span className="nx-inline-loading">
+              <span className="nx-spinner" />
+              Guardando...
+            </span>
+          ) : (
+            "Continuar"
+          )}
         </button>
       </div>
+
+      <style jsx>{`
+        .nx-scope-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 18px;
+        }
+
+        .nx-scope-panel,
+        .nx-addons-panel,
+        .nx-confirm-panel {
+          border-radius: 24px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.03);
+          padding: 20px;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .nx-scope-panel-excluded {
+          border-color: rgba(251, 146, 60, 0.22);
+          background: linear-gradient(
+            180deg,
+            rgba(124, 45, 18, 0.12) 0%,
+            rgba(255, 255, 255, 0.03) 100%
+          );
+        }
+
+        .nx-scope-title {
+          margin: 0 0 16px;
+          font-size: 20px;
+          line-height: 1.2;
+          font-weight: 700;
+          color: #ffffff;
+        }
+
+        .nx-scope-items {
+          display: grid;
+          gap: 12px;
+        }
+
+        .nx-scope-item {
+          border-radius: 18px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.03);
+          padding: 14px 16px;
+          font-size: 15px;
+          line-height: 1.75;
+          color: rgba(255, 255, 255, 0.88);
+          word-break: break-word;
+        }
+
+        .nx-scope-item-excluded {
+          border-color: rgba(251, 146, 60, 0.18);
+          color: #fed7aa;
+        }
+
+        .nx-empty-copy {
+          font-size: 15px;
+          line-height: 1.75;
+          color: rgba(255, 255, 255, 0.68);
+        }
+
+        .nx-addons-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+
+        .nx-addon-card {
+          width: 100%;
+          border-radius: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.03);
+          padding: 16px;
+          text-align: left;
+          transition:
+            border-color 0.2s ease,
+            background 0.2s ease,
+            box-shadow 0.2s ease,
+            transform 0.2s ease;
+          cursor: pointer;
+        }
+
+        .nx-addon-card:hover {
+          transform: translateY(-1px);
+          border-color: rgba(124, 58, 237, 0.34);
+        }
+
+        .nx-addon-card-active {
+          border-color: rgba(124, 58, 237, 0.6);
+          background:
+            linear-gradient(
+              180deg,
+              rgba(124, 58, 237, 0.15) 0%,
+              rgba(37, 99, 235, 0.08) 100%
+            ),
+            rgba(255, 255, 255, 0.03);
+          box-shadow:
+            0 0 0 1px rgba(124, 58, 237, 0.18),
+            0 18px 44px rgba(76, 29, 149, 0.16);
+        }
+
+        .nx-addon-name {
+          margin-bottom: 8px;
+          font-size: 16px;
+          line-height: 1.5;
+          font-weight: 700;
+          color: #ffffff;
+          word-break: break-word;
+        }
+
+        .nx-addon-description {
+          margin-bottom: 10px;
+          font-size: 14px;
+          line-height: 1.7;
+          color: rgba(255, 255, 255, 0.66);
+          word-break: break-word;
+        }
+
+        .nx-addon-price {
+          font-size: 14px;
+          line-height: 1.65;
+          color: #c4b5fd;
+          word-break: break-word;
+        }
+
+        .nx-confirm-label {
+          display: grid;
+          grid-template-columns: 18px minmax(0, 1fr);
+          align-items: start;
+          gap: 12px;
+          width: 100%;
+        }
+
+        .nx-confirm-checkbox {
+          margin-top: 2px;
+          width: 18px;
+          height: 18px;
+          min-width: 18px;
+          max-width: 18px;
+          accent-color: #7c3aed;
+        }
+
+        .nx-confirm-copy {
+          min-width: 0;
+          word-break: break-word;
+          font-size: 15px;
+          line-height: 1.8;
+          color: rgba(255, 255, 255, 0.86);
+        }
+
+        @media (min-width: 768px) {
+          .nx-scope-title {
+            font-size: 22px;
+          }
+
+          .nx-scope-panel,
+          .nx-addons-panel,
+          .nx-confirm-panel {
+            padding: 24px;
+          }
+
+          .nx-addons-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+          }
+
+          .nx-addon-card {
+            padding: 18px;
+          }
+
+          .nx-confirm-copy {
+            font-size: 16px;
+          }
+        }
+
+        @media (min-width: 1200px) {
+          .nx-scope-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+          }
+
+          .nx-addons-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+        }
+      `}</style>
     </div>
   );
 }

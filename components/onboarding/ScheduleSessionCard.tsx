@@ -36,58 +36,88 @@ export default function ScheduleSessionCard({
   onSubmit,
 }: Props) {
   return (
-    <div className="rounded-[28px] border border-[#E5E7EB] bg-white px-5 py-7 shadow-sm sm:rounded-[32px] sm:px-8 sm:py-9 md:px-12 md:py-12">
-      <span className="mb-6 inline-flex rounded-full bg-[#EEF2FF] px-4 py-2 text-[13px] font-medium text-[#4F46E5] sm:px-5 sm:py-3 sm:text-sm">
-        Agenda sesión
-      </span>
+    <div className="nx-page-card">
+      <span className="nx-pill">Agenda sesión</span>
 
-      <h1 className="mb-8 text-[32px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#202430] sm:mb-9 sm:text-[38px] md:mb-8 md:text-[60px] md:leading-[1.04]">
-        Agenda una sesión de entendimiento
-      </h1>
+      <div className="nx-section" style={{ marginTop: 24 }}>
+        <h1 className="nx-title">Agenda una sesión de entendimiento</h1>
 
-      <p className="mb-10 max-w-4xl text-[16px] leading-7 text-[#4B5563] sm:mb-12 sm:text-[17px] sm:leading-8 md:mb-12 md:text-[20px] md:leading-9">
-        Selecciona una fecha y uno de los horarios disponibles para revisar tu
-        caso con Nexoru. La sesión tendrá una duración de {durationMinutes}{" "}
-        minutos.
-      </p>
-
-      <div className="mb-8 rounded-[24px] border border-[#E5E7EB] bg-[#F8FAFC] p-5 sm:p-6">
-        <label className="mb-3 block text-[15px] font-semibold text-[#202430]">
-          Fecha
-        </label>
-
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => onDateChange(e.target.value)}
-          className="w-full rounded-2xl border border-[#E5E7EB] bg-white px-5 py-4 text-[16px] text-[#202430] outline-none transition focus:border-[#4F46E5] sm:max-w-[260px]"
-        />
-
-        <p className="mt-3 text-sm leading-6 text-[#6B7280]">
-          Zona horaria: {timezone}
+        <p className="nx-subtitle">
+          Selecciona una fecha y uno de los horarios disponibles para revisar tu
+          caso con Nexoru. La sesión tendrá una duración de {durationMinutes}{" "}
+          minutos.
         </p>
       </div>
 
-      <div className="mb-8">
-        <h3 className="mb-4 text-[18px] font-semibold text-[#202430]">
-          Horarios disponibles
-        </h3>
+      <div className="nx-section">
+        <div className="nx-date-panel">
+          <label className="nx-label">Fecha</label>
+
+          <div className="nx-date-wrap">
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => onDateChange(e.target.value)}
+              className="nx-input nx-date-input"
+            />
+            <span className="nx-date-icon" aria-hidden="true">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M8 2V5"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M16 2V5"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M3 9H21"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <rect
+                  x="3"
+                  y="4"
+                  width="18"
+                  height="17"
+                  rx="3"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                />
+              </svg>
+            </span>
+          </div>
+
+          <p className="nx-meta-copy">Zona horaria: {timezone}</p>
+        </div>
+      </div>
+
+      <div className="nx-section">
+        <h3 className="nx-section-title">Horarios disponibles</h3>
 
         {isLoadingSlots ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="nx-slots-grid">
             {Array.from({ length: 8 }).map((_, index) => (
-              <div
-                key={index}
-                className="h-14 animate-pulse rounded-2xl bg-[#E5E7EB]"
-              />
+              <div key={index} className="nx-slot-skeleton" />
             ))}
           </div>
         ) : slots.length === 0 ? (
-          <div className="rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB] px-5 py-4 text-[15px] text-[#6B7280]">
+          <div className="nx-empty-state">
             No hay horarios disponibles para la fecha seleccionada.
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="nx-slots-grid">
             {slots.map((slot) => {
               const isSelected = selectedSlot?.start === slot.start;
 
@@ -96,10 +126,8 @@ export default function ScheduleSessionCard({
                   key={slot.start}
                   type="button"
                   onClick={() => onSelectSlot(slot)}
-                  className={`inline-flex h-14 items-center justify-center rounded-2xl border px-4 text-[15px] font-semibold transition ${
-                    isSelected
-                      ? "border-[#4F46E5] bg-[#EEF2FF] text-[#312E81]"
-                      : "border-[#D1D5DB] bg-white text-[#202430] hover:border-[#A5B4FC]"
+                  className={`nx-slot-button ${
+                    isSelected ? "nx-slot-button-active" : ""
                   }`}
                 >
                   {slot.label}
@@ -111,39 +139,39 @@ export default function ScheduleSessionCard({
       </div>
 
       {selectedSlot ? (
-        <div className="mb-8 rounded-[24px] border border-[#E5E7EB] bg-[#F8FAFC] p-5 sm:p-6">
-          <h4 className="mb-3 text-[16px] font-semibold text-[#202430]">
-            Confirmación preliminar
-          </h4>
+        <div className="nx-section">
+          <div className="nx-confirm-panel">
+            <h4 className="nx-confirm-title">Confirmación preliminar</h4>
 
-          <div className="space-y-2 text-[15px] leading-7 text-[#4B5563]">
-            <p>
-              <span className="font-semibold text-[#202430]">Fecha:</span>{" "}
-              {selectedDate}
-            </p>
-            <p>
-              <span className="font-semibold text-[#202430]">Hora:</span>{" "}
-              {selectedSlot.label}
-            </p>
-            <p>
-              <span className="font-semibold text-[#202430]">Duración:</span>{" "}
-              {durationMinutes} minutos
-            </p>
+            <div className="nx-confirm-list">
+              <p>
+                <span className="nx-confirm-label">Fecha:</span> {selectedDate}
+              </p>
+              <p>
+                <span className="nx-confirm-label">Hora:</span>{" "}
+                {selectedSlot.label}
+              </p>
+              <p>
+                <span className="nx-confirm-label">Duración:</span>{" "}
+                {durationMinutes} minutos
+              </p>
+            </div>
           </div>
         </div>
       ) : null}
 
       {submitError ? (
-        <div className="mb-8 rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm font-medium text-[#B91C1C]">
-          {submitError}
+        <div className="nx-section">
+          <div className="nx-alert nx-alert--error">{submitError}</div>
         </div>
       ) : null}
 
-      <div className="mt-12 flex flex-col gap-4 sm:mt-14 sm:flex-row sm:items-center sm:justify-between">
+      <div className="nx-actions">
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex h-14 w-full items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-6 text-[16px] font-semibold text-[#202430] transition hover:bg-[#F9FAFB] sm:w-auto sm:min-w-[120px]"
+          className="nx-btn nx-btn-secondary"
+          style={{ minWidth: 130 }}
         >
           Atrás
         </button>
@@ -152,15 +180,230 @@ export default function ScheduleSessionCard({
           type="button"
           onClick={onSubmit}
           disabled={!selectedSlot || isSubmitting || isLoadingSlots}
-          className={`inline-flex h-14 w-full items-center justify-center rounded-2xl px-8 text-[16px] font-semibold text-white transition sm:w-auto sm:min-w-[220px] ${
+          className={`nx-btn ${
             !selectedSlot || isSubmitting || isLoadingSlots
-              ? "cursor-not-allowed bg-[#A7AFBE]"
-              : "bg-[#202430] hover:bg-[#111827]"
+              ? "nx-btn-muted"
+              : "nx-btn-primary"
           }`}
+          style={{ minWidth: 220 }}
         >
-          {isSubmitting ? "Reservando..." : "Confirmar agenda"}
+          {isSubmitting ? (
+            <span className="nx-inline-loading">
+              <span className="nx-spinner" />
+              Reservando...
+            </span>
+          ) : (
+            "Confirmar agenda"
+          )}
         </button>
       </div>
+
+      <style jsx>{`
+        .nx-section-title {
+          margin: 0 0 16px;
+          font-size: 20px;
+          line-height: 1.2;
+          font-weight: 700;
+          color: #ffffff;
+        }
+
+        .nx-date-panel,
+        .nx-confirm-panel {
+          min-width: 0;
+          border-radius: 24px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          background:
+            linear-gradient(
+              180deg,
+              rgba(17, 21, 34, 0.92) 0%,
+              rgba(10, 13, 23, 0.92) 100%
+            );
+          padding: 20px;
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.03),
+            0 18px 50px rgba(0, 0, 0, 0.18);
+        }
+
+        .nx-date-wrap {
+          position: relative;
+          width: 100%;
+          min-width: 0;
+        }
+
+        .nx-date-input {
+          width: 100%;
+          min-width: 0;
+          padding-right: 52px;
+          appearance: none;
+          -webkit-appearance: none;
+        }
+
+        .nx-date-input::-webkit-calendar-picker-indicator {
+          position: absolute;
+          right: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 24px;
+          height: 24px;
+          opacity: 0;
+          cursor: pointer;
+        }
+
+        .nx-date-icon {
+          position: absolute;
+          right: 16px;
+          top: 50%;
+          transform: translateY(-50%);
+          pointer-events: none;
+          color: #a78bfa;
+          opacity: 0.9;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .nx-meta-copy {
+          margin: 12px 0 0;
+          font-size: 14px;
+          line-height: 1.7;
+          color: rgba(255, 255, 255, 0.62);
+        }
+
+        .nx-slots-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .nx-slot-skeleton {
+          height: 56px;
+          border-radius: 18px;
+          background: rgba(255, 255, 255, 0.08);
+          animation: pulse 1.4s ease-in-out infinite;
+        }
+
+        .nx-slot-button {
+          display: inline-flex;
+          height: 56px;
+          align-items: center;
+          justify-content: center;
+          border-radius: 18px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.03);
+          padding: 0 16px;
+          font-size: 15px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.88);
+          transition:
+            border-color 0.2s ease,
+            background 0.2s ease,
+            box-shadow 0.2s ease,
+            transform 0.2s ease;
+        }
+
+        .nx-slot-button:hover {
+          transform: translateY(-1px);
+          border-color: rgba(124, 58, 237, 0.4);
+        }
+
+        .nx-slot-button-active {
+          border-color: rgba(124, 58, 237, 0.65);
+          background:
+            linear-gradient(
+              180deg,
+              rgba(124, 58, 237, 0.15) 0%,
+              rgba(37, 99, 235, 0.08) 100%
+            ),
+            rgba(255, 255, 255, 0.03);
+          color: #ddd6fe;
+          box-shadow:
+            0 0 0 1px rgba(124, 58, 237, 0.2),
+            0 18px 44px rgba(76, 29, 149, 0.16);
+        }
+
+        .nx-empty-state {
+          border-radius: 18px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.03);
+          padding: 14px 16px;
+          font-size: 15px;
+          line-height: 1.75;
+          color: rgba(255, 255, 255, 0.66);
+        }
+
+        .nx-confirm-title {
+          margin: 0 0 14px;
+          font-size: 16px;
+          line-height: 1.2;
+          font-weight: 700;
+          color: #ffffff;
+        }
+
+        .nx-confirm-list {
+          display: grid;
+          gap: 8px;
+          font-size: 15px;
+          line-height: 1.75;
+          color: rgba(255, 255, 255, 0.76);
+        }
+
+        .nx-confirm-list p {
+          margin: 0;
+        }
+
+        .nx-confirm-label {
+          font-weight: 700;
+          color: #ffffff;
+        }
+
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.45;
+          }
+        }
+
+        @media (min-width: 768px) {
+          .nx-section-title {
+            font-size: 22px;
+          }
+
+          .nx-date-panel,
+          .nx-confirm-panel {
+            padding: 24px;
+          }
+
+          .nx-date-wrap {
+            max-width: 320px;
+          }
+
+          .nx-slots-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+          }
+
+          .nx-confirm-title {
+            font-size: 17px;
+          }
+
+          .nx-confirm-list {
+            font-size: 16px;
+          }
+        }
+
+        @media (min-width: 1100px) {
+          .nx-date-wrap {
+            max-width: 340px;
+          }
+
+          .nx-slots-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+          }
+        }
+      `}</style>
     </div>
   );
 }

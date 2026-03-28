@@ -61,54 +61,54 @@ export default function ExecutiveSummaryCard({
   paymentReference,
 }: ExecutiveSummaryCardProps) {
   return (
-    <div className="rounded-[28px] border border-[#E5E7EB] bg-white px-5 py-7 shadow-sm sm:rounded-[32px] sm:px-8 sm:py-9 md:px-12 md:py-12">
-      <div className="mb-8 sm:mb-10">
-        <div className="mb-5 inline-flex rounded-full bg-[#E8EBF8] px-4 py-2 text-[13px] font-medium text-[#3A3D91] sm:text-sm">
-          Resumen ejecutivo
-        </div>
+    <div className="nx-page-card">
+      <span className="nx-pill">Resumen ejecutivo</span>
 
-        <h1 className="mb-5 text-[32px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#2B2F36] sm:text-[38px] md:text-[56px] md:leading-[1.04]">
-          Tu configuración Nexoru está lista
-        </h1>
+      <div className="nx-section" style={{ marginTop: 24 }}>
+        <h1 className="nx-title">Tu configuración Nexoru está lista</h1>
 
-        <p className="max-w-4xl text-[16px] leading-7 text-[#4A4F57] sm:text-[17px] sm:leading-8 md:text-[20px] md:leading-9">
+        <p className="nx-subtitle">
           Este es el resumen consolidado de tu onboarding. Aquí puedes revisar
           el contexto del negocio, la solución recomendada y la inversión
           estimada antes de agendar tu sesión de entendimiento.
         </p>
       </div>
 
-      <div className="mb-7 grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-[20px] border border-[#E5E7EB] bg-[#F8F9FC] p-5 sm:p-6">
-          <h3 className="mb-5 text-[24px] font-semibold text-[#2B2F36]">
-            Resumen del caso
-          </h3>
+      <div className="nx-section nx-summary-top-grid">
+        <div className="nx-summary-panel">
+          <h3 className="nx-section-title">Resumen del caso</h3>
 
-          <div className="grid gap-4">
-            <div className="rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-4">
-              <strong className="text-[#2B2F36]">Negocio:</strong>{" "}
-              <span className="break-words text-[#4A4F57]">{businessName}</span>
+          <div className="nx-summary-items">
+            <div className="nx-summary-item">
+              <strong className="nx-summary-item-strong">Negocio:</strong>{" "}
+              <span className="nx-summary-item-value">{businessName}</span>
             </div>
 
-            <div className="rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-4">
-              <strong className="text-[#2B2F36]">Industria:</strong>{" "}
-              <span className="break-words text-[#4A4F57]">{industry}</span>
+            <div className="nx-summary-item">
+              <strong className="nx-summary-item-strong">Industria:</strong>{" "}
+              <span className="nx-summary-item-value">{industry}</span>
             </div>
 
-            <div className="rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-4">
-              <strong className="text-[#2B2F36]">Objetivo principal:</strong>{" "}
-              <span className="break-words text-[#4A4F57]">{goal}</span>
+            <div className="nx-summary-item">
+              <strong className="nx-summary-item-strong">
+                Objetivo principal:
+              </strong>{" "}
+              <span className="nx-summary-item-value">{goal}</span>
             </div>
 
-            <div className="rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-4">
-              <strong className="text-[#2B2F36]">Paquete recomendado:</strong>{" "}
-              <span className="break-words text-[#4A4F57]">{packageName}</span>
+            <div className="nx-summary-item">
+              <strong className="nx-summary-item-strong">
+                Paquete recomendado:
+              </strong>{" "}
+              <span className="nx-summary-item-value">{packageName}</span>
             </div>
 
             {paymentReference ? (
-              <div className="rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-4">
-                <strong className="text-[#2B2F36]">Referencia de pago:</strong>{" "}
-                <span className="break-all text-[#4A4F57]">
+              <div className="nx-summary-item">
+                <strong className="nx-summary-item-strong">
+                  Referencia de pago:
+                </strong>{" "}
+                <span className="nx-summary-item-value nx-break-all">
                   {paymentReference}
                 </span>
               </div>
@@ -116,26 +116,22 @@ export default function ExecutiveSummaryCard({
           </div>
         </div>
 
-        <div className="rounded-[20px] border border-[#E5E7EB] bg-white p-5 sm:p-6">
-          <h3 className="mb-5 text-[24px] font-semibold text-[#2B2F36]">
-            Inversión estimada
-          </h3>
+        <div className="nx-summary-panel nx-summary-panel-strong">
+          <h3 className="nx-section-title">Inversión estimada</h3>
 
-          <div className="grid gap-4">
-            <div className="rounded-[16px] border border-[#E5E7EB] bg-[#F8F9FC] p-5">
-              <div className="mb-2 text-[14px] text-[#6B7280]">
-                Setup inicial total
-              </div>
-              <div className="break-words text-[28px] font-semibold text-[#2B2F36] sm:text-[30px]">
+          <div className="nx-metric-stack">
+            <div className="nx-metric-card">
+              <div className="nx-metric-label">Setup inicial total</div>
+              <div className="nx-metric-value">
                 {formatCurrency(totalSetupPrice)}
               </div>
             </div>
 
-            <div className="rounded-[16px] border border-[#E5E7EB] bg-[#F8F9FC] p-5">
-              <div className="mb-2 text-[14px] text-[#6B7280]">
+            <div className="nx-metric-card">
+              <div className="nx-metric-label">
                 Mensualidad estimada total
               </div>
-              <div className="break-words text-[28px] font-semibold text-[#2B2F36] sm:text-[30px]">
+              <div className="nx-metric-value">
                 {formatCurrency(totalMonthlyPrice)}
               </div>
             </div>
@@ -143,145 +139,334 @@ export default function ExecutiveSummaryCard({
         </div>
       </div>
 
-      <div className="mb-7 rounded-[20px] border border-[#E5E7EB] bg-white p-5 sm:p-6">
-        <h3 className="mb-5 text-[24px] font-semibold text-[#2B2F36]">
-          Desglose económico
-        </h3>
+      <div className="nx-section">
+        <div className="nx-summary-panel">
+          <h3 className="nx-section-title">Desglose económico</h3>
 
-        <div className="grid gap-4">
-          <div className="rounded-[14px] border border-[#E5E7EB] bg-[#F8F9FC] px-4 py-4">
-            <strong className="text-[#2B2F36]">Setup paquete:</strong>{" "}
-            <span className="text-[#4A4F57]">
-              {formatCurrency(packageSetupPrice)}
-            </span>
-          </div>
+          <div className="nx-summary-items">
+            <div className="nx-summary-item">
+              <strong className="nx-summary-item-strong">Setup paquete:</strong>{" "}
+              <span className="nx-summary-item-value">
+                {formatCurrency(packageSetupPrice)}
+              </span>
+            </div>
 
-          <div className="rounded-[14px] border border-[#E5E7EB] bg-[#F8F9FC] px-4 py-4">
-            <strong className="text-[#2B2F36]">Mensualidad paquete:</strong>{" "}
-            <span className="text-[#4A4F57]">
-              {formatCurrency(packageMonthlyPrice)}
-            </span>
-          </div>
+            <div className="nx-summary-item">
+              <strong className="nx-summary-item-strong">
+                Mensualidad paquete:
+              </strong>{" "}
+              <span className="nx-summary-item-value">
+                {formatCurrency(packageMonthlyPrice)}
+              </span>
+            </div>
 
-          <div className="rounded-[14px] border border-[#E5E7EB] bg-[#F8F9FC] px-4 py-4">
-            <strong className="text-[#2B2F36]">Setup add-ons:</strong>{" "}
-            <span className="text-[#4A4F57]">
-              {formatCurrency(addonsSetupTotal)}
-            </span>
-          </div>
+            <div className="nx-summary-item">
+              <strong className="nx-summary-item-strong">Setup add-ons:</strong>{" "}
+              <span className="nx-summary-item-value">
+                {formatCurrency(addonsSetupTotal)}
+              </span>
+            </div>
 
-          <div className="rounded-[14px] border border-[#E5E7EB] bg-[#F8F9FC] px-4 py-4">
-            <strong className="text-[#2B2F36]">Mensualidad add-ons:</strong>{" "}
-            <span className="text-[#4A4F57]">
-              {formatCurrency(addonsMonthlyTotal)}
-            </span>
+            <div className="nx-summary-item">
+              <strong className="nx-summary-item-strong">
+                Mensualidad add-ons:
+              </strong>{" "}
+              <span className="nx-summary-item-value">
+                {formatCurrency(addonsMonthlyTotal)}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="mb-7 rounded-[20px] border border-[#E5E7EB] bg-white p-5 sm:p-6">
-        <h3 className="mb-5 text-[24px] font-semibold text-[#2B2F36]">
-          Add-ons seleccionados
-        </h3>
+      <div className="nx-section">
+        <div className="nx-summary-panel">
+          <h3 className="nx-section-title">Add-ons seleccionados</h3>
 
-        {selectedAddons.length > 0 ? (
-          <div className="grid gap-4">
-            {selectedAddons.map((item) => (
-              <div
-                key={item.id}
-                className="flex flex-col gap-4 rounded-[14px] border border-[#E5E7EB] bg-[#F8F9FC] px-4 py-4 sm:flex-row sm:items-start sm:justify-between"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="mb-2 text-[16px] font-bold text-[#2B2F36]">
-                    {item.addon.name}
+          {selectedAddons.length > 0 ? (
+            <div className="nx-addon-list">
+              {selectedAddons.map((item) => (
+                <div key={item.id} className="nx-addon-item">
+                  <div className="nx-addon-item-main">
+                    <div className="nx-addon-item-name">{item.addon.name}</div>
+                    <div className="nx-addon-item-description">
+                      {item.addon.description || "Complemento opcional"}
+                    </div>
                   </div>
-                  <div className="text-[14px] leading-6 text-[#6B7280]">
-                    {item.addon.description || "Complemento opcional"}
+
+                  <div className="nx-addon-item-pricing">
+                    <div>Setup {formatCurrency(item.addon.setupPrice)}</div>
+                    <div className="nx-addon-item-pricing-muted">
+                      Mensual {formatCurrency(item.addon.monthlyPrice)}
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          ) : (
+            <p className="nx-empty-copy">
+              No seleccionaste add-ons opcionales en esta etapa.
+            </p>
+          )}
+        </div>
+      </div>
 
-                <div className="text-left text-[14px] font-semibold leading-6 text-[#2B2F36] sm:min-w-[180px] sm:text-right">
-                  <div>Setup {formatCurrency(item.addon.setupPrice)}</div>
-                  <div>Mensual {formatCurrency(item.addon.monthlyPrice)}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-[16px] leading-7 text-[#6B7280]">
-            No seleccionaste add-ons opcionales en esta etapa.
+      <div className="nx-section">
+        <div className="nx-next-step-panel">
+          <h3 className="nx-next-step-title">Siguiente paso</h3>
+
+          <p className="nx-next-step-copy">
+            Agenda una sesión de entendimiento con Nexoru para revisar tu caso,
+            validar alcance y continuar el proceso comercial.
           </p>
-        )}
+        </div>
       </div>
 
-      <div className="mb-7 rounded-[18px] border border-[#E5E7EB] bg-[#F8F9FC] p-5">
-        <h3 className="mb-3 text-[20px] font-semibold text-[#2B2F36]">
-          Siguiente paso
-        </h3>
-
-        <p className="text-[16px] leading-7 text-[#4A4F57]">
-          Agenda una sesión de entendimiento con Nexoru para revisar tu caso,
-          validar alcance y continuar el proceso comercial.
-        </p>
-      </div>
-
-      <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="nx-actions">
         <Link
           href="/onboarding/payment"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            border: "1px solid #D1D5DB",
-            backgroundColor: "#FFFFFF",
-            color: "#2B2F36",
-            borderRadius: "14px",
-            padding: "14px 22px",
-            fontSize: "15px",
-            fontWeight: 600,
-            textDecoration: "none",
-            WebkitTextFillColor: "#2B2F36",
-          }}
+          className="nx-btn nx-btn-secondary nx-link-btn"
+          style={{ minWidth: 130 }}
         >
-          <span
-            style={{
-              color: "#2B2F36",
-              WebkitTextFillColor: "#2B2F36",
-              fontWeight: 600,
-            }}
-          >
-            Atrás
-          </span>
+          Atrás
         </Link>
 
-      <Link
-        href="/onboarding/schedule-session"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          border: "none",
-          backgroundColor: "#2B2F36",
-          color: "#FFFFFF",
-          borderRadius: "14px",
-          padding: "14px 24px",
-          fontSize: "15px",
-          fontWeight: 600,
-          textDecoration: "none",
-          WebkitTextFillColor: "#FFFFFF",
-        }}
-      >
-        <span
-          style={{
-            color: "#FFFFFF",
-            WebkitTextFillColor: "#FFFFFF",
-            fontWeight: 700,
-          }}
+        <Link
+          href="/onboarding/schedule-session"
+          className="nx-btn nx-btn-primary nx-link-btn"
+          style={{ minWidth: 220 }}
         >
           Agendar sesión
-        </span>
-      </Link>
+        </Link>
       </div>
+
+      <style jsx>{`
+        .nx-section-title {
+          margin: 0 0 18px;
+          font-size: 22px;
+          line-height: 1.2;
+          font-weight: 700;
+          color: #ffffff;
+        }
+
+        .nx-summary-top-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 18px;
+        }
+
+        .nx-summary-panel {
+          border-radius: 24px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          background:
+            linear-gradient(
+              180deg,
+              rgba(17, 21, 34, 0.92) 0%,
+              rgba(10, 13, 23, 0.92) 100%
+            );
+          padding: 20px;
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.03),
+            0 18px 50px rgba(0, 0, 0, 0.18);
+        }
+
+        .nx-summary-panel-strong {
+          background:
+            radial-gradient(
+              circle at top right,
+              rgba(56, 189, 248, 0.08),
+              transparent 28%
+            ),
+            linear-gradient(
+              180deg,
+              rgba(17, 21, 34, 0.92) 0%,
+              rgba(10, 13, 23, 0.92) 100%
+            );
+          border-color: rgba(124, 58, 237, 0.16);
+        }
+
+        .nx-summary-items {
+          display: grid;
+          gap: 12px;
+        }
+
+        .nx-summary-item {
+          border-radius: 16px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.03);
+          padding: 14px 16px;
+          font-size: 15px;
+          line-height: 1.75;
+          color: rgba(255, 255, 255, 0.74);
+        }
+
+        .nx-summary-item-strong {
+          color: #ffffff;
+        }
+
+        .nx-summary-item-value {
+          color: rgba(255, 255, 255, 0.78);
+          word-break: break-word;
+        }
+
+        .nx-break-all {
+          word-break: break-all;
+        }
+
+        .nx-metric-stack {
+          display: grid;
+          gap: 14px;
+        }
+
+        .nx-metric-card {
+          border-radius: 18px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.04);
+          padding: 18px;
+        }
+
+        .nx-metric-label {
+          margin-bottom: 8px;
+          font-size: 14px;
+          line-height: 1.4;
+          color: rgba(255, 255, 255, 0.62);
+        }
+
+        .nx-metric-value {
+          word-break: break-word;
+          font-size: 28px;
+          line-height: 1.15;
+          font-weight: 700;
+          color: #ffffff;
+        }
+
+        .nx-addon-list {
+          display: grid;
+          gap: 14px;
+        }
+
+        .nx-addon-item {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          border-radius: 18px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.03);
+          padding: 16px;
+        }
+
+        .nx-addon-item-main {
+          min-width: 0;
+          flex: 1;
+        }
+
+        .nx-addon-item-name {
+          margin-bottom: 6px;
+          font-size: 16px;
+          line-height: 1.5;
+          font-weight: 700;
+          color: #ffffff;
+          word-break: break-word;
+        }
+
+        .nx-addon-item-description {
+          font-size: 14px;
+          line-height: 1.7;
+          color: rgba(255, 255, 255, 0.66);
+          word-break: break-word;
+        }
+
+        .nx-addon-item-pricing {
+          font-size: 14px;
+          line-height: 1.7;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.88);
+        }
+
+        .nx-addon-item-pricing-muted {
+          color: rgba(255, 255, 255, 0.58);
+        }
+
+        .nx-empty-copy {
+          margin: 0;
+          font-size: 15px;
+          line-height: 1.75;
+          color: rgba(255, 255, 255, 0.66);
+        }
+
+        .nx-next-step-panel {
+          border-radius: 20px;
+          border: 1px solid rgba(124, 58, 237, 0.16);
+          background:
+            linear-gradient(
+              180deg,
+              rgba(124, 58, 237, 0.12) 0%,
+              rgba(37, 99, 235, 0.06) 100%
+            ),
+            rgba(255, 255, 255, 0.03);
+          padding: 20px;
+        }
+
+        .nx-next-step-title {
+          margin: 0 0 10px;
+          font-size: 20px;
+          line-height: 1.2;
+          font-weight: 700;
+          color: #ffffff;
+        }
+
+        .nx-next-step-copy {
+          margin: 0;
+          font-size: 15px;
+          line-height: 1.8;
+          color: rgba(255, 255, 255, 0.76);
+        }
+
+        .nx-link-btn {
+          text-decoration: none;
+        }
+
+        @media (min-width: 768px) {
+          .nx-section-title {
+            font-size: 24px;
+          }
+
+          .nx-summary-panel {
+            padding: 24px;
+          }
+
+          .nx-metric-value {
+            font-size: 30px;
+          }
+
+          .nx-addon-item {
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+          }
+
+          .nx-addon-item-pricing {
+            min-width: 180px;
+            text-align: right;
+          }
+
+          .nx-next-step-title {
+            font-size: 22px;
+          }
+
+          .nx-next-step-copy {
+            font-size: 16px;
+          }
+        }
+
+        @media (min-width: 1100px) {
+          .nx-summary-top-grid {
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 24px;
+          }
+        }
+      `}</style>
     </div>
   );
 }
