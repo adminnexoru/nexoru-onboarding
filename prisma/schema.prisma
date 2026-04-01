@@ -280,6 +280,7 @@ model OnboardingMeeting {
   contactWhatsappSnapshot String
   contactEmailSnapshot    String?
   notes                   String?
+  manychatSubscriberId    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

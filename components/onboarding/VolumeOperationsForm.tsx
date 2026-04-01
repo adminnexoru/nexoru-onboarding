@@ -110,10 +110,10 @@ export default function VolumeOperationsForm({
   };
 
   const inputClass = (field: keyof VolumeOperationsFormData) =>
-    `nx-input ${errors[field] ? "nx-input-error" : ""}`;
+    `nx-input nx-volume-input ${errors[field] ? "nx-input-error" : ""}`;
 
   const textareaClass = (field: keyof VolumeOperationsFormData) =>
-    `nx-textarea ${errors[field] ? "nx-input-error" : ""}`;
+    `nx-textarea nx-volume-textarea ${errors[field] ? "nx-input-error" : ""}`;
 
   const renderError = (field: keyof VolumeOperationsFormData) =>
     errors[field] ? (
@@ -351,7 +351,7 @@ export default function VolumeOperationsForm({
           border: 1px solid var(--nx-border);
           background: rgba(10, 14, 35, 0.72);
           padding: 16px 18px;
-          font-size: 15px;
+          font-size: 16px;
           line-height: 1.75;
           color: var(--nx-text-primary);
           box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
@@ -381,17 +381,32 @@ export default function VolumeOperationsForm({
           color: var(--nx-text-secondary);
         }
 
+        .nx-volume-input {
+          font-size: 16px !important;
+          -webkit-text-size-adjust: 100%;
+        }
+
+        .nx-volume-textarea {
+          font-size: 16px !important;
+          -webkit-text-size-adjust: 100%;
+        }
+
         @media (max-width: 768px) {
           .nx-textarea {
             min-height: 120px;
             padding: 15px 16px;
-            font-size: 14px;
+            font-size: 16px;
             line-height: 1.7;
           }
 
           .nx-field-help {
             font-size: 13px;
             line-height: 1.65;
+          }
+
+          .nx-volume-input,
+          .nx-volume-textarea {
+            font-size: 16px !important;
           }
         }
       `}</style>

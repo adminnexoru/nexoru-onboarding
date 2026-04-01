@@ -102,17 +102,6 @@ export default function ExecutiveSummaryCard({
               </strong>{" "}
               <span className="nx-summary-item-value">{packageName}</span>
             </div>
-
-            {paymentReference ? (
-              <div className="nx-summary-item">
-                <strong className="nx-summary-item-strong">
-                  Referencia de pago:
-                </strong>{" "}
-                <span className="nx-summary-item-value nx-break-all">
-                  {paymentReference}
-                </span>
-              </div>
-            ) : null}
           </div>
         </div>
 
@@ -307,10 +296,6 @@ export default function ExecutiveSummaryCard({
         .nx-summary-item-value {
           color: rgba(255, 255, 255, 0.78);
           word-break: break-word;
-        }
-
-        .nx-break-all {
-          word-break: break-all;
         }
 
         .nx-metric-stack {
