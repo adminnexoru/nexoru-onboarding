@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 
 type SelectedAddonItem = {
@@ -60,6 +61,10 @@ export default function ExecutiveSummaryCard({
   totalMonthlyPrice,
   paymentReference,
 }: ExecutiveSummaryCardProps) {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="nx-page-card">
       <span className="nx-pill">Resumen ejecutivo</span>

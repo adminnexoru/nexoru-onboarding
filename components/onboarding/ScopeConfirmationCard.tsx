@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type OptionalAddon = {
   id: string;
@@ -76,6 +76,10 @@ export default function ScopeConfirmationCard({
   const [accepted, setAccepted] = useState(acceptedScope);
   const [selected, setSelected] = useState<string[]>(selectedAddonIds);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const canContinue = useMemo(() => accepted, [accepted]);
 
