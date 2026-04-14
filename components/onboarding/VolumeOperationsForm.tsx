@@ -59,22 +59,75 @@ export default function VolumeOperationsForm({
     });
   }, [initialValues]);
 
+  const parseOptionalInt = (value: string): number | null => {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    const normalized = trimmed.replace(/,/g, "");
+    const parsed = Number(normalized);
+
+    if (!Number.isFinite(parsed)) return null;
+    return Math.trunc(parsed);
+  };
+
+  const parseOptionalDecimal = (value: string): number | null => {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    const normalized = trimmed.replace(/,/g, "");
+    const parsed = Number(normalized);
+
+    if (!Number.isFinite(parsed)) return null;
+    return parsed;
+  };
+
   const validate = (values: VolumeOperationsFormData): FormErrors => {
     const newErrors: FormErrors = {};
 
+    const monthlyConversations = parseOptionalInt(values.monthlyConversations);
+    const monthlyTickets = parseOptionalInt(values.monthlyTickets);
+    const monthlyBookings = parseOptionalInt(values.monthlyBookings);
+    const teamSizeOperating = parseOptionalInt(values.teamSizeOperating);
+    const averageTicketValue = parseOptionalDecimal(values.averageTicketValue);
+
     const hasAtLeastOneVolume =
-      values.monthlyConversations.trim() ||
-      values.monthlyTickets.trim() ||
-      values.monthlyBookings.trim();
+      monthlyConversations !== null ||
+      monthlyTickets !== null ||
+      monthlyBookings !== null;
 
     if (!hasAtLeastOneVolume) {
       newErrors.monthlyConversations =
         "Debes capturar al menos un volumen mensual relevante.";
     }
 
+    if (
+      values.monthlyConversations.trim() &&
+      monthlyConversations === null
+    ) {
+      newErrors.monthlyConversations =
+        "Ingresa un número válido.";
+    }
+
+    if (values.monthlyTickets.trim() && monthlyTickets === null) {
+      newErrors.monthlyTickets = "Ingresa un número válido.";
+    }
+
+    if (values.monthlyBookings.trim() && monthlyBookings === null) {
+      newErrors.monthlyBookings = "Ingresa un número válido.";
+    }
+
     if (!values.teamSizeOperating.trim()) {
       newErrors.teamSizeOperating =
         "El tamaño del equipo operativo es obligatorio.";
+    } else if (teamSizeOperating === null) {
+      newErrors.teamSizeOperating = "Ingresa un número válido.";
+    }
+
+    if (
+      values.averageTicketValue.trim() &&
+      averageTicketValue === null
+    ) {
+      newErrors.averageTicketValue = "Ingresa un monto válido.";
     }
 
     return newErrors;
@@ -119,28 +172,6 @@ export default function VolumeOperationsForm({
     errors[field] ? (
       <p className="nx-field-error">{errors[field]}</p>
     ) : null;
-
-  const parseOptionalInt = (value: string): number | null => {
-    const trimmed = value.trim();
-    if (!trimmed) return null;
-
-    const normalized = trimmed.replace(/,/g, "");
-    const parsed = Number(normalized);
-
-    if (!Number.isFinite(parsed)) return null;
-    return Math.trunc(parsed);
-  };
-
-  const parseOptionalDecimal = (value: string): number | null => {
-    const trimmed = value.trim();
-    if (!trimmed) return null;
-
-    const normalized = trimmed.replace(/,/g, "");
-    const parsed = Number(normalized);
-
-    if (!Number.isFinite(parsed)) return null;
-    return parsed;
-  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -214,6 +245,7 @@ export default function VolumeOperationsForm({
               placeholder="Ej. 1000"
               className={inputClass("monthlyTickets")}
             />
+            {renderError("monthlyTickets")}
           </div>
 
           <div className="nx-field">
@@ -230,6 +262,7 @@ export default function VolumeOperationsForm({
               placeholder="Ej. 200"
               className={inputClass("monthlyBookings")}
             />
+            {renderError("monthlyBookings")}
           </div>
 
           <div className="nx-field">
@@ -248,6 +281,7 @@ export default function VolumeOperationsForm({
               placeholder="Ej. 350"
               className={inputClass("averageTicketValue")}
             />
+            {renderError("averageTicketValue")}
           </div>
 
           <div className="nx-field">
@@ -281,12 +315,17 @@ export default function VolumeOperationsForm({
               placeholder="Ej. Fines de semana, quincena, campañas especiales, temporada alta..."
               className={textareaClass("peakDemandNotes")}
             />
+            {renderError("peakDemandNotes")}
           </div>
         </div>
 
         {submitError ? (
           <div className="nx-section">
-            <div className="nx-alert nx-alert--error">{submitError}</div>
+            <div className="nx-alert nx-alert--error">
+              {typeof submitError === "string"
+                ? submitError
+                : "Ocurrió un error al guardar la información."}
+            </div>
           </div>
         ) : null}
 
