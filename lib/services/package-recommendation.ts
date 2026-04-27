@@ -72,19 +72,19 @@ function buildVolumeSummary(session: SessionInput) {
 
   const parts: string[] = [];
 
-  if (volume.monthlyConversations) {
+  if (volume.monthlyConversations !== null && volume.monthlyConversations !== undefined) {
     parts.push(`${volume.monthlyConversations} conversaciones mensuales`);
   }
 
-  if (volume.monthlyTickets) {
+  if (volume.monthlyTickets !== null && volume.monthlyTickets !== undefined) {
     parts.push(`${volume.monthlyTickets} tickets mensuales`);
   }
 
-  if (volume.monthlyBookings) {
+  if (volume.monthlyBookings !== null && volume.monthlyBookings !== undefined) {
     parts.push(`${volume.monthlyBookings} reservas mensuales`);
   }
 
-  if (volume.teamSizeOperating) {
+  if (volume.teamSizeOperating !== null && volume.teamSizeOperating !== undefined) {
     parts.push(`${volume.teamSizeOperating} personas operando hoy`);
   }
 
@@ -105,24 +105,18 @@ function buildRationale(session: SessionInput): string[] {
 
   const rationale: string[] = [];
 
-  rationale.push(
-    `Tu objetivo principal actual es: ${goalLabel}.`
-  );
+  rationale.push(`Tu objetivo principal actual es: ${goalLabel}.`);
 
   if (process) {
     rationale.push(`Proceso actual detectado: ${process}.`);
   }
 
   if (manualSteps) {
-    rationale.push(
-      `Hoy todavía existen pasos manuales relevantes: ${manualSteps}.`
-    );
+    rationale.push(`Hoy todavía existen pasos manuales relevantes: ${manualSteps}.`);
   }
 
   if (painPoints) {
-    rationale.push(
-      `También identificamos fricciones operativas: ${painPoints}.`
-    );
+    rationale.push(`También identificamos fricciones operativas: ${painPoints}.`);
   }
 
   rationale.push(
@@ -161,8 +155,7 @@ function buildRationale(session: SessionInput): string[] {
 }
 
 function buildFallbackStrategicAnalysis(session: SessionInput): string {
-  const businessName =
-    session.businessProfile?.commercialName || "el negocio";
+  const businessName = session.businessProfile?.commercialName || "el negocio";
   const industry = session.businessProfile?.industry || "su industria";
   const goalLabel = session.primaryGoal?.primaryGoalLabel || "Pendiente";
   const process = clean(session.currentProcess?.currentProcess) || "No especificado";
@@ -170,16 +163,72 @@ function buildFallbackStrategicAnalysis(session: SessionInput): string {
   const toolsUsed = clean(session.currentProcess?.toolsUsed) || "No especificado";
   const painPoints = clean(session.currentProcess?.painPoints) || "No especificado";
   const volumeSummary = buildVolumeSummary(session);
-  const packageName =
-    session.recommendedPackage?.name || "Solución por definir";
+  const packageName = session.recommendedPackage?.name || "Solución por definir";
 
   return [
     `Analizando el contexto de ${businessName} dentro de ${industry}, la prioridad declarada es "${goalLabel}". Esto indica que la recomendación no debe limitarse a una automatización genérica, sino alinearse con la necesidad operativa central del negocio.`,
     `Actualmente el proceso se describe como "${process}". Además, existen pasos manuales relevantes (${manualSteps}) y herramientas actuales (${toolsUsed}), lo que sugiere que parte del esfuerzo operativo todavía depende de intervención humana y coordinación manual.`,
     `Desde una perspectiva operativa, los principales puntos de fricción identificados son: ${painPoints}. Sumado al volumen observado (${volumeSummary}), existe evidencia suficiente para justificar una solución más estructurada y no únicamente una respuesta táctica.`,
     `Con base en esos factores, la mejor recomendación inicial es ${packageName}, porque permite atacar el núcleo del problema sin sobre-dimensionar la implementación en esta etapa. La lógica del paquete se alinea con el tipo de operación actual y con el nivel de madurez reportado.`,
-    `Estratégicamente, esta recomendación debe entenderse como una base operativa escalable: primero ordena el flujo central del negocio, después permite ampliar alcance con add-ons o integraciones según crecimiento, complejidad y necesidad comercial real.`
+    `Estratégicamente, esta recomendación debe entenderse como una base operativa escalable: primero ordena el flujo central del negocio, después permite ampliar alcance con add-ons o integraciones según crecimiento, complejidad y necesidad comercial real.`,
   ].join("\n\n");
+}
+
+function extractOpenAIOutputText(result: any): string {
+  if (typeof result?.output_text === "string" && result.output_text.trim()) {
+    return result.output_text.trim();
+  }
+
+  const output = result?.output;
+
+  if (!Array.isArray(output)) return "";
+
+  const texts: string[] = [];
+
+  for (const item of output) {
+    if (!Array.isArray(item?.content)) continue;
+
+    for (const content of item.content) {
+      if (
+        content?.type === "output_text" &&
+        typeof content?.text === "string" &&
+        content.text.trim()
+      ) {
+        texts.push(content.text.trim());
+      }
+    }
+  }
+
+  return texts.join("\n").trim();
+}
+
+function safeParseOpenAIJson(outputText: string): {
+  strategicAnalysis?: string;
+  rationale?: string[];
+  notes?: string;
+} | null {
+  const cleaned = outputText
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/```$/i, "")
+    .trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const firstOpen = cleaned.indexOf("{");
+    const lastClose = cleaned.lastIndexOf("}");
+
+    if (firstOpen === -1 || lastClose === -1 || lastClose <= firstOpen) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(cleaned.slice(firstOpen, lastClose + 1));
+    } catch {
+      return null;
+    }
+  }
 }
 
 async function tryEnhanceWithAI(
@@ -198,13 +247,6 @@ async function tryEnhanceWithAI(
 Eres un consultor estratégico de Nexoru.
 Debes analizar un onboarding y devolver JSON válido.
 
-Devuelve exactamente este formato:
-{
-  "strategicAnalysis": "string",
-  "rationale": ["string", "string", "string", "string", "string"],
-  "notes": "string"
-}
-
 Reglas:
 - Escribe en español.
 - El análisis debe ser ejecutivo, estratégico y aterrizado.
@@ -216,7 +258,7 @@ Reglas:
 
 Datos del caso:
 ${JSON.stringify(session, null, 2)}
-    `.trim();
+`.trim();
 
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -229,9 +271,47 @@ ${JSON.stringify(session, null, 2)}
         input: [
           {
             role: "user",
-            content: [{ type: "input_text", text: prompt }],
+            content: [
+              {
+                type: "input_text",
+                text: prompt,
+              },
+            ],
           },
         ],
+        reasoning: {
+          effort: "minimal",
+        },
+        max_output_tokens: 4000,
+        text: {
+          verbosity: "low",
+          format: {
+            type: "json_schema",
+            name: "nexoru_package_recommendation",
+            strict: true,
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                strategicAnalysis: {
+                  type: "string",
+                },
+                rationale: {
+                  type: "array",
+                  minItems: 4,
+                  maxItems: 6,
+                  items: {
+                    type: "string",
+                  },
+                },
+                notes: {
+                  type: "string",
+                },
+              },
+              required: ["strategicAnalysis", "rationale", "notes"],
+            },
+          },
+        },
       }),
     });
 
@@ -246,31 +326,50 @@ ${JSON.stringify(session, null, 2)}
     }
 
     const result = await response.json();
-    const outputText =
-      typeof result?.output_text === "string" ? result.output_text : "";
+
+    console.log("OPENAI_RESPONSE_STATUS", {
+    status: result?.status,
+    incompleteDetails: result?.incomplete_details,
+    outputText: result?.output_text,
+  });
+    const outputText = extractOpenAIOutputText(result);
 
     if (!outputText) {
-      console.log("OPENAI_RECOMMENDATION_FALLBACK: empty output_text", result);
+      console.log(
+        "OPENAI_RECOMMENDATION_FALLBACK: empty output",
+        JSON.stringify(result, null, 2)
+      );
       return fallback;
     }
 
-    const parsed = JSON.parse(outputText) as {
-      strategicAnalysis?: string;
-      rationale?: string[];
-      notes?: string;
-    };
+    const parsed = safeParseOpenAIJson(outputText);
+
+    if (!parsed) {
+      console.log("OPENAI_RECOMMENDATION_FALLBACK: invalid json", outputText);
+      return fallback;
+    }
+
+    const strategicAnalysis = clean(parsed.strategicAnalysis);
+    const rationale = Array.isArray(parsed.rationale)
+      ? parsed.rationale
+          .filter((item) => typeof item === "string")
+          .map((item) => item.trim())
+          .filter(Boolean)
+      : [];
+    const notes = clean(parsed.notes);
+
+    if (!strategicAnalysis || rationale.length === 0 || !notes) {
+      console.log("OPENAI_RECOMMENDATION_FALLBACK: incomplete parsed data", parsed);
+      return fallback;
+    }
 
     console.log("OPENAI_RECOMMENDATION_SUCCESS");
 
     return {
       ...fallback,
-      strategicAnalysis:
-        parsed.strategicAnalysis?.trim() || fallback.strategicAnalysis,
-      rationale:
-        Array.isArray(parsed.rationale) && parsed.rationale.length > 0
-          ? parsed.rationale
-          : fallback.rationale,
-      notes: parsed.notes?.trim() || fallback.notes,
+      strategicAnalysis,
+      rationale,
+      notes,
       recommendationSource: "openai",
     };
   } catch (error) {
@@ -278,6 +377,7 @@ ${JSON.stringify(session, null, 2)}
     return fallback;
   }
 }
+
 export async function generatePackageRecommendation(
   session: SessionInput
 ): Promise<PackageRecommendationData> {
@@ -306,7 +406,7 @@ export async function generatePackageRecommendation(
       session.primaryGoal?.primaryGoalCode === "other"
         ? "Este caso requiere discovery adicional antes de confirmar paquete, alcance y pricing final."
         : "Esta recomendación organiza la primera fase de implementación y puede ampliarse después con add-ons o mayor complejidad operativa.",
-        recommendationSource: "fallback",
+    recommendationSource: "fallback",
   };
 
   return tryEnhanceWithAI(session, fallback);
