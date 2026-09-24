@@ -31,6 +31,12 @@ type SessionInput = {
   } | null;
 };
 
+export type PackageRecommendationTokenUsage = {
+  inputTokens: number | null;
+  outputTokens: number | null;
+  totalTokens: number | null;
+};
+
 export type PackageRecommendationData = {
   packageCode: string | null;
   packageName: string;
@@ -41,6 +47,7 @@ export type PackageRecommendationData = {
   strategicAnalysis: string;
   notes: string;
   recommendationSource: "openai" | "fallback";
+  usage: PackageRecommendationTokenUsage | null;
 };
 
 function clean(value?: string | null) {
@@ -363,7 +370,14 @@ ${JSON.stringify(session, null, 2)}
       return fallback;
     }
 
+    const usage: PackageRecommendationTokenUsage = {
+      inputTokens: typeof result?.usage?.input_tokens === "number" ? result.usage.input_tokens : null,
+      outputTokens: typeof result?.usage?.output_tokens === "number" ? result.usage.output_tokens : null,
+      totalTokens: typeof result?.usage?.total_tokens === "number" ? result.usage.total_tokens : null,
+    };
+
     console.log("OPENAI_RECOMMENDATION_SUCCESS");
+    console.log("OPENAI_RECOMMENDATION_USAGE", usage);
 
     return {
       ...fallback,
@@ -371,6 +385,7 @@ ${JSON.stringify(session, null, 2)}
       rationale,
       notes,
       recommendationSource: "openai",
+      usage,
     };
   } catch (error) {
     console.log("OPENAI_RECOMMENDATION_FALLBACK: exception", error);
@@ -407,6 +422,7 @@ export async function generatePackageRecommendation(
         ? "Este caso requiere discovery adicional antes de confirmar paquete, alcance y pricing final."
         : "Esta recomendación organiza la primera fase de implementación y puede ampliarse después con add-ons o mayor complejidad operativa.",
     recommendationSource: "fallback",
+    usage: null,
   };
 
   return tryEnhanceWithAI(session, fallback);
