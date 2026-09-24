@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 enum OnboardingStatus {
@@ -52,14 +52,15 @@ model OnboardingSession {
   organization       Organization? @relation(fields: [organizationId], references: [id])
   recommendedPackage Package?      @relation(fields: [recommendedPackageId], references: [id])
 
-  businessProfile   OnboardingBusinessProfile?
-  primaryGoal       OnboardingPrimaryGoal?
-  currentProcess    OnboardingCurrentProcess?
-  volumeOperations  OnboardingVolumeOperations?
-  secondaryNeeds    OnboardingSecondaryNeed[]
-  selectedAddons    OnboardingSelectedAddon[]
-  scopeConfirmation ScopeConfirmation?
-  paymentAttempts   PaymentAttempt[]
+  businessProfile       OnboardingBusinessProfile?
+  primaryGoal           OnboardingPrimaryGoal?
+  currentProcess        OnboardingCurrentProcess?
+  volumeOperations      OnboardingVolumeOperations?
+  secondaryNeeds        OnboardingSecondaryNeed[]
+  selectedAddons        OnboardingSelectedAddon[]
+  scopeConfirmation     ScopeConfirmation?
+  paymentAttempts       PaymentAttempt[]
+  packageRecommendation OnboardingPackageRecommendation?
 
   meeting OnboardingMeeting?
 }
@@ -129,6 +130,26 @@ model OnboardingVolumeOperations {
   peakDemandNotes      String?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+
+  session OnboardingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model OnboardingPackageRecommendation {
+  id                   String   @id @default(cuid())
+  sessionId            String   @unique
+  packageCode          String?
+  packageName          String
+  packageDescription   String
+  setupPrice           Decimal? @db.Decimal(10, 2)
+  monthlyPrice         Decimal? @db.Decimal(10, 2)
+  rationale            String[]
+  strategicAnalysis    String
+  notes                String
+  recommendationSource String
+  inputTokens          Int?
+  outputTokens         Int?
+  totalTokens          Int?
+  createdAt            DateTime @default(now())
 
   session OnboardingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
