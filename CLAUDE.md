@@ -83,6 +83,8 @@ Request/response payload shapes shared between API routes and the frontend are d
 - Client is instantiated once in `lib/prisma.ts` using `@prisma/adapter-pg` over a `pg.Pool`, cached on `globalThis` in non-production to survive HMR.
 - Money fields are `Decimal` in Postgres and come back as strings through the app layer (see the `z.string().nullable()` price fields in `lib/contracts/onboarding.ts`) — format with `Intl.NumberFormat` (see `formatRecommendationMoney`) rather than treating them as numbers.
 - The onboarding domain is modeled as one `OnboardingSession` with a set of 1:1 child tables per wizard step (`OnboardingBusinessProfile`, `OnboardingPrimaryGoal`, `OnboardingCurrentProcess`, `OnboardingVolumeOperations`, `ScopeConfirmation`) plus 1:many tables (`OnboardingSecondaryNeed`, `OnboardingSelectedAddon`, `PaymentAttempt`) and a 1:1 `OnboardingMeeting`. All cascade-delete from `OnboardingSession`.
+- Prisma connects to Supabase as the `postgres` role (`BYPASSRLS = true`), so Row Level Security has no effect on the app itself — it exists to lock down Supabase's auto-exposed REST/GraphQL Data API (`anon`/`authenticated` roles, which do not bypass RLS). Every table in `public` has RLS enabled with no policies (see migration `20260925021002_enable_rls_public_schema`), and default privileges are revoked so new tables are born with no grants to `anon`/`authenticated`. **Every migration that creates a table MUST include `ALTER TABLE "<Name>" ENABLE ROW LEVEL SECURITY;` for it.**
+- Every table is created by a Prisma migration; never from the Supabase Table Editor. Tables created that way bypass the `postgres`-role default-privilege revocation above and would be born exposed to `anon`/`authenticated`.
 
 ### Frontend structure
 
