@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { resolveAppHost } from "@/lib/config/urls";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import TrustBar from "@/components/landing/TrustBar";
@@ -16,8 +17,9 @@ import Footer from "@/components/landing/Footer";
 export default async function HomePage() {
   const headersList = await headers();
   const host = headersList.get("host") || "";
+  const appHost = resolveAppHost();
 
-  if (host.includes("app.nexoru.ai")) {
+  if (host.includes(appHost)) {
     redirect("/onboarding/start");
   }
 
