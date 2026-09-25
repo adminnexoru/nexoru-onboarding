@@ -1,5 +1,7 @@
 export function appUrl(path: string): string {
-  return `${process.env.NEXT_PUBLIC_APP_URL ?? ""}${path}`;
+  const base = (process.env.NEXT_PUBLIC_APP_URL ?? "").trim().replace(/\/$/, "");
+
+  return `${base}${path}`;
 }
 
 export function resolveAppHost(fallback = "app.nexoru.ai"): string {

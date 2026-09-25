@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { resolveAppHost } from "./urls";
+import { appUrl, resolveAppHost } from "./urls";
 
 const ORIGINAL_APP_URL = process.env.NEXT_PUBLIC_APP_URL;
 
@@ -35,5 +35,25 @@ describe("resolveAppHost", () => {
     process.env.NEXT_PUBLIC_APP_URL = "not a valid url";
 
     expect(resolveAppHost("custom.fallback")).toBe("custom.fallback");
+  });
+});
+
+describe("appUrl", () => {
+  it("returns a relative path when NEXT_PUBLIC_APP_URL is unset", () => {
+    delete process.env.NEXT_PUBLIC_APP_URL;
+
+    expect(appUrl("/onboarding/start")).toBe("/onboarding/start");
+  });
+
+  it("trims whitespace around NEXT_PUBLIC_APP_URL", () => {
+    process.env.NEXT_PUBLIC_APP_URL = "  https://app.nexoru.ai  ";
+
+    expect(appUrl("/onboarding/start")).toBe("https://app.nexoru.ai/onboarding/start");
+  });
+
+  it("strips a trailing slash from NEXT_PUBLIC_APP_URL", () => {
+    process.env.NEXT_PUBLIC_APP_URL = "https://app.nexoru.ai/";
+
+    expect(appUrl("/onboarding/start")).toBe("https://app.nexoru.ai/onboarding/start");
   });
 });
