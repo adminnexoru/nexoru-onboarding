@@ -42,7 +42,7 @@ Supabase (proyecto appnexoru) es el proveedor de Postgres; la app accede vía Pr
 
 ## 6. What is the actual measured cost per conversation today?
 
-Pendiente de Ulises.
+Costo actual aproximado: **600 USD/mes** entre OpenAI, ManyChat y Zapier (cifra dada por Ulises, no medida por conversación individual). Esta es la línea base contra la que se debe medir el ahorro de la migración al agente propio.
 
 ## 7. Does `admin@nexoru.ai` notification already happen somewhere (e.g., inside ManyChat/Zapier) today, or is this a net-new requirement?
 
@@ -50,9 +50,9 @@ Pendiente de Ulises.
 
 ## 8. Who is "Ulises" operationally?
 
-Pendiente de Ulises.
+On escalation, the agent notifies Ulises two ways: a WhatsApp message to his personal number (via a Meta utility template) and an email to `admin@nexoru.ai` with a summary of the prospect. The conversation is then marked "atendida por humano" and the bot stops replying to it. Ulises answers from WhatsApp Business on that same number — coexistence between the automated agent and his manual replies on one number, whose eligibility with Meta still needs to be confirmed during planning.
 
-*(Partial, incidental data point from question 3: the Zapier zap "Confirma Agenda" was last edited by/is in use by an account labeled "Ulises I." — this establishes he has direct edit access to the Zapier account, but not his operational role as an escalation point, contact channel, or handoff mechanism.)*
+*(Partial, incidental data point from question 3: the Zapier zap "Confirma Agenda" was last edited by/is in use by an account labeled "Ulises I." — consistent with the above, and additionally shows he has direct edit access to the Zapier account.)*
 
 ## 9. Is the `wa.me` deep-link → ManyChat → `update-meeting` flow the only way WhatsApp and this backend currently connect, or are there other integration points?
 
