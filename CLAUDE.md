@@ -31,6 +31,8 @@ npx prisma db seed                     # runs prisma/seed.ts (packages, addons, 
 
 Required (see `.env`, not committed): `DATABASE_URL`, `DIRECT_URL` (Postgres, via `@prisma/adapter-pg`), `OPENAI_API_KEY` (+ optional `OPENAI_MODEL`, defaults to `gpt-5-mini`), `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_OAUTH_REFRESH_TOKEN`, `GOOGLE_CALENDAR_ID`, `GOOGLE_MEETING_DEFAULT_TIMEZONE`, `NEXT_PUBLIC_NEXORU_WHATSAPP_NUMBER`, `INTERNAL_API_KEY` (shared secret for the `update-meeting` webhook).
 
+Optional: `NEXT_PUBLIC_APP_URL` — the canonical origin of the onboarding app (e.g. `https://app.nexoru.ai`). Used by `lib/config/urls.ts`'s `appUrl(path)` helper to build the marketing site's CTA links (`components/landing/Hero.tsx`, `FinalCTA.tsx`, `Navbar.tsx`) and by `app/page.tsx` to derive which `Host` header should redirect `/` to `/onboarding/start`. When unset, `appUrl()` falls back to a relative path and the host check falls back to `"app.nexoru.ai"` — both matching current production behavior with no configuration required.
+
 ## Architecture
 
 ### Onboarding session model, not user auth

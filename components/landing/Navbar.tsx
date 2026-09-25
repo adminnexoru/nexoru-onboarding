@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { appUrl } from "@/lib/config/urls";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -60,7 +61,7 @@ export default function Navbar() {
 
         <div className="hidden items-center gap-3 lg:flex">
           <Link
-            href="https://app.nexoru.ai/onboarding/start"
+            href={appUrl("/onboarding/start")}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex h-11 items-center justify-center rounded-full border border-[#7C3AED]/30 bg-[#7C3AED] px-5 text-sm font-semibold text-white shadow-[0_0_24px_rgba(124,58,237,0.35)] transition hover:bg-[#6D28D9]"
@@ -129,7 +130,7 @@ export default function Navbar() {
             </a>
 
             <Link
-              href="https://app.nexoru.ai/onboarding/start"
+              href={appUrl("/onboarding/start")}
               target="_blank"
               rel="noopener noreferrer"
               onClick={closeMenu}
