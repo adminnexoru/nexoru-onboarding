@@ -27,6 +27,8 @@ npx prisma db seed                     # runs prisma/seed.ts (packages, addons, 
 
 `prisma.config.ts` points migrations/seed at `prisma/schema.prisma` and reads `DATABASE_URL`. Seeding (`prisma/seed.ts`) wipes and rebuilds the catalog tables (`Package`, `Addon`, `PackageAddon`, `GoalOption`, `PackageRecommendationRule`, include/exclude items) — it is destructive to that data, never to onboarding session data.
 
+Never use `git stash` with untracked files (`-u`). If work needs to be set aside, commit it first on a working branch instead — `-u` sweeps up unrelated untracked work (other in-progress branches' files, local-only docs) into one stash entry, making it easy to lose track of what's parked versus committed.
+
 ## Environment variables
 
 Required (see `.env`, not committed): `DATABASE_URL`, `DIRECT_URL` (Postgres, via `@prisma/adapter-pg`), `OPENAI_API_KEY` (+ optional `OPENAI_MODEL`, defaults to `gpt-5-mini`), `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_OAUTH_REFRESH_TOKEN`, `GOOGLE_CALENDAR_ID`, `GOOGLE_MEETING_DEFAULT_TIMEZONE`, `NEXT_PUBLIC_NEXORU_WHATSAPP_NUMBER`, `INTERNAL_API_KEY` (shared secret for the `update-meeting` webhook).
