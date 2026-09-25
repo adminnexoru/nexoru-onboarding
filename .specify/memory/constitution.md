@@ -1,16 +1,19 @@
 <!--
 Sync Impact Report
-- Version change: (unratified template) → 1.0.0
-- Modified principles: N/A (initial ratification)
-- Added principles:
-  - I. Minimal Operational Cost
-  - II. Comunicación Directa, Sin Intermediarios
-  - III. Supabase Como Única Fuente de Verdad
-  - IV. Adaptador Único de IA y Selección de Modelo por Costo
-  - V. Seguridad y Privacidad por Defecto
-- Added sections: Calidad y Flujo de Entrega, Governance
-- Removed sections: none (template placeholders replaced; no third additional
-  section was needed beyond Core Principles + Calidad y Flujo de Entrega)
+- Version change: 1.0.0 → 1.0.1 (PATCH)
+- Modified principles:
+  - V. Seguridad y Privacidad por Defecto — added a concrete requirement
+    that every migration creating one or more tables MUST enable Row
+    Level Security on each new table; rationale extended to explain why
+    (Prisma connects as the `postgres` role, which bypasses RLS, but
+    Supabase's auto-exposed REST/GraphQL API authenticates as `anon`/
+    `authenticated`, which do not bypass RLS and receive full CRUD
+    grants by default on any new public-schema table). This clarifies
+    and extends the existing principle's scope; it does not redefine or
+    remove anything, hence PATCH rather than MINOR.
+- Added principles: none
+- Added sections: none
+- Removed sections: none
 - Templates requiring follow-up: none checked in this pass (out of scope per
   the constitution command's Scope Guard — dependent templates read this file
   at runtime and are not modified here)
@@ -71,10 +74,18 @@ Cero secretos MUST vivir en el repositorio; toda credencial MUST estar en
 variables de entorno. Todo webhook MUST validar la firma de Meta antes de
 procesar el payload. Los logs NO MUST contener PII sin enmascarar; los números
 de teléfono MUST enmascararse antes de registrarse. El tratamiento de datos de
-prospectos MUST cumplir el aviso de privacidad vigente del negocio.
+prospectos MUST cumplir el aviso de privacidad vigente del negocio. Toda
+migración que cree una o más tablas MUST incluir `ALTER TABLE ... ENABLE ROW
+LEVEL SECURITY` para cada tabla nueva.
 
 Rationale: Nexoru maneja datos personales de prospectos de terceros; una fuga
-de credenciales o de PII compromete tanto a Nexoru como a sus clientes.
+de credenciales o de PII compromete tanto a Nexoru como a sus clientes. Prisma
+se conecta a Supabase con el rol `postgres` (`BYPASSRLS = true`), por lo que
+activar RLS no afecta a la aplicación; sin embargo, los roles `anon` y
+`authenticated` que usa el API REST/GraphQL auto-expuesto de Supabase no
+tienen `BYPASSRLS` y reciben privilegios CRUD completos por defecto en
+cualquier tabla nueva de `public` — sin esta regla, cada tabla nueva nace
+expuesta fuera de la aplicación.
 
 ## Calidad y Flujo de Entrega
 
@@ -101,4 +112,4 @@ principios antes de hacer merge; cualquier excepción MUST justificarse
 explícitamente en la descripción del PR. Para guía operativa de desarrollo día
 a día, ver `CLAUDE.md`.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-24 | **Last Amended**: 2026-09-24
+**Version**: 1.0.1 | **Ratified**: 2026-09-24 | **Last Amended**: 2026-09-25
