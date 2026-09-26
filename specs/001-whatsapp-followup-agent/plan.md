@@ -102,6 +102,22 @@ Re-evaluated after `data-model.md` and `contracts/whatsapp-webhook.md` were draf
 
 No new violations. Complexity Tracking table below remains empty.
 
+## Constitution Re-check (post-research-fixes)
+
+Re-evaluated once more after the four follow-up fixes to research.md/data-model.md/contracts/ (Neon role bootstrap, `after()`-based debounce, the coexistence Plan B reply page, and the 1/hour escalation-alert limit):
+
+| Principle | Check | Result |
+|---|---|---|
+| I. Minimal Operational Cost | None of the four fixes introduce a new paid service: the role bootstrap is a plain SQL script, `after()` is a built-in Next.js API (no queue), the coexistence Plan B reuses the same `sendTextMessage` path already being built rather than adding infrastructure, and the alert rate limit is one more `WHERE createdAt > now() - interval '1 hour'` query. | PASS |
+| III. Supabase Como Única Fuente de Verdad | Strengthened, not just reasserted: the Neon role-bootstrap fix was verified by actually applying all 10 migrations to a clean database, confirming Neon stays a disposable, schema-identical test fixture rather than silently diverging from what production runs. | PASS |
+| IV. Adaptador Único de IA | The coexistence Plan B reply page sends a **human-typed** message (Ulises's own text) — it does not call Claude at all, so it doesn't introduce a second AI call path outside `lib/ai/adapter.ts`. | PASS |
+| V. Seguridad y Privacidad por Defecto | The `after()` fix keeps signature verification and idempotency strictly before the `200` response, unchanged from the original design. The new escalation reply page is a new access-controlled surface — it's gated by a signed, expiring token (same shared-secret pattern as `INTERNAL_API_KEY`), not left open; this is the one place this round of fixes added a genuinely new attack surface, and it's accounted for rather than deferred. | PASS |
+| Calidad y Flujo de Entrega | Both the role-bootstrap approach (vs. editing an already-applied migration) and the `after()` approach (vs. a bare pre-response sleep or a new queue service) were chosen specifically to avoid risk to production and avoid new complexity — directly the "simplest solution, no unjustified new dependency" clause. | PASS |
+
+**Spec consistency check**: the coexistence Plan B reply page is a new *internal, operational* surface (how Ulises replies), not a change to any prospect-facing behavior, functional requirement, or success criterion in `spec.md` — it fulfills the spec's own Assumption that coexistence eligibility "still needs to be confirmed during planning" rather than expanding the spec's scope. No spec amendment needed.
+
+No new violations across any of the four fixes.
+
 ## Complexity Tracking
 
 *No Constitution Check violations — table intentionally empty.*
