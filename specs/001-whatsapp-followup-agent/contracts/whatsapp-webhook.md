@@ -46,9 +46,11 @@ Meta POSTs here for every inbound message and every message-status update. Only 
 
 1. Verify signature (above). On failure: `401`, no further processing.
 2. For each `messages[]` entry: idempotency check on `messages[].id` against `WhatsAppMessage.whatsappMessageId` (data-model.md) — if it already exists, skip this message (Meta retry) but still return `200` overall.
-3. Non-text message types (`image`, `audio`, `video`, `document`, `sticker`, `location`, etc.) MUST get the "unsupported format" reply (FR-016) — never silently dropped, but never sent to the AI adapter either.
-4. Text messages: append to the sender's `WhatsAppConversation.bufferedText`, bump `bufferVersion`, run the debounce wait (research.md, decision 5), then hand the *combined* buffered text to the flow below.
-5. Response to Meta: `200` within Meta's expected acknowledgment window, **before** the debounce wait completes if that wait would risk exceeding it — i.e., the webhook responds `200` immediately after buffering/idempotency bookkeeping, and the debounce-then-reply happens asynchronously in the same invocation (Vercel Fluid Compute keeps the function alive after the response is sent, up to the function's execution limit) rather than blocking Meta's delivery acknowledgment.
+3. Non-text message types (`image`, `audio`, `video`, `document`, `sticker`, `location`, etc.): record the same as a text message would be, so the "unsupported format" reply (FR-016) is composed and sent through the same post-response path below — never silently dropped, but never sent to the AI adapter either.
+4. Text messages: append to the sender's `WhatsAppConversation.bufferedText`, bump `bufferVersion` (all fast, synchronous DB work).
+5. **Respond to Meta with `200` now** — signature verification, idempotency, and buffering are the only work done before responding. Nothing in steps 6–7 blocks this response.
+6. **After** the response is sent, via `after()` from `next/server` (research.md, decision 5): wait ~2–3 seconds, re-read `bufferVersion`; if it advanced, exit without sending anything (a later invocation owns the reply). Otherwise read the combined `bufferedText`, run the deterministic pre-processing below, invoke the AI adapter as needed, send the reply via `lib/whatsapp/client.ts`, and clear the buffer.
+7. Vercel's function duration limit (300s default, Fluid Compute, per research.md decision 5) comfortably covers steps 6's wait plus the Claude call and outbound send — no risk of the `after()` work being cut off at this feature's message sizes.
 
 ### Deterministic pre-processing (never delegated to the model)
 
