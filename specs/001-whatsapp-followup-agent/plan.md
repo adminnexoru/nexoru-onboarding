@@ -12,7 +12,7 @@ Replace ManyChat + Zapier's "Busca Agenda"/"Confirma Agenda" flows with a self-h
 
 **Language/Version**: TypeScript (strict mode), Next.js 16 (App Router), Node.js runtime on Vercel — matches the existing repo exactly; no new runtime.
 
-**Primary Dependencies**: Existing: `@prisma/client`/`@prisma/adapter-pg`, `googleapis`, `zod`, `pg`. New: none required — Claude is called via `fetch` against the Messages API (see research.md, "AI adapter transport"), matching this repo's existing raw-`fetch` pattern for OpenAI in `lib/services/package-recommendation.ts` rather than adding an SDK dependency. Meta webhook signature verification uses Node's built-in `crypto` (HMAC-SHA256), no new dependency.
+**Primary Dependencies**: Existing: `@prisma/client`/`@prisma/adapter-pg`, `googleapis`, `zod`, `pg`. New: none required — Claude is called via `fetch` against the Messages API (see contracts/whatsapp-webhook.md, "Where the AI adapter is invoked"), matching this repo's existing raw-`fetch` pattern for OpenAI in `lib/services/package-recommendation.ts` rather than adding an SDK dependency. Meta webhook signature verification uses Node's built-in `crypto` (HMAC-SHA256), no new dependency.
 
 **Storage**: Postgres via Prisma. Production: the existing Supabase project (`appnexoru`) — same database, new tables. Preview/test: a separate Neon Postgres branch per Vercel preview deployment (see research.md, decision 4) so webhook testing never touches production conversation data.
 
@@ -37,8 +37,8 @@ Replace ManyChat + Zapier's "Busca Agenda"/"Confirma Agenda" flows with a self-h
 | I. Minimal Operational Cost | New paid surfaces: Claude API (usage-based, offsets the $600/mo baseline being eliminated — spec SC-003), Neon free tier (preview DB), Vercel Pro (pre-existing requirement for commercial use, not newly introduced by this feature). No unjustified new SaaS. | PASS — cost/benefit captured in research.md decisions 3, 4, 7 |
 | II. Comunicación Directa, Sin Intermediarios | This feature *is* the direct-webhook replacement for ManyChat/Zapier; no intermediary introduced. | PASS |
 | III. Supabase Como Única Fuente de Verdad | Production conversation/escalation data lives only in the existing Supabase project via Prisma. Neon is preview-only and never holds real prospect data — it is not a second source of truth, it's a disposable test fixture. | PASS |
-| IV. Adaptador Único de IA | One `lib/ai/adapter.ts` module for every Claude call in this feature; model choice (Haiku) justified per-task in research.md. | PASS |
-| V. Seguridad y Privacidad por Defecto | Meta signature validation (research.md), message_id idempotency, RLS enabled on every new table's migration (data-model.md), phone numbers masked in logs (data-model.md). | PASS — see explicit mitigations, no gaps deferred |
+| IV. Adaptador Único de IA | One `lib/ai/adapter.ts` module for every Claude call in this feature; model choice (Haiku) justified per-task in research.md. Token usage + estimated cost per call recorded in `WhatsAppAiCall` (data-model.md, FR-025), summable by month against the $600 baseline. Prompt caching checked against Anthropic's current published minimum (Haiku: 4,096 tokens) and deliberately deferred, not silently skipped — see research.md decision 9. | PASS |
+| V. Seguridad y Privacidad por Defecto | Meta signature validation (research.md), message_id idempotency, RLS enabled on every new table's migration (data-model.md), phone numbers masked in logs via `lib/whatsapp/mask-phone.ts` (data-model.md, FR-024, implemented and tested in tasks.md). | PASS — see explicit mitigations, tasks now implement each one |
 | VI. El Wizard Como Único Punto de Calificación y Propuesta | The entire feature is scoped around never qualifying/proposing (spec FR-008/FR-009); this is the principle the spec was rewritten to satisfy. | PASS |
 | Calidad y Flujo de Entrega | TypeScript strict (already repo-wide), tests required for webhook/confirmation/escalation (planned in quickstart.md and tasks), feature branch + PR + preview (already this repo's workflow), simplest solution preferred (in-process debounce over a new queue service, `fetch` over a new SDK — both decided in research.md over the more complex alternative). | PASS |
 
@@ -67,7 +67,10 @@ No new project. New files land inside the existing single Next.js app:
 app/api/whatsapp/
 ├── webhook/
 │   └── route.ts              # GET (Meta verification handshake) + POST (inbound messages)
-└── — (no other new API routes; outbound sends happen from within the webhook handler)
+└── retention/
+    └── route.ts               # Vercel Cron target (FR-022/FR-024): deletes conversation
+                                 # records older than 90 days — see data-model.md's retention
+                                 # scope note (this feature's own tables only, never the wizard's)
 
 app/whatsapp/escalations/[conversationId]/reply/
 └── page.tsx                   # Plan B for coexistence (research.md, decision 2): Ulises's
@@ -77,17 +80,25 @@ lib/whatsapp/
 ├── client.ts                  # Cloud API send-message calls (text messages, template messages)
 ├── signature.ts                # X-Hub-Signature-256 verification (node:crypto)
 ├── reference.ts                 # Deterministic NXR-SES-... extraction + phone normalization/match (FR-023)
-└── business-hours.ts            # 10:00–15:00 America/Mexico_City window check (FR-014)
+├── business-hours.ts            # 10:00–15:00 America/Mexico_City window check (FR-014)
+├── mask-phone.ts                 # FR-024/Principle V: phone-number masking before any log line
+└── escalation-token.ts           # Signed, 48h-expiring token for the Plan B reply page (research.md, decision 2)
 
 lib/ai/
-└── adapter.ts                  # Single Claude adapter: classify intent, compose reply — both Haiku
+└── adapter.ts                  # Single Claude adapter: classify intent, compose reply — both Haiku,
+                                 # both recording token usage + estimated cost (FR-025, WhatsAppAiCall)
 
 lib/services/
 └── whatsapp-conversation.ts    # Conversation/escalation state machine, burst-debounce claim logic
 
 prisma/migrations/
 └── <timestamp>_add_whatsapp_conversation/
-    └── migration.sql            # New tables + RLS (see data-model.md)
+    └── migration.sql            # New tables (incl. WhatsAppAiCall) + RLS (see data-model.md)
+
+vercel.json                      # Adds the retention route's Cron schedule (e.g. daily)
+
+CLAUDE.md                        # One-line addition: prisma/bootstrap-non-supabase-roles.sql
+                                  # must run once per new non-Supabase database (research.md, decision 4)
 ```
 
 **Structure Decision**: Single project (this repo), matching every prior feature in this codebase. No `backend/`/`frontend/` split, no new package — the WhatsApp webhook is one more API route alongside `app/api/onboarding/*` and `app/api/update-meeting/*`, using the same Prisma client, the same Google Calendar helper, and the same deployment.
@@ -117,6 +128,18 @@ Re-evaluated once more after the four follow-up fixes to research.md/data-model.
 **Spec consistency check**: the coexistence Plan B reply page is a new *internal, operational* surface (how Ulises replies), not a change to any prospect-facing behavior, functional requirement, or success criterion in `spec.md` — it fulfills the spec's own Assumption that coexistence eligibility "still needs to be confirmed during planning" rather than expanding the spec's scope. No spec amendment needed.
 
 No new violations across any of the four fixes.
+
+## Constitution Re-check (post-analyze)
+
+`/speckit-analyze` found two CRITICAL constitution gaps and one HIGH — none were violations of the principles as designed, but requirements the design had documented and then failed to actually task out. All three are now fixed, verified against current Anthropic documentation where applicable, not just asserted:
+
+| Principle | Gap found | Fix |
+|---|---|---|
+| V. Seguridad y Privacidad por Defecto | Phone masking was designed (`data-model.md`) and claimed "no gaps deferred" here, but no task implemented or tested it. | New `lib/whatsapp/mask-phone.ts` + test (tasks.md), new spec FR-024, wired into every task that logs a phone number. |
+| IV. Adaptador Único de IA | Token usage/cost-per-conversation logging (constitution-mandated) had no field, no task. | New `WhatsAppAiCall` table (data-model.md) recording tokens + estimated cost per Claude call, summable by month; new spec FR-025; wired into T038 (`composeReply`) and T043 (`classifyIntent`). |
+| IV. Adaptador Único de IA | Prompt caching ("MUST usar... cuando el proveedor lo soporte") was never addressed either way. | Checked Anthropic's current published minimums directly: Haiku 4.5 requires **4,096 tokens** to cache; this feature's `composeReply`/`classifyIntent` prompts run a few hundred to ~1.5k tokens (research.md decision 7's own estimate) — below the threshold, so caching would silently no-op even if enabled. Documented as a deliberate, sourced deferral in research.md decision 9, not a silent omission. |
+
+Also addressed from the same analysis pass (not constitution-tied, but real gaps): the burst-debounce race condition (FR-018) and the 10-second SLA (SC-001) now have test tasks; the 90-day retention rule (FR-022, previously untasked) has an implementing task and is now explicit that it scopes only to `WhatsAppConversation`/`WhatsAppMessage`/`WhatsAppEscalation` — never wizard tables, and (a new design decision made while fixing this) never `WhatsAppAiCall` either, since that table holds no prospect personal data, only aggregate cost figures needed for SC-003's ongoing comparison against the $600 baseline.
 
 ## Complexity Tracking
 

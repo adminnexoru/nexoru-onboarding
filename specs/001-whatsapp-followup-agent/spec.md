@@ -123,8 +123,10 @@ Someone messages the WhatsApp test number without a valid meeting reference — 
 - **FR-019**: The system MUST operate solely against the WhatsApp test number designated for this phase and MUST NOT alter behavior on, or otherwise affect, the current production NEXORU WhatsApp number (+52 55 8648 8746).
 - **FR-020**: The system MUST NOT depend on ManyChat or Zapier for any part of reference validation, appointment confirmation, proposal Q&A, or escalation.
 - **FR-021**: The system MUST handle prospect personal data (e.g., phone number, name) in stored records and logs in a way that protects prospect privacy and avoids unnecessary exposure of that data.
-- **FR-022**: The system MUST retain a prospect's conversation and interaction data for 90 days after the conversation's last activity, after which it MUST be deleted or archived out of the active dataset.
+- **FR-022**: The system MUST retain a prospect's conversation and interaction data for 90 days after the conversation's last activity, after which it MUST be deleted or archived out of the active dataset. This retention/deletion rule applies only to this feature's own conversation records; it MUST NOT delete or otherwise touch any wizard-owned data (`OnboardingSession` and its related tables) — this feature only ever reads that data, per FR-009's and the Assumptions' existing read-only constraint.
 - **FR-023**: The system MUST verify that an inbound message's sender phone number matches the phone number on file for the resolved reference before confirming appointment details (FR-006) or answering proposal questions (FR-009); a mismatch MUST be treated as a stuck point subject to the escalation threshold in FR-011.
+- **FR-024**: The system MUST mask prospect phone numbers before they appear in any application log line this feature writes (constitution Principle V), independent of how they're stored in the database itself.
+- **FR-025**: The system MUST record token usage and an estimated cost for every AI adapter call this feature makes, in a way that can be summed by calendar month (constitution Principle IV) — this is what SC-003's cost comparison against the $600/month baseline is measured from.
 
 ### Key Entities
 
@@ -140,7 +142,7 @@ Someone messages the WhatsApp test number without a valid meeting reference — 
 
 - **SC-001**: At least 95% of inbound prospect messages receive a first agent response within 10 seconds.
 - **SC-002**: 100% of reference validations and appointment confirmations on the WhatsApp test number are handled by NEXORU's own systems, with zero calls to ManyChat or Zapier.
-- **SC-003**: NEXORU's combined ManyChat + Zapier spend for this flow drops from the current ~$600 USD/month baseline (see `docs/respuestas-preguntas-abiertas.md`, question 6) to $0/month once this feature fully replaces them.
+- **SC-003**: NEXORU's combined ManyChat + Zapier spend for this flow drops from the current ~$600 USD/month baseline (see `docs/respuestas-preguntas-abiertas.md`, question 6) to $0/month once this feature fully replaces them, measured against this feature's own AI cost as recorded per FR-025 (summed by month) plus any remaining Meta messaging fees.
 - **SC-004**: A prospect who pauses mid-conversation and returns up to 7 days later can continue without re-identifying themselves, verified in at least 95% of test cases.
 - **SC-005**: 100% of conversations where a prospect asks for a human, or where the agent cannot resolve the request, result in a confirmed email to `admin@nexoru.ai` (with the WhatsApp alert attempted alongside it) and automated replies stopping in that conversation.
 - **SC-006**: 100% of escalations that occur outside the 10:00–15:00 window include a message to the prospect stating when they'll be contacted.
@@ -148,6 +150,7 @@ Someone messages the WhatsApp test number without a valid meeting reference — 
 - **SC-008**: 100% of unsupported message types receive an explanatory reply rather than no response.
 - **SC-009**: 100% of messages without a valid reference receive the wizard link rather than a qualifying question.
 - **SC-010**: 0% of appointment or proposal details are confirmed to a sender whose phone number doesn't match the one on file for that reference.
+- **SC-011**: 100% of this feature's own conversation records older than 90 days since last activity are deleted or archived, and 0% of wizard-owned data is ever touched by that process.
 
 ## Assumptions
 

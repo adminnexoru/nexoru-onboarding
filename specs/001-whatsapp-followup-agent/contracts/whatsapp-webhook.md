@@ -71,13 +71,17 @@ classifyIntent(input: { messageText: string }): Promise<
 
 // 2. Reply composition — receives ONLY fields already fetched from the database.
 //    The model never receives raw DB query access or instructions to "look something up."
+//    Note: "unsupported_format" is NOT a valid kind here — per step 3 above, that reply is
+//    fixed copy sent directly via sendTextMessage, never composed by the model.
 composeReply(input: {
-  kind: "appointment_confirmation" | "appointment_status" | "proposal_answer" | "wizard_redirect" | "unsupported_format";
+  kind: "appointment_confirmation" | "appointment_status" | "proposal_answer" | "wizard_redirect" | "escalation_out_of_hours";
   fields: Record<string, string>; // e.g. { date, time, reference, joinLink } or { packageName, price, scope }
 }): Promise<string> // Mexican Spanish, tone matching docs/legacy/
 ```
 
-Both calls use the Haiku-class model (research.md, decision 6/7) and route through Anthropic's Messages API via `fetch` (no SDK dependency, matching this repo's existing OpenAI-via-`fetch` convention).
+Both calls use the Haiku-class model (research.md, decisions 6/7/9) and route through Anthropic's Messages API via `fetch` (no SDK dependency, matching this repo's existing OpenAI-via-`fetch` convention). Neither call enables prompt caching — checked against Anthropic's current published minimums (Haiku 4.5: 4,096 tokens) and both calls' prompts fall well under that, so caching would silently no-op; see research.md decision 9 for the sourced reasoning. Every call to either function inserts one `WhatsAppAiCall` row (`kind`, `model`, `inputTokens`, `outputTokens`, `estimatedCostUsd` computed from the response's actual usage) — this is what SC-003's monthly cost comparison against the $600 baseline is computed from (research.md decision 9, spec FR-025), and it is **not** subject to the 90-day conversation-retention rule (FR-022) since it holds no prospect personal data.
+
+Phone numbers passed into either call's `fields` (none currently are — both only receive appointment/proposal/link data, never a phone number) and any phone number logged anywhere in this webhook's processing (e.g. `messages[].from`) MUST go through `lib/whatsapp/mask-phone.ts` before appearing in a log line (constitution Principle V, spec FR-024) — the raw number is fine in the database (`WhatsAppConversation.phoneNumber`), never fine in `console.log`/error output.
 
 ## Outbound sends (`lib/whatsapp/client.ts`)
 
@@ -90,10 +94,20 @@ Two Cloud API calls this feature makes, both authenticated with `WHATSAPP_ACCESS
 
 Route: `app/whatsapp/escalations/[conversationId]/reply/page.tsx` (a page, not an API route — Ulises opens it directly from a link in the escalation email).
 
-- **Access**: a signed token in the URL query string (HMAC of `conversationId` + expiry, keyed by a new `WHATSAPP_ESCALATION_TOKEN_SECRET`), the same shared-secret pattern this repo already uses for `INTERNAL_API_KEY` on `/api/update-meeting` — no login system, since this app has none (`CLAUDE.md`).
+- **Access**: a signed token in the URL query string (HMAC of `conversationId` + a 48-hour expiry, keyed by a new `WHATSAPP_ESCALATION_TOKEN_SECRET`) — 48 hours comfortably outlasts the 24-hour WhatsApp customer-service window this same page's submit handler checks (see below), without being open-ended. Same shared-secret pattern this repo already uses for `INTERNAL_API_KEY` on `/api/update-meeting` — no login system, since this app has none (`CLAUDE.md`).
 - **Reads**: that conversation's recent `WhatsAppMessage` rows, for context.
 - **Writes**: on submit, calls `sendTextMessage` for that conversation's `phoneNumber` and inserts a `WhatsAppMessage` row (`direction: OUTBOUND`) — reuses the exact same send path and data model the agent itself uses, so there is no second notion of "how a message gets sent."
 - **Does not**: change `WhatsAppConversation.stage` away from `ESCALATED`, or re-enable automated replies — this is a manual channel for the human who already owns the conversation, not a hand-back mechanism (hand-back is a separate, deliberate action per spec Assumptions).
+
+## Retention cron (`app/api/whatsapp/retention/route.ts`)
+
+Route: a Vercel Cron target (configured in `vercel.json`, e.g. daily), per constitution Principle III ("Toda automatización... MUST implementarse en código propio... gestionado bajo Spec Kit") — not a third-party scheduler.
+
+**Contract**: on trigger, delete (or archive, per implementation choice) every `WhatsAppConversation` row whose `lastActivityAt` is more than 90 days old, along with its cascaded `WhatsAppMessage`/`WhatsAppEscalation` rows (FR-022). Scope is exact and MUST NOT be broadened:
+
+- **In scope**: `WhatsAppConversation`, `WhatsAppMessage`, `WhatsAppEscalation` only.
+- **Out of scope, always**: every wizard-owned table (`OnboardingSession` and everything under it) — this feature never writes to or deletes from those, per its read-only relationship to wizard data (spec Assumptions).
+- **Out of scope, deliberately**: `WhatsAppAiCall` — holds no prospect personal data, retained indefinitely for the ongoing SC-003 cost comparison (research.md decision 9).
 
 ## New environment variables
 
@@ -107,5 +121,6 @@ Route: `app/whatsapp/escalations/[conversationId]/reply/page.tsx` (a page, not a
 | `WHATSAPP_ESCALATION_TOKEN_SECRET` | HMAC key signing the escalation reply page's access token (Plan B, decision 2) |
 | `ULISES_WHATSAPP_NUMBER` | Ulises's personal number, escalation alert recipient |
 | `ANTHROPIC_API_KEY` | Single Claude adapter auth |
+| `CRON_SECRET` | Vercel's standard cron-auth convention — the retention route rejects any request whose `Authorization: Bearer` doesn't match this |
 
 All follow this repo's existing convention (`CLAUDE.md`'s Environment variables section) — required for the webhook to function, absent from `.env.example` only insofar as every other required var already is (i.e., they get added there too, following the pattern already established when `NEXT_PUBLIC_APP_URL` was documented).

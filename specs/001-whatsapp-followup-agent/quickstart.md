@@ -5,7 +5,7 @@ This is a validation guide, not an implementation guide — it assumes the tasks
 ## Prerequisites
 
 - A Meta Cloud API test number configured, webhook URL pointed at this feature's preview deployment's `/api/whatsapp/webhook`, and the env vars from `contracts/whatsapp-webhook.md` set for that Vercel preview environment.
-- A Neon preview database branch (research.md, decision 4) migrated: `npx prisma migrate deploy` run against it, including the new `WhatsAppConversation`/`WhatsAppMessage`/`WhatsAppEscalation` tables from `data-model.md`.
+- A Neon preview database branch (research.md, decision 4) migrated: `npx prisma migrate deploy` run against it, including the four new tables from `data-model.md` (`WhatsAppConversation`, `WhatsAppMessage`, `WhatsAppEscalation`, `WhatsAppAiCall`).
 - At least one real `OnboardingSession` → `OnboardingMeeting` → `OnboardingPackageRecommendation` chain in that same database, created by actually completing the onboarding wizard against the preview deployment (so there's a real `meetingReference`, a real `contactWhatsappSnapshot`, and a real proposal to test against) — don't hand-insert fixture rows for this, since the point is to prove the whole reuse chain (wizard → wa.me link → this agent) works, not just this feature in isolation.
 - A test WhatsApp account able to message the Meta test number, ideally by actually tapping the `wa.me` link the wizard's schedule-confirmation page generates (proves FR-005/contracts' reference-extraction regex matches what the wizard actually produces), plus a second WhatsApp account/number for the phone-mismatch scenario (US1 doesn't need this, but the FR-023 scenario below does).
 

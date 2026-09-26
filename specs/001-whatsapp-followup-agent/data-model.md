@@ -1,6 +1,6 @@
 # Data Model: NEXORU WhatsApp Follow-up Agent
 
-Three new tables, all additive to the existing schema — nothing on `OnboardingSession`, `OnboardingMeeting`, or `OnboardingPackageRecommendation` changes. Two entities from the spec (`Referenced Appointment`, `Referenced Proposal`) are explicitly **not** new tables — they are read-only joins into wizard-owned data, listed at the bottom.
+Four new tables, all additive to the existing schema — nothing on `OnboardingSession`, `OnboardingMeeting`, or `OnboardingPackageRecommendation` changes. Two entities from the spec (`Referenced Appointment`, `Referenced Proposal`) are explicitly **not** new tables — they are read-only joins into wizard-owned data, listed at the bottom.
 
 Per the constitution's Principle V (and the `CLAUDE.md` rule it added), the migration that creates these tables MUST include `ALTER TABLE "<Name>" ENABLE ROW LEVEL SECURITY;` for each one, exactly like `20260925021002_enable_rls_public_schema` did for the existing schema.
 
@@ -15,7 +15,7 @@ One row per prospect phone number conversing with the agent. Maps to the spec's 
 | `id` | `String @id @default(cuid())` | |
 | `phoneNumber` | `String @unique` | Digits-only, normalized the same way `wa.me` links already strip non-digits (`app/onboarding/schedule-confirmation/page.tsx`'s `cleanNumber` pattern). One conversation per sender number. |
 | `meetingId` | `String?` | FK to `OnboardingMeeting.id`, set once a reference resolves **and** the phone matches (FR-005, FR-023). Null while `stage = AWAITING_REFERENCE`. |
-| `stage` | `WhatsAppConversationStage` (enum) | `AWAITING_REFERENCE \| CONFIRMED \| ANSWERING_PROPOSAL \| ESCALATED` — matches the spec's Conversation entity stages exactly; no extra stage invented. |
+| `stage` | `WhatsAppConversationStage` (enum) | `AWAITING_REFERENCE \| CONFIRMED \| ANSWERING_PROPOSAL \| ESCALATED` — matches the spec's Conversation entity stages exactly; no extra stage invented. `ESCALATED` is this field's value for what the spec (FR-013) calls "atendida por humano" — same state, no separate label stored anywhere. |
 | `bufferedText` | `String?` | Pending, not-yet-replied-to inbound text accumulated during the burst-debounce window (FR-018). Cleared after each reply. |
 | `bufferVersion` | `Int @default(0)` | Incremented on every inbound message; the debounce mechanism (research.md, decision 5) uses this to detect whether a newer message superseded the one a given function invocation is waiting on. |
 | `consecutiveFailedAttempts` | `Int @default(0)` | Backs the 2-attempt escalation threshold (FR-011, from the original spec clarification). Reset to 0 on any successful confirm/answer; escalates at 2. |
@@ -60,6 +60,25 @@ Relation: `conversation WhatsAppConversation @relation(fields: [conversationId],
 
 **Effect on `WhatsAppConversation.stage`**: creating a `WhatsAppEscalation` row sets the parent conversation's `stage` to `ESCALATED` in the same transaction — there is intentionally no separate "is escalated" boolean to keep out of sync.
 
+### WhatsAppAiCall
+
+One row per Claude call (`classifyIntent` or `composeReply`). Backs constitution Principle IV's token/cost logging requirement and spec FR-025 — this is what makes SC-003's monthly comparison against the $600 baseline a real, computed number instead of an estimate.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | `String @id @default(cuid())` | |
+| `conversationId` | `String?` | FK to `WhatsAppConversation.id`. **Deliberately no `onDelete: Cascade`** (unlike `WhatsAppMessage`/`WhatsAppEscalation`) — see the Retention scope section below for why. |
+| `kind` | `WhatsAppAiCallKind` (enum) | `CLASSIFY_INTENT \| COMPOSE_REPLY` — which of the two adapter functions made this call. |
+| `model` | `String` | The exact model string used (e.g. a Haiku model id) — recorded per call, not assumed, since research.md decision 9 leaves room to switch models later. |
+| `inputTokens` | `Int` | From the Claude response's `usage.input_tokens`. |
+| `outputTokens` | `Int` | From the Claude response's `usage.output_tokens`. |
+| `estimatedCostUsd` | `Decimal @db.Decimal(10, 6)` | Computed from `inputTokens`/`outputTokens` against the model's published per-token rate at call time — six decimal places because a single short call can cost a fraction of a cent, and this needs to sum accurately across hundreds of calls. |
+| `createdAt` | `DateTime @default(now())` | |
+
+Relation: `conversation WhatsAppConversation? @relation(fields: [conversationId], references: [id])` — optional and non-cascading on purpose (see below).
+
+**Monthly cost query (research.md, decision 9)**: `SELECT date_trunc('month', "createdAt") AS month, SUM("estimatedCostUsd") FROM "WhatsAppAiCall" GROUP BY 1 ORDER BY 1;` — this is the number SC-003 compares against the $600/month baseline. No new reporting table or dashboard needed for Phase 1.
+
 ## Enums
 
 ```prisma
@@ -79,6 +98,11 @@ enum WhatsAppEscalationReason {
   HUMAN_REQUESTED
   UNABLE_TO_RESOLVE
 }
+
+enum WhatsAppAiCallKind {
+  CLASSIFY_INTENT
+  COMPOSE_REPLY
+}
 ```
 
 ## Read-only entities (not new tables)
@@ -91,14 +115,22 @@ Not a table — a query joining `WhatsAppConversation.meetingId` → the existin
 
 Not a table — a query joining `OnboardingMeeting.sessionId` → `OnboardingSession.packageRecommendation` (the existing `OnboardingPackageRecommendation` row, from the idempotency fix earlier this session). The fields this feature reads for User Story 3: `packageName`, `packageDescription`, `setupPrice`, `monthlyPrice`, `rationale`. Never written to by this feature (FR-009's "without regenerating or altering the proposal").
 
-## Privacy handling (Principle V)
+## Privacy handling (Principle V, spec FR-024)
 
-`phoneNumber` and `contactWhatsappSnapshot` MUST be masked before appearing in any log line this feature writes (e.g. `***3456` — last 4 digits only), matching "los números de teléfono MUST enmascararse antes de registrarse." `bodyText` is stored in the database (needed for grounding and review, FR-017) but should not be echoed into application logs verbatim.
+`phoneNumber` and `contactWhatsappSnapshot` MUST be masked before appearing in any log line this feature writes (e.g. `***3456` — last 4 digits only), matching "los números de teléfono MUST enmascararse antes de registrarse." This is implemented once, as `lib/whatsapp/mask-phone.ts`, and every task that logs either field calls it — masking is never left to be remembered ad hoc at each call site. `bodyText` is stored in the database (needed for grounding and review, FR-017) but should not be echoed into application logs verbatim. `WhatsAppAiCall` never stores a phone number at all, so it needs no masking.
 
-## Migration checklist (for the Phase 2 tasks that create this)
+## Retention scope (FR-022, spec Assumptions)
 
-- [ ] `CREATE TYPE` for all three enums
-- [ ] `CREATE TABLE` for `WhatsAppConversation`, `WhatsAppMessage`, `WhatsAppEscalation`
+The 90-day retention/deletion rule applies to exactly three tables and nothing else:
+
+- **In scope**: `WhatsAppConversation`, `WhatsAppMessage`, `WhatsAppEscalation` (`WhatsAppMessage` and `WhatsAppEscalation` cascade-delete automatically when their parent `WhatsAppConversation` is deleted, per their `onDelete: Cascade` FKs above — the retention job only ever needs to delete from `WhatsAppConversation` directly).
+- **Never in scope**: any wizard-owned table (`OnboardingSession` and everything under it) — this feature has no delete path to those under any circumstance, retention included.
+- **Never in scope, by design**: `WhatsAppAiCall` — it holds no prospect personal data (no phone number, no message text), only cost/token figures needed indefinitely for SC-003's ongoing comparison against the $600/month baseline. This is why its `conversationId` FK (above) has no `onDelete: Cascade`: deleting a 91-day-old conversation must not silently erase that month's cost history.
+
+## Migration checklist (for the Phase 1 tasks that create this)
+
+- [ ] `CREATE TYPE` for all four enums
+- [ ] `CREATE TABLE` for `WhatsAppConversation`, `WhatsAppMessage`, `WhatsAppEscalation`, `WhatsAppAiCall`
 - [ ] Unique index on `WhatsAppConversation.phoneNumber` and `WhatsAppMessage.whatsappMessageId`
-- [ ] `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` for all three (constitution Principle V — non-negotiable)
+- [ ] `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` for all four (constitution Principle V — non-negotiable, including `WhatsAppAiCall` even though it holds no personal data — the rule is per-table, not conditional on content)
 - [ ] No `ALTER` to any existing table
