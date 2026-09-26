@@ -83,8 +83,17 @@ Both calls use the Haiku-class model (research.md, decision 6/7) and route throu
 
 Two Cloud API calls this feature makes, both authenticated with `WHATSAPP_ACCESS_TOKEN` against `https://graph.facebook.com/v<version>/<WHATSAPP_PHONE_NUMBER_ID>/messages`:
 
-- `sendTextMessage(to, body)` — every reply to a prospect.
+- `sendTextMessage(to, body)` — every reply to a prospect, including Ulises's manual replies via the escalation reply page below.
 - `sendTemplateMessage(to, templateName, params)` — the escalation alert to Ulises's personal number, since a business-initiated message outside the 24h customer service window requires a pre-approved Meta utility template (per the plan's explicit requirement and `docs/respuestas-preguntas-abiertas.md` question 8).
+
+## Internal escalation reply page (Plan B if coexistence isn't eligible — research.md, decision 2)
+
+Route: `app/whatsapp/escalations/[conversationId]/reply/page.tsx` (a page, not an API route — Ulises opens it directly from a link in the escalation email).
+
+- **Access**: a signed token in the URL query string (HMAC of `conversationId` + expiry, keyed by a new `WHATSAPP_ESCALATION_TOKEN_SECRET`), the same shared-secret pattern this repo already uses for `INTERNAL_API_KEY` on `/api/update-meeting` — no login system, since this app has none (`CLAUDE.md`).
+- **Reads**: that conversation's recent `WhatsAppMessage` rows, for context.
+- **Writes**: on submit, calls `sendTextMessage` for that conversation's `phoneNumber` and inserts a `WhatsAppMessage` row (`direction: OUTBOUND`) — reuses the exact same send path and data model the agent itself uses, so there is no second notion of "how a message gets sent."
+- **Does not**: change `WhatsAppConversation.stage` away from `ESCALATED`, or re-enable automated replies — this is a manual channel for the human who already owns the conversation, not a hand-back mechanism (hand-back is a separate, deliberate action per spec Assumptions).
 
 ## New environment variables
 
@@ -95,6 +104,7 @@ Two Cloud API calls this feature makes, both authenticated with `WHATSAPP_ACCESS
 | `WHATSAPP_VERIFY_TOKEN` | Shared secret for the GET handshake |
 | `WHATSAPP_APP_SECRET` | HMAC key for `X-Hub-Signature-256` verification |
 | `WHATSAPP_ESCALATION_TEMPLATE_NAME` | Name of the pre-approved Meta utility template used for Ulises's alert |
+| `WHATSAPP_ESCALATION_TOKEN_SECRET` | HMAC key signing the escalation reply page's access token (Plan B, decision 2) |
 | `ULISES_WHATSAPP_NUMBER` | Ulises's personal number, escalation alert recipient |
 | `ANTHROPIC_API_KEY` | Single Claude adapter auth |
 

@@ -20,11 +20,21 @@ Each section resolves one open decision from the plan input. Where a fact depend
 
 **Decision**: Assume Meta's "Coexistence" feature (WhatsApp Business app linked to the Cloud API on the same number, so Ulises keeps using the WhatsApp Business app for manual replies while the Cloud API serves the automated agent) is the target model — but **treat its eligibility as unverified** until confirmed directly in Meta Business Suite for this specific number and WABA at cutover time. Coexistence has historically had rollout/region/account-tier gating that isn't fully controllable from documentation alone.
 
-**Action required before cutover** (not before this plan): in Meta Business Suite, check whether the production WABA is offered the "Business app + Cloud API coexistence" option; if not offered, the fallback is that Ulises's manual replies happen from a *different* channel (e.g., a WhatsApp Business app on a different number, or purely through this app's own admin surface) rather than the same number — which would change spec Assumption "Ulises answers from WhatsApp Business on that same number" and should trigger a spec amendment at that point, not a silent workaround.
+**Action required before cutover** (not before this plan): in Meta Business Suite, check whether the production WABA is offered the "Business app + Cloud API coexistence" option.
 
 **Rationale**: This is a real Meta account-configuration fact, not something resolvable by reading code or writing more spec — it needs to be checked against the live Meta dashboard for this specific number.
 
-**Alternatives considered**: Route Ulises's manual replies through a second, dedicated number — rejected as the default because it would require prospects to potentially see a different number reply than the one they messaged, a worse experience than what ManyChat already provides today (single number, per `docs/legacy/`). Kept as the documented fallback, not the plan.
+**Plan B if coexistence is not eligible** — simplest, zero-cost option: Ulises never needs the WhatsApp Business app on that number at all. Instead, an **internal reply-relay page** in this same app lets him send a message through the *same* Cloud API number and phone number the agent already uses, via `lib/whatsapp/client.ts`'s existing `sendTextMessage` — no new send path, no new number, no Meta coexistence dependency, and the prospect still only ever sees one number.
+
+Mechanics, kept intentionally minimal:
+
+- The escalation email to `admin@nexoru.ai` (already sent per FR-012) includes a link to `/whatsapp/escalations/[conversationId]/reply`, carrying a signed token (HMAC of the conversation id + a short expiry, using a secret env var — the same pattern this repo already uses for `INTERNAL_API_KEY` on `/api/update-meeting`) instead of building a login system, since this app has no user-auth model (`CLAUDE.md`: "There is no authentication").
+- That page shows the conversation's recent messages (read-only context) and a single textbox; submitting it calls `lib/whatsapp/client.ts`'s `sendTextMessage` for that prospect's number and appends a `WhatsAppMessage` row (`direction: OUTBOUND`) — the same data model already designed for the agent's own replies, just triggered by Ulises instead of the AI adapter.
+- The conversation stays `ESCALATED` and the agent still never auto-replies to it (FR-013 unaffected) — this page is purely a manual send path for the human who already owns the conversation.
+
+**Rationale for Plan B being the default fallback, not just a documented afterthought**: it costs nothing (reuses the send function and data model already being built for the agent itself), needs no Meta feature approval, and removes the coexistence dependency from the critical path entirely — if coexistence *is* eligible, this page still isn't wasted work, since it doubles as a way to review escalated conversations regardless.
+
+**Alternatives considered**: Route Ulises's manual replies through a second, dedicated number — rejected because it would require prospects to potentially see a different number reply than the one they messaged, a worse experience than what ManyChat already provides today (single number, per `docs/legacy/`), and it doesn't remove any dependency the reply-relay page doesn't already remove for free.
 
 ## 3. Hosting: consolidate the two Vercel projects, stay on Pro
 

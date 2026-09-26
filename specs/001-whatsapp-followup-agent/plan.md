@@ -67,7 +67,11 @@ No new project. New files land inside the existing single Next.js app:
 app/api/whatsapp/
 ├── webhook/
 │   └── route.ts              # GET (Meta verification handshake) + POST (inbound messages)
-└── — (no other new routes; outbound sends happen from within the webhook handler)
+└── — (no other new API routes; outbound sends happen from within the webhook handler)
+
+app/whatsapp/escalations/[conversationId]/reply/
+└── page.tsx                   # Plan B for coexistence (research.md, decision 2): Ulises's
+                                # signed-link manual reply page, same send path as the agent
 
 lib/whatsapp/
 ├── client.ts                  # Cloud API send-message calls (text messages, template messages)
