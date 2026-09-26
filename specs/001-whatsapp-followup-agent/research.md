@@ -40,9 +40,38 @@ Each section resolves one open decision from the plan input. Where a fact depend
 
 **Decision**: Provision a **Neon Postgres** project connected via the Vercel Marketplace integration, using Neon's branch-per-preview capability so every Vercel preview deployment (including PRs for this feature) gets its own disposable database branch instead of touching the production Supabase project or one of Supabase's limited free-project slots.
 
-**Rationale**: Supabase's free tier caps the number of free projects per organization, and the production project (`appnexoru`) already occupies one — spinning up a second Supabase project for previews would either cost money or compete for that limited free slot. Neon's free tier is generous enough for a low-traffic preview database and its Vercel-native integration automatically provisions/tears down a branch per preview deployment, which is a better fit than manually managing one shared "staging" database (shared staging DBs get stale/dirty across concurrent PRs). `prisma migrate deploy` (including the RLS-enabling migrations) runs identically against a Neon branch — Neon has no Supabase-style auto-exposed `anon`/`authenticated` REST API, so RLS isn't strictly load-bearing there the way it is on Supabase, but the migrations apply harmlessly and keep schema history identical across environments.
+**Rationale**: Supabase's free tier caps the number of free projects per organization, and the production project (`appnexoru`) already occupies one — spinning up a second Supabase project for previews would either cost money or compete for that limited free slot. Neon's free tier is generous enough for a low-traffic preview database and its Vercel-native integration automatically provisions/tears down a branch per preview deployment, which is a better fit than manually managing one shared "staging" database (shared staging DBs get stale/dirty across concurrent PRs). Neon has no Supabase-style auto-exposed `anon`/`authenticated` REST API, so RLS isn't load-bearing there the way it is on Supabase — but the migration history still needs to *apply* cleanly there, which required fixing a real problem (below), not just assuming it.
 
-**Alternatives considered**: A second Supabase project — rejected due to the free-project ceiling; a shared long-lived staging Postgres — rejected because concurrent preview branches would corrupt each other's WhatsApp conversation test data, defeating the purpose of testing in isolation.
+**Verified problem — migrations do NOT apply harmlessly on a clean, non-Supabase Postgres.** Tested directly: spun up a disposable local Postgres cluster with no prior setup and ran `prisma migrate deploy` for all 10 existing migrations against it. Migration 10 (`20260925021002_enable_rls_public_schema`) failed with `ERROR: role "anon" does not exist` — and after creating just `anon`/`authenticated`/`service_role`, it failed a second time with `ERROR: role "postgres" does not exist`, because the same migration also runs `ALTER DEFAULT PRIVILEGES FOR ROLE postgres ...`. Neither role name is anything special to vanilla Postgres — they only exist on Supabase because Supabase's platform bootstraps them; a fresh Neon branch never had that bootstrap run, so both statements reference roles that simply aren't there.
+
+**Decision on the fix**: create the missing roles (`postgres`, `anon`, `authenticated`, `service_role`) as inert, `NOLOGIN`, no-privilege placeholders **when preparing a non-Supabase database**, via a small idempotent bootstrap script run once before `prisma migrate deploy` — not by editing the already-applied migration file. Editing that file's SQL after the fact was considered and rejected: Prisma records a checksum of each migration file when it's applied, and `20260925021002_enable_rls_public_schema` is already applied on production (Supabase, via PR #4) — changing its content would create a checksum mismatch that breaks `prisma migrate deploy`/`status` on production until manually reconciled with `prisma migrate resolve`, a production-affecting operation this decision has no reason to force. Creating the roles up front sidesteps that entirely: once they exist, the migration's `REVOKE`/`ALTER DEFAULT PRIVILEGES` statements against them become harmless no-ops (there was never anything granted to revoke on a fresh Neon branch anyway), and no migration file changes.
+
+The bootstrap script (idempotent — safe to run against a database that already has some or all of these roles, e.g. if Neon's own template ever includes a `postgres` role):
+
+```sql
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'postgres') THEN
+    CREATE ROLE postgres NOLOGIN;
+  END IF;
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'anon') THEN
+    CREATE ROLE anon NOLOGIN;
+  END IF;
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'authenticated') THEN
+    CREATE ROLE authenticated NOLOGIN;
+  END IF;
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'service_role') THEN
+    CREATE ROLE service_role NOLOGIN;
+  END IF;
+END
+$$;
+```
+
+**Verified fix**: re-ran the same test — reset the clean database, applied this bootstrap script, then ran `prisma migrate deploy` for all 10 migrations. All 10 applied successfully, `prisma migrate status` reported "Database schema is up to date!", and a direct query confirmed 20/20 tables have `relrowsecurity = true`, matching production exactly. Also confirmed the bootstrap script is idempotent (ran it twice back-to-back with no error) so it's safe to include as a standard step for every fresh Neon branch, not just the first one.
+
+**Task-list implication (for `/speckit-tasks`, not built here)**: this bootstrap script should ship as a checked-in file (e.g. `prisma/bootstrap-non-supabase-roles.sql`) and be documented as a required one-time step per new Neon branch/database — either run manually or wired into whatever provisions the branch — before `prisma migrate deploy` runs against it. It is **not** needed against the production Supabase database, which already has these roles.
+
+**Alternatives considered**: Editing the already-applied migration to wrap its `anon`/`authenticated`/`postgres` references in existence checks — rejected for the checksum/production-drift reason above; a second Supabase project for previews — rejected due to the free-project ceiling; a shared long-lived staging Postgres — rejected because concurrent preview branches would corrupt each other's WhatsApp conversation test data, defeating the purpose of testing in isolation.
 
 ## 5. Burst-message grouping in serverless
 
