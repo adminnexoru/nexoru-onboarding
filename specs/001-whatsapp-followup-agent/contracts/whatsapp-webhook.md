@@ -84,7 +84,7 @@ Both calls use the Haiku-class model (research.md, decision 6/7) and route throu
 Two Cloud API calls this feature makes, both authenticated with `WHATSAPP_ACCESS_TOKEN` against `https://graph.facebook.com/v<version>/<WHATSAPP_PHONE_NUMBER_ID>/messages`:
 
 - `sendTextMessage(to, body)` — every reply to a prospect, including Ulises's manual replies via the escalation reply page below.
-- `sendTemplateMessage(to, templateName, params)` — the escalation alert to Ulises's personal number, since a business-initiated message outside the 24h customer service window requires a pre-approved Meta utility template (per the plan's explicit requirement and `docs/respuestas-preguntas-abiertas.md` question 8).
+- `sendTemplateMessage(to, templateName, params)` — the escalation alert to Ulises's personal number, since a business-initiated message outside the 24h customer service window requires a pre-approved Meta utility template (per the plan's explicit requirement and `docs/respuestas-preguntas-abiertas.md` question 8). Called at most once per hour per prospect phone number (research.md, decision 6) — the conversation is always moved to `ESCALATED` regardless, only the repeat notification is skipped (`WhatsAppEscalation.rateLimited`, data-model.md).
 
 ## Internal escalation reply page (Plan B if coexistence isn't eligible — research.md, decision 2)
 

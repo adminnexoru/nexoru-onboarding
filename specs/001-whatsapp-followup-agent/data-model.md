@@ -51,8 +51,9 @@ One row per escalation event. Backs the spec's **Escalation** entity.
 | `conversationId` | `String` | FK to `WhatsAppConversation.id`, `onDelete: Cascade`. |
 | `reason` | `WhatsAppEscalationReason` (enum) | `HUMAN_REQUESTED \| UNABLE_TO_RESOLVE` — matches spec FR-010/FR-011 exactly. |
 | `occurredDuringBusinessHours` | `Boolean` | Whether the escalation happened inside 10:00–15:00 America/Mexico_City (FR-014); drives whether the out-of-hours notice was sent to the prospect (SC-006). |
-| `whatsappAlertSentAt` | `DateTime?` | Null if the Meta utility-template alert to Ulises failed or was never confirmed delivered. |
-| `emailSentAt` | `DateTime?` | The reliable fallback (FR-012, per the clarification session) — this field, not `whatsappAlertSentAt`, is what SC-005 checks to consider the escalation "delivered." |
+| `whatsappAlertSentAt` | `DateTime?` | Null if the Meta utility-template alert to Ulises failed, was never confirmed delivered, or was suppressed by `rateLimited` below. |
+| `emailSentAt` | `DateTime?` | The reliable fallback (FR-012, per the clarification session) — this field, not `whatsappAlertSentAt`, is what SC-005 checks to consider the escalation "delivered." Also null when `rateLimited`. |
+| `rateLimited` | `Boolean @default(false)` | True when this escalation was recorded (conversation still moved to `ESCALATED`, agent still goes silent) but the alert send was skipped because this phone number already triggered an alert within the last hour (research.md, decision 6). Distinguishes "we chose not to notify Ulises again" from "we tried and failed." |
 | `createdAt` | `DateTime @default(now())` | |
 
 Relation: `conversation WhatsAppConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)`.
