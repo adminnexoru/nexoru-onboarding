@@ -1,23 +1,37 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 → 1.0.1 (PATCH)
+- Version change: 1.0.0 → 1.0.1 → 1.1.0
 - Modified principles:
-  - V. Seguridad y Privacidad por Defecto — added a concrete requirement
-    that every migration creating one or more tables MUST enable Row
-    Level Security on each new table; rationale extended to explain why
-    (Prisma connects as the `postgres` role, which bypasses RLS, but
-    Supabase's auto-exposed REST/GraphQL API authenticates as `anon`/
-    `authenticated`, which do not bypass RLS and receive full CRUD
-    grants by default on any new public-schema table). This clarifies
-    and extends the existing principle's scope; it does not redefine or
-    remove anything, hence PATCH rather than MINOR.
-- Added principles: none
+  - V. Seguridad y Privacidad por Defecto (1.0.0 → 1.0.1, PATCH, from
+    branch fix/rls-supabase) — added a concrete requirement that every
+    migration creating one or more tables MUST enable Row Level Security
+    on each new table; rationale extended to explain why (Prisma
+    connects as the `postgres` role, which bypasses RLS, but Supabase's
+    auto-exposed REST/GraphQL API authenticates as `anon`/`authenticated`,
+    which do not bypass RLS and receive full CRUD grants by default on
+    any new public-schema table). This clarified and extended the
+    existing principle's scope; it did not redefine or remove anything,
+    hence PATCH.
+- Added principles:
+  - VI. El Wizard Como Único Punto de Calificación y Propuesta (1.0.1 →
+    1.1.0, MINOR, from branch 001-whatsapp-followup-agent) — every
+    catalog service is contracted through the wizard, which is the sole
+    place that qualifies a prospect, generates a proposal, and schedules;
+    every other channel (WhatsApp, email, landing) only informs, follows
+    up, or redirects to the wizard, never qualifies or proposes on its
+    own. This is a new principle (product-scope boundary, not previously
+    covered by any existing principle), hence MINOR rather than PATCH.
 - Added sections: none
 - Removed sections: none
-- Templates requiring follow-up: none checked in this pass (out of scope per
-  the constitution command's Scope Guard — dependent templates read this file
-  at runtime and are not modified here)
-- Deferred TODOs: none
+- Templates requiring follow-up: verified specs/001-whatsapp-followup-agent/spec.md
+  for consistency with Principle VI (see that feature's /speckit-clarify
+  completion report) — out of scope per this command's Scope Guard to
+  edit it here even if it had been inconsistent; it was not.
+- Deferred TODOs: none. Both amendments above were developed independently
+  from the same 1.0.0 base on separate branches (fix/rls-supabase and
+  001-whatsapp-followup-agent) and reconciled here while rebasing the
+  latter onto main after fix/rls-supabase merged first. Final version is
+  1.1.0, carrying both changes; no content was dropped from either side.
 -->
 
 # NEXORU Constitution
@@ -87,6 +101,20 @@ tienen `BYPASSRLS` y reciben privilegios CRUD completos por defecto en
 cualquier tabla nueva de `public` — sin esta regla, cada tabla nueva nace
 expuesta fuera de la aplicación.
 
+### VI. El Wizard Como Único Punto de Calificación y Propuesta
+Todo servicio del catálogo de NEXORU MUST contratarse a través de un wizard.
+El wizard MUST ser el único punto donde se califica al prospecto, se genera
+la propuesta y se agenda. Los demás canales (WhatsApp, correo, landing) MUST
+limitarse a informar, dar seguimiento o redirigir al wizard; NO MUST
+calificar ni proponer por su cuenta.
+
+Rationale: Concentrar la calificación y la propuesta en un solo sistema evita
+lógica de negocio duplicada o inconsistente entre canales, y es lo que
+permite reconstruir un canal de seguimiento como WhatsApp (ver
+`specs/001-whatsapp-followup-agent/spec.md`) sin depender de ManyChat/Zapier,
+sin tener que replicar en él la lógica de calificación que ya vive en el
+wizard.
+
 ## Calidad y Flujo de Entrega
 
 TypeScript MUST usarse en modo estricto en todo el código nuevo. El webhook de
@@ -112,4 +140,4 @@ principios antes de hacer merge; cualquier excepción MUST justificarse
 explícitamente en la descripción del PR. Para guía operativa de desarrollo día
 a día, ver `CLAUDE.md`.
 
-**Version**: 1.0.1 | **Ratified**: 2026-09-24 | **Last Amended**: 2026-09-25
+**Version**: 1.1.0 | **Ratified**: 2026-09-24 | **Last Amended**: 2026-09-25
